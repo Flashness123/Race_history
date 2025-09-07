@@ -12,13 +12,16 @@ export default function Map({ geojson }: { geojson: any }) {
     if (!mapContainer.current || mapRef.current) return;
 
     const map = new maplibregl.Map({
-      container: mapContainer.current,
-      style: "https://demotiles.maplibre.org/style.json",
-      center: [10, 47],
-      zoom: 4,
+      container: mapContainer.current!,
+      style: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json", // 🌍 Streets + labels
+      center: [14.42076, 50.08804], // default Prague
+      zoom: 5,
     });
 
     mapRef.current = map;
+
+    // ✅ Zoom buttons
+    map.addControl(new maplibregl.NavigationControl(), "top-right");
 
     map.on("load", () => {
       map.addSource("races", {
@@ -38,6 +41,7 @@ export default function Map({ geojson }: { geojson: any }) {
         },
       });
 
+      // Popup on click
       map.on("click", "races-circle", (e) => {
         const f = e.features?.[0];
         if (!f) return;
@@ -52,7 +56,7 @@ export default function Map({ geojson }: { geojson: any }) {
             Year: ${p.year}
             ${p.source_url ? `<br/><a href="${p.source_url}" target="_blank">source</a>` : ""}
           `)
-          .addTo(mapRef.current!);
+          .addTo(map);
       });
 
       map.on("mouseenter", "races-circle", () => {
@@ -63,13 +67,16 @@ export default function Map({ geojson }: { geojson: any }) {
       });
     });
 
-    return () => map.remove();
-  }, [geojson]);
+    return () => {
+      map.remove();
+      mapRef.current = null; // ✅ prevent stale reference
+    };
+  }, []);
 
-  // Update data when races change
+  // ✅ Update data safely
   useEffect(() => {
     const m = mapRef.current;
-    if (m && m.getSource("races")) {
+    if (m && m.isStyleLoaded() && m.getSource("races")) {
       (m.getSource("races") as maplibregl.GeoJSONSource).setData(geojson);
     }
   }, [geojson]);

@@ -1,7 +1,10 @@
 from datetime import datetime
-from sqlalchemy import String, Integer, DateTime, ForeignKey, UniqueConstraint
+from sqlalchemy import String, Integer, DateTime, ForeignKey, UniqueConstraint, Boolean, Enum, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from geoalchemy2 import Geography
+import enum
+from passlib.hash import bcrypt
+from typing import Optional
 
 from app.core.db import Base
 
@@ -39,3 +42,32 @@ class Result(Base):
     person: Mapped[Person] = relationship(back_populates="results")
     event: Mapped[RaceEvent] = relationship(back_populates="results")
     __table_args__ = (UniqueConstraint("event_id", "position", name="uq_event_position"),)
+
+class Role(enum.Enum):
+    OWNER = "OWNER"
+    ADMIN = "ADMIN"
+    USER = "USER"
+
+class User(Base):
+    __tablename__ = "users"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    name: Mapped[Optional[str]] = mapped_column(String(120))
+    password_hash: Mapped[str] = mapped_column(String(255))
+    role: Mapped[Role] = mapped_column(Enum(Role), default=Role.USER)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    @staticmethod
+    def hash_password(pw: str) -> str:
+        return bcrypt.hash(pw)
+
+    def verify_password(self, pw: str) -> bool:
+        return bcrypt.verify(pw, self.password_hash)
+
+class Submission(Base):
+    __tablename__ = "submissions"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    submitted_by_user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
+    payload: Mapped[dict] = mapped_column(JSON)  # {name,year,lat,lng,location, source_url, top3?}
+    status: Mapped[str] = mapped_column(String(20), default="PENDING")  # PENDING/APPROVED/REJECTED
+    review_note: Mapped[str | None]
