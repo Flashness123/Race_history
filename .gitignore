@@ -1,0 +1,31 @@
+# --- global ---
+.DS_Store
+*.log
+*.sqlite
+__pycache__/
+*.pyc
+
+# --- Python backend ---
+backend/.venv/
+backend/.env
+backend/.pytest_cache/
+backend/.mypy_cache/
+backend/.coverage
+backend/htmlcov/
+backend/alembic/__pycache__/
+backend/alembic/versions/__pycache__/
+
+# --- Node frontend ---
+frontend/node_modules/
+frontend/.next/
+frontend/.turbo/
+frontend/.env.local
+frontend/.env
+frontend/.vercel
+
+# --- Docker volumes (compose creates a named volume; nothing to ignore here) ---
+# If you later bind-mount local dirs, list them here.
+
+# --- IDE ---
+.vscode/
+.idea/
