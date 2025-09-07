@@ -56,6 +56,7 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String(255))
     role: Mapped[Role] = mapped_column(Enum(Role), default=Role.USER)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    can_submit: Mapped[bool] = mapped_column(Boolean, default=True)
 
     @staticmethod
     def hash_password(pw: str) -> str:

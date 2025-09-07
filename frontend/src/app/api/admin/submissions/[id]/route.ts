@@ -1,21 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(
+export async function DELETE(
   req: NextRequest,
-  ctx: { params: Promise<{ id: string }> } // 👈 params are async in Next 15
+  ctx: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await ctx.params; // 👈 await them
+  const { id } = await ctx.params; // Next 15: await params
   const token = req.cookies.get("auth")?.value;
   if (!token) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/submissions/${id}/approve`, {
-    method: "POST",
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/submissions/${id}`, {
+    method: "DELETE",
     headers: { Authorization: `Bearer ${token}` },
   });
 
-  // Be defensive: backend might return non-JSON on error
-  let data: any = null;
   const text = await res.text();
+  let data: any;
   try { data = JSON.parse(text); } catch { data = { error: text || "Unknown error" }; }
 
   return NextResponse.json(data, { status: res.status });

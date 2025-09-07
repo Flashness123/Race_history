@@ -2,12 +2,7 @@
 import { useState } from "react";
 import MapPicker from "@/components/MapPicker";
 
-type Rider = { 
-  name: string; 
-  country?: string; 
-  position: number;
-  instagram?: string;
-};
+type Rider = { name: string; country?: string; instagram?: string; position: number };
 
 export default function Submit() {
   const [form, setForm] = useState({
@@ -17,37 +12,47 @@ export default function Submit() {
     lat: 50.08804,
     lng: 14.42076,
     source_url: "",
-    instagram: "",   // ✅ added Instagram
     top3: [
-      { name: "", country: "", position: 1 },
-      { name: "", country: "", position: 2 },
-      { name: "", country: "", position: 3 },
+      { name: "", country: "", instagram: "", position: 1 },
+      { name: "", country: "", instagram: "", position: 2 },
+      { name: "", country: "", instagram: "", position: 3 },
     ] as Rider[],
   });
   const [ok, setOk] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
+  // IMPORTANT: functional updater, so we never lose other fields
   function setRider(i: number, patch: Partial<Rider>) {
-    const next = [...form.top3];
-    next[i] = { ...next[i], ...patch };
-    setForm({ ...form, top3: next });
+    setForm(prev => {
+      const next = [...prev.top3];
+      next[i] = { ...next[i], ...patch };
+      return { ...prev, top3: next };
+    });
   }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErr(null);
     setOk(null);
-    const res = await fetch("/api/submit", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      setErr(data?.error || "Failed");
-      return;
+    setBusy(true);
+    try {
+      const res = await fetch("/api/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setErr(data?.error || "Failed");
+        return;
+      }
+      setOk(`Submitted #${data.id}. Awaiting approval.`);
+    } catch (e: any) {
+      setErr(e.message || "Network error");
+    } finally {
+      setBusy(false);
     }
-    setOk(`Submitted #${data.id}. Awaiting approval.`);
   }
 
   return (
@@ -60,36 +65,8 @@ export default function Submit() {
           <input
             className="border rounded p-2"
             value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))}
           />
-        </div>
-
-        {/* Top 3 Riders */}
-        <div className="grid gap-3">
-          <div className="font-medium">Top 3 riders</div>
-          {[0,1,2].map((i)=>(
-            <div key={i} className="grid grid-cols-[60px_1fr_120px_1fr] gap-2 items-center">
-              <span className="text-sm">#{i+1}</span>
-              <input
-                className="border rounded p-2"
-                placeholder="Full name"
-                value={form.top3[i].name}
-                onChange={(e)=>setRider(i,{name:e.target.value})}
-              />
-              <input
-                className="border rounded p-2"
-                placeholder="Country (ISO-2)"
-                value={form.top3[i].country||""}
-                onChange={(e)=>setRider(i,{country:e.target.value})}
-              />
-              <input
-                className="border rounded p-2"
-                placeholder="Instagram (optional)"
-                value={form.top3[i].instagram||""}
-                onChange={(e)=>setRider(i,{instagram:e.target.value})}
-              />
-            </div>
-          ))}
         </div>
 
         {/* Year + Location */}
@@ -101,7 +78,7 @@ export default function Submit() {
               className="border rounded p-2"
               value={form.year}
               onChange={(e) =>
-                setForm({ ...form, year: Number(e.target.value) })
+                setForm(prev => ({ ...prev, year: Number(e.target.value) }))
               }
             />
           </div>
@@ -111,7 +88,7 @@ export default function Submit() {
               className="border rounded p-2"
               value={form.location}
               onChange={(e) =>
-                setForm({ ...form, location: e.target.value })
+                setForm(prev => ({ ...prev, location: e.target.value }))
               }
             />
           </div>
@@ -127,7 +104,7 @@ export default function Submit() {
               className="border rounded p-2"
               value={form.lat}
               onChange={(e) =>
-                setForm({ ...form, lat: Number(e.target.value) })
+                setForm(prev => ({ ...prev, lat: Number(e.target.value) }))
               }
             />
           </div>
@@ -139,17 +116,17 @@ export default function Submit() {
               className="border rounded p-2"
               value={form.lng}
               onChange={(e) =>
-                setForm({ ...form, lng: Number(e.target.value) })
+                setForm(prev => ({ ...prev, lng: Number(e.target.value) }))
               }
             />
           </div>
         </div>
 
-        {/* Map Picker */}
+        {/* Map Picker — functional updater onPick */}
         <MapPicker
           lat={form.lat}
           lng={form.lng}
-          onPick={(lat, lng) => setForm({ ...form, lat, lng })}
+          onPick={(lat, lng) => setForm(prev => ({ ...prev, lat, lng }))}
         />
 
         {/* Source URL */}
@@ -159,13 +136,49 @@ export default function Submit() {
             className="border rounded p-2"
             value={form.source_url}
             onChange={(e) =>
-              setForm({ ...form, source_url: e.target.value })
+              setForm(prev => ({ ...prev, source_url: e.target.value }))
             }
           />
         </div>
 
+        {/* Top 3 Riders */}
+        <div className="grid gap-3">
+          <div className="font-medium">Top 3 riders</div>
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className="grid grid-cols-[60px_1fr_120px_1fr] gap-2 items-center"
+            >
+              <span className="text-sm">#{i + 1}</span>
+              <input
+                className="border rounded p-2"
+                placeholder="Full name"
+                value={form.top3[i].name}
+                onChange={(e) => setRider(i, { name: e.target.value })}
+              />
+              <input
+                className="border rounded p-2"
+                placeholder="Country (ISO-2)"
+                value={form.top3[i].country || ""}
+                onChange={(e) => setRider(i, { country: e.target.value })}
+              />
+              <input
+                className="border rounded p-2"
+                placeholder="Instagram (optional)"
+                value={form.top3[i].instagram || ""}
+                onChange={(e) => setRider(i, { instagram: e.target.value })}
+              />
+            </div>
+          ))}
+        </div>
+
         {/* Submit button */}
-        <button className="bg-black text-white rounded p-2">Submit</button>
+        <button
+          className="bg-black text-white rounded p-2 disabled:opacity-60"
+          disabled={busy}
+        >
+          {busy ? "Submitting…" : "Submit"}
+        </button>
       </form>
 
       {/* Feedback */}

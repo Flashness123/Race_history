@@ -1,22 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(
+export async function PATCH(
   req: NextRequest,
-  ctx: { params: Promise<{ id: string }> } // 👈 params are async in Next 15
+  ctx: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await ctx.params; // 👈 await them
+  const { id } = await ctx.params;
   const token = req.cookies.get("auth")?.value;
   if (!token) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/submissions/${id}/approve`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
+  const body = await req.json();
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/admin/users/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(body),
   });
 
-  // Be defensive: backend might return non-JSON on error
-  let data: any = null;
   const text = await res.text();
+  let data: any;
   try { data = JSON.parse(text); } catch { data = { error: text || "Unknown error" }; }
-
   return NextResponse.json(data, { status: res.status });
 }
