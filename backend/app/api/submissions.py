@@ -6,6 +6,7 @@ from geoalchemy2 import Geography
 from app.core.db import get_db
 from app.core.security import get_current_user_claims, require_role
 from app.models.models import Submission, RaceEvent, Result, Person, User
+from app.core.norm import norm
 
 router = APIRouter(prefix="/submissions", tags=["submissions"])
 
@@ -65,15 +66,24 @@ def approve(submission_id: int, db: Session = Depends(get_db)):
 
     # optional top-3 with instagram
     for item in (p.get("top3") or []):
-        person = db.scalar(select(Person).where(Person.full_name == item["name"]))
+        n = norm(item["name"])  # normalized key
+        person = db.scalar(select(Person).where(Person.full_name_norm == n))
         if not person:
-            person = Person(full_name=item["name"], country=item.get("country"))
+            person = Person(
+                full_name=item["name"],
+                full_name_norm=n,
+                country=item.get("country"),
+            )
             db.add(person); db.flush()
-        db.add(Result(event_id=ev.id, person_id=person.id, position=int(item["position"])))
 
-    sub.status = "APPROVED"
-    db.commit()
-    return {"ok": True, "event_id": ev.id}
+        db.add(Result(
+            event_id=ev.id,
+            person_id=person.id,
+            position=int(item["position"])
+        ))
+        sub.status = "APPROVED"
+        db.commit()
+        return {"ok": True, "event_id": ev.id}
 
 @router.delete("/{submission_id}", dependencies=[Depends(require_role("ADMIN","OWNER"))])
 def delete_submission(submission_id: int, db: Session = Depends(get_db)):

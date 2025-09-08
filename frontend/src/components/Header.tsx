@@ -30,6 +30,7 @@ export default function Header() {
           {me.authenticated && (me.user?.role === "ADMIN" || me.user?.role === "OWNER") && (
             <Link href="/admin" className="text-sm hover:underline">Admin</Link>
           )}
+          {me.authenticated && <Link href="/u/me" className="text-sm hover:underline">My bio</Link>}
           {!me.authenticated ? (
             <div className="flex gap-2">
                 <Link href="/login" className="px-3 py-1.5 rounded bg-black text-white text-sm">

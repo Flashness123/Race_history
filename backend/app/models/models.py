@@ -5,13 +5,17 @@ from geoalchemy2 import Geography
 import enum
 from passlib.hash import bcrypt
 from typing import Optional
-
+from sqlalchemy import event
+from app.core.norm import norm
 from app.core.db import Base
+
+
 
 class Person(Base):
     __tablename__ = "people"
     id: Mapped[int] = mapped_column(primary_key=True)
     full_name: Mapped[str] = mapped_column(String(160), index=True)
+    full_name_norm: Mapped[str | None] = mapped_column(String(160), index=True)
     country: Mapped[str | None] = mapped_column(String(2))
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
     results: Mapped[list["Result"]] = relationship(back_populates="person")
@@ -53,6 +57,8 @@ class User(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     name: Mapped[Optional[str]] = mapped_column(String(120))
+    display_name: Mapped[str | None] = mapped_column(String(160))
+    display_name_norm: Mapped[str | None] = mapped_column(String(160), unique=True)
     password_hash: Mapped[str] = mapped_column(String(255))
     role: Mapped[Role] = mapped_column(Enum(Role), default=Role.USER)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
@@ -64,6 +70,17 @@ class User(Base):
 
     def verify_password(self, pw: str) -> bool:
         return bcrypt.verify(pw, self.password_hash)
+    
+@event.listens_for(User, "before_insert")
+def _user_before_insert(mapper, conn, target: User):
+    target.display_name = target.display_name or target.name
+    target.display_name_norm = norm(target.display_name or target.name)
+
+@event.listens_for(User, "before_update")
+def _user_before_update(mapper, conn, target: User):
+    # recompute every update; cheap and safe
+    target.display_name = target.display_name or target.name
+    target.display_name_norm = norm(target.display_name or target.name)
 
 class Submission(Base):
     __tablename__ = "submissions"
