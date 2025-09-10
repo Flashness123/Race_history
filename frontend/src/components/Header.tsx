@@ -31,6 +31,8 @@ export default function Header() {
             <Link href="/admin" className="text-sm hover:underline">Admin</Link>
           )}
           {me.authenticated && <Link href="/u/me" className="text-sm hover:underline">My bio</Link>}
+          <Link href="/riders" className="text-sm hover:underline">Riders</Link>
+
           {!me.authenticated ? (
             <div className="flex gap-2">
                 <Link href="/login" className="px-3 py-1.5 rounded bg-black text-white text-sm">

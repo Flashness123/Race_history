@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import String, Integer, DateTime, ForeignKey, UniqueConstraint, Boolean, Enum, JSON
+from sqlalchemy import String, Integer, DateTime, ForeignKey, UniqueConstraint, Boolean, Enum, JSON, Date, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from geoalchemy2 import Geography
 import enum
@@ -8,7 +8,7 @@ from typing import Optional
 from sqlalchemy import event
 from app.core.norm import norm
 from app.core.db import Base
-
+from datetime import date
 
 
 class Person(Base):
@@ -89,3 +89,13 @@ class Submission(Base):
     payload: Mapped[dict] = mapped_column(JSON)  # {name,year,lat,lng,location, source_url, top3?}
     status: Mapped[str] = mapped_column(String(20), default="PENDING")  # PENDING/APPROVED/REJECTED
     review_note: Mapped[str | None]
+
+class Bio(Base):
+    __tablename__ = "bios"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), unique=True, index=True)
+    nationality: Mapped[str | None] = mapped_column(String(2)) # ISO-2
+    place_of_birth: Mapped[str | None] = mapped_column(String(160))
+    date_of_birth: Mapped[date | None] = mapped_column(Date)
+    message: Mapped[str | None] = mapped_column(Text) # short motivational text
+    user: Mapped["User"] = relationship("User", backref="bio", uselist=False)
