@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
-export default function Map({ geojson }: { geojson: any }) {
+export default function Map({ geojson, onSelect }: { geojson: any, onSelect?: (id: number | null) => void }) {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
 
@@ -35,28 +35,32 @@ export default function Map({ geojson }: { geojson: any }) {
         source: "races",
         paint: {
           "circle-radius": 6,
-          "circle-color": "#2563eb",
+          // Future events in red, past in blue
+          "circle-color": [
+            "case",
+            ["==", ["get", "future"], true],
+            "#dc2626",
+            "#2563eb",
+          ],
           "circle-stroke-width": 1.5,
           "circle-stroke-color": "#fff",
         },
       });
 
-      // Popup on click
+      // Select on click
       map.on("click", "races-circle", (e) => {
         const f = e.features?.[0];
         if (!f) return;
-        const [lng, lat] = (f.geometry as any).coordinates;
         const p = f.properties as any;
+        onSelect?.(Number(p.id));
+      });
 
-        new maplibregl.Popup()
-          .setLngLat([lng, lat])
-          .setHTML(`
-            <strong>${p.name}</strong><br/>
-            ${p.location}<br/>
-            Year: ${p.year}
-            ${p.source_url ? `<br/><a href="${p.source_url}" target="_blank">source</a>` : ""}
-          `)
-          .addTo(map);
+      // Clear selection on background click
+      map.on("click", (e) => {
+        const features = map.queryRenderedFeatures(e.point, { layers: ["races-circle"] });
+        if (!features || features.length === 0) {
+          onSelect?.(null);
+        }
       });
 
       map.on("mouseenter", "races-circle", () => {

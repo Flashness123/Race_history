@@ -8,11 +8,11 @@ branch_labels = None
 depends_on = None
 
 def upgrade():
-    # Drop the unique constraint (name must match what exists in DB)
-    op.drop_constraint("uq_users_display_name_norm", "users", type_="unique")
-    # Create a non-unique index for lookups
-    op.create_index("ix_users_display_name_norm", "users", ["display_name_norm"], unique=False)
+    # Drop either the custom name or Postgres default name, if they exist
+    op.execute("ALTER TABLE users DROP CONSTRAINT IF EXISTS uq_users_display_name_norm;")
+    op.execute("ALTER TABLE users DROP CONSTRAINT IF EXISTS users_display_name_norm_key;")
 
 def downgrade():
-    op.drop_index("ix_users_display_name_norm", table_name="users")
-    op.create_unique_constraint("uq_users_display_name_norm", "users", ["display_name_norm"])
+    # (Optional) re-add if you really want to restore it on downgrade
+    # op.execute("ALTER TABLE users ADD CONSTRAINT uq_users_display_name_norm UNIQUE (display_name_norm);")
+    pass

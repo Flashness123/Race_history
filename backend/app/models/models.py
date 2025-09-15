@@ -33,6 +33,7 @@ class RaceEvent(Base):
     # NOTE: store as GEOGRAPHY(Point, 4326) for distance/bbox; use long,lat order for POINT
     geom = mapped_column(Geography(geometry_type="POINT", srid=4326))
     source_url: Mapped[str | None]
+    image_url: Mapped[str | None] = mapped_column(String(400))
     results: Mapped[list["Result"]] = relationship(back_populates="event")
 
 class Result(Base):
@@ -63,6 +64,7 @@ class User(Base):
     role: Mapped[Role] = mapped_column(Enum(Role), default=Role.USER)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     can_submit: Mapped[bool] = mapped_column(Boolean, default=True)
+    profile_image_url: Mapped[str | None] = mapped_column(String(400))
 
     @staticmethod
     def hash_password(pw: str) -> str:

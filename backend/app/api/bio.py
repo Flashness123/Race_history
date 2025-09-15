@@ -13,6 +13,7 @@ router = APIRouter(prefix="/bio", tags=["bio"])
 
 class BioOut(BaseModel):
     name: str | None
+    profile_image_url: str | None = None
     nationality: str | None = None
     place_of_birth: str | None = None
     date_of_birth: date | None = None
@@ -66,6 +67,7 @@ def get_my_bio(db: Session = Depends(get_db), claims: dict = Depends(get_current
     ach = _achievements(db, user)
     return BioOut(
         name=user.display_name or user.name,
+        profile_image_url=user.profile_image_url,
         nationality=bio.nationality if bio else None,
         place_of_birth=bio.place_of_birth if bio else None,
         date_of_birth=bio.date_of_birth if bio else None,
@@ -103,6 +105,7 @@ def update_my_bio(payload: BioIn, db: Session = Depends(get_db), claims: dict = 
 
     return BioOut(
         name=user.display_name or user.name,
+        profile_image_url=user.profile_image_url,
         nationality=bio.nationality,
         place_of_birth=bio.place_of_birth,
         date_of_birth=bio.date_of_birth,
@@ -117,6 +120,7 @@ class RiderListOut(BaseModel):
     name: str
     nationality: str | None
     achievements_count: int
+    profile_image_url: str | None = None
 
 @router.get("/riders", response_model=list[RiderListOut])
 def list_riders(db: Session = Depends(get_db)):
@@ -131,14 +135,62 @@ def list_riders(db: Session = Depends(get_db)):
             if person_ids:
                 count = db.execute(select(func.count(Result.id)).where(Result.person_id.in_(person_ids))).scalar() or 0
         bio = db.scalar(select(Bio).where(Bio.user_id == uid))
-        out.append(RiderListOut(id=uid, name=name, nationality=bio.nationality if bio else None, achievements_count=count))
+        user = db.get(User, uid)
+        out.append(RiderListOut(
+            id=uid,
+            name=name,
+            nationality=bio.nationality if bio else None,
+            achievements_count=count,
+            profile_image_url=user.profile_image_url if user else None,
+        ))
     return out
+
+class TopRiderOut(BaseModel):
+    id: int | None
+    name: str
+    achievements_count: int
+    profile_image_url: str | None = None
+
+@router.get("/top", response_model=list[TopRiderOut])
+def top_riders(db: Session = Depends(get_db)):
+    # Aggregate by Person (race results), then try to map to Users via normalized name
+    person_counts = db.execute(
+        select(Person.full_name, Person.full_name_norm, Person.id, func.count(Result.id))
+        .join(Result, Result.person_id == Person.id)
+        .group_by(Person.id)
+        .order_by(func.count(Result.id).desc())
+        .limit(10)
+    ).all()
+
+    out: list[TopRiderOut] = []
+    for full_name, norm_name, person_id, cnt in person_counts:
+        user = db.scalar(select(User).where(User.display_name_norm == norm_name))
+        out.append(TopRiderOut(
+            id=user.id if user else None,
+            name=user.display_name or user.name if user else full_name,
+            achievements_count=cnt,
+            profile_image_url=user.profile_image_url if user else None,
+        ))
+    return out
+
+# Simple rider name autocomplete searching Persons table (public)
+@router.get("/riders/search")
+def rider_search(q: str, db: Session = Depends(get_db)):
+    qn = f"%{norm(q)}%"
+    rows = db.execute(
+        select(Person.full_name, Person.country)
+        .where(Person.full_name_norm.ilike(qn))
+        .order_by(Person.full_name.asc())
+        .limit(10)
+    ).all()
+    return [{"name": r[0], "country": r[1]} for r in rows]
 
 
 # Public rider detail page
 class PublicRiderOut(BaseModel):
     id: int
     name: str
+    profile_image_url: str | None = None
     nationality: str | None
     place_of_birth: str | None
     date_of_birth: date | None
@@ -154,6 +206,7 @@ def public_rider(user_id: int, db: Session = Depends(get_db)):
     return PublicRiderOut(
         id=user.id,
         name=user.display_name or user.name,
+        profile_image_url=user.profile_image_url,
         nationality=bio.nationality if bio else None,
         place_of_birth=bio.place_of_birth if bio else None,
         date_of_birth=bio.date_of_birth if bio else None,
