@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
-from datetime import date, datetime
 from sqlalchemy.orm import Session
 from sqlalchemy import select, func, cast
 from geoalchemy2 import Geography
@@ -17,12 +16,8 @@ class SubmissionIn(BaseModel):
     location: str
     lat: float
     lng: float
-    event_url: str | None = None
-    youtube_url: str | None = None
-    is_future: bool = False
+    source_url: str | None = None
     top3: list[dict] | None = None  # [{name,country,position}, ...]
-    date_from: date
-    date_to: date | None = None
 
 @router.post("", status_code=201)
 def create_submission(data: SubmissionIn, db: Session = Depends(get_db), claims: dict = Depends(get_current_user_claims)):
@@ -65,42 +60,35 @@ def approve(submission_id: int, db: Session = Depends(get_db)):
         lat=p["lat"],
         lng=p["lng"],
         geom=geo_value,                        # ✅ robust insert
-        source_url=p.get("event_url") or None,
-        date_from=p.get("date_from"),
-        date_to=p.get("date_to"),
+        source_url=p.get("source_url"),
     )
+    img = (sub.payload or {}).get("_uploaded_image_url")
+    ev.image_url = img or "/static/uploads/events/default_event.jpg"
+    if not ev.image_url:
+        ev.image_url = "/static/uploads/events/default_event.jpg"  # ensure file exists
+
     db.add(ev); db.flush()
 
-    # optional top-3 (skip for future events)
-    # Treat as future if flagged or if date_from is in the future
-    is_future = bool(p.get("is_future"))
-    try:
-        if p.get("date_from") and datetime.utcnow().date() < datetime.fromisoformat(str(p["date_from"])).date():
-            is_future = True
-    except Exception:
-        pass
+    # optional top-3 with instagram
+    for item in (p.get("top3") or []):
+        n = norm(item["name"])  # normalized key
+        person = db.scalar(select(Person).where(Person.full_name_norm == n))
+        if not person:
+            person = Person(
+                full_name=item["name"],
+                full_name_norm=n,
+                country=item.get("country"),
+            )
+            db.add(person); db.flush()
 
-    if not is_future:
-        for item in (p.get("top3") or []):
-            n = norm(item["name"])  # normalized key
-            person = db.scalar(select(Person).where(Person.full_name_norm == n))
-            if not person:
-                person = Person(
-                    full_name=item["name"],
-                    full_name_norm=n,
-                    country=item.get("country"),
-                )
-                db.add(person); db.flush()
-
-            db.add(Result(
-                event_id=ev.id,
-                person_id=person.id,
-                position=int(item["position"])
-            ))
-
-    sub.status = "APPROVED"
-    db.commit()
-    return {"ok": True, "event_id": ev.id}
+        db.add(Result(
+            event_id=ev.id,
+            person_id=person.id,
+            position=int(item["position"])
+        ))
+        sub.status = "APPROVED"
+        db.commit()
+        return {"ok": True, "event_id": ev.id}
 
 @router.delete("/{submission_id}", dependencies=[Depends(require_role("ADMIN","OWNER"))])
 def delete_submission(submission_id: int, db: Session = Depends(get_db)):

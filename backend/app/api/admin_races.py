@@ -22,6 +22,7 @@ def list_races(year: int | None = Query(None), db: Session = Depends(get_db)):
             "lat": r.lat,
             "lng": r.lng,
             "source_url": r.source_url,
+            "image_url": r.image_url,
         }
         for r in rows
     ]

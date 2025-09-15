@@ -5,12 +5,13 @@ import { useSearchParams } from "next/navigation";
 export default function YearBar() {
   const searchParams = useSearchParams();
   const selected = Number(searchParams.get("year") ?? new Date().getFullYear());
-  const years = Array.from({ length: 30 }, (_, i) => 2000 + i);
+  const now = new Date().getFullYear();
+  const visible = [now - 2, now - 1, now, now + 1];
 
   return (
     <nav className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b">
       <div className="overflow-x-auto whitespace-nowrap px-3 py-2 flex gap-2">
-        {years.map((y) => (
+        {visible.map((y) => (
           <Link
             key={y}
             href={`/?year=${y}`}
@@ -24,6 +25,7 @@ export default function YearBar() {
             {y}
           </Link>
         ))}
+        <span className="ml-2 text-xs text-gray-500">Scroll for other years</span>
       </div>
     </nav>
   );

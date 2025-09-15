@@ -20,7 +20,7 @@ type User = {
 
 type Race = {
   id: number; name: string; year: number;
-  location: string; lat: number; lng: number; source_url?: string;
+  location: string; lat: number; lng: number; source_url?: string; image_url?: string | null;
 };
 
 export default function AdminPage() {
@@ -151,7 +151,8 @@ export default function AdminPage() {
         <div className="grid gap-2">
           {races.map(r => (
             <div key={r.id} className="border rounded p-3 flex items-center justify-between">
-              <div className="text-sm">
+              <div className="text-sm flex items-center gap-3">
+                <img src={r.image_url ? `${process.env.NEXT_PUBLIC_API_BASE}${r.image_url}` : "/file.svg"} className="w-16 h-16 rounded object-cover border" alt={r.name} />
                 <div className="font-medium">
                   {r.name} <span className="text-gray-600">({r.year})</span>
                 </div>
@@ -162,13 +163,32 @@ export default function AdminPage() {
                   </div>
                 )}
               </div>
-              <button
-                onClick={() => deleteRace(r.id, r.name)}
-                disabled={raceBusy === r.id}
-                className="bg-red-600 text-white rounded px-3 py-2 disabled:opacity-60"
-              >
-                {raceBusy === r.id ? "Deleting…" : "🗑 Delete"}
-              </button>
+              <div className="flex items-center gap-2">
+                <label className="text-sm">
+                  <span className="block">Change image</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const fd = new FormData();
+                      fd.append("file", file);
+                      const res = await fetch(`/api/uploads/event-image/${r.id}`, { method: "POST", body: fd });
+                      const data = await res.json();
+                      if (!res.ok) { alert(data?.error || "Upload failed"); return; }
+                      setRaces(prev => prev.map(x => x.id === r.id ? { ...x, image_url: data.image_url } : x));
+                    }}
+                  />
+                </label>
+                <button
+                  onClick={() => deleteRace(r.id, r.name)}
+                  disabled={raceBusy === r.id}
+                  className="bg-red-600 text-white rounded px-3 py-2 disabled:opacity-60"
+                >
+                  {raceBusy === r.id ? "Deleting…" : "🗑 Delete"}
+                </button>
+              </div>
             </div>
           ))}
         </div>

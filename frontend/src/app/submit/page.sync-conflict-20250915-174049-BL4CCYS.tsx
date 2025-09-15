@@ -11,24 +11,22 @@ export default function Submit() {
     location: "",
     lat: 50.08804,
     lng: 14.42076,
-    event_url: "",
-    youtube_url: "",
-    is_future: false,
-    date_from: new Date().toISOString().slice(0,10),
-    date_to: "",
+    source_url: "",
     top3: [
       { name: "", country: "", instagram: "", position: 1 },
       { name: "", country: "", instagram: "", position: 2 },
       { name: "", country: "", instagram: "", position: 3 },
     ] as Rider[],
   });
+
   const [ok, setOk] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [nameOptions, setNameOptions] = useState<string[][]>([[],[],[]]);
-  const [nameBusy, setNameBusy] = useState([false,false,false]);
 
-  // IMPORTANT: functional updater, so we never lose other fields
+  // NEW: submission id and preview for the optional image
+  const [subId, setSubId] = useState<number | null>(null);
+  const [subImg, setSubImg] = useState<string | null>(null);
+
   function setRider(i: number, patch: Partial<Rider>) {
     setForm(prev => {
       const next = [...prev.top3];
@@ -43,23 +41,20 @@ export default function Submit() {
     setOk(null);
     setBusy(true);
     try {
-      // Convert date strings to proper format for backend
-      const payload = {
-        ...form,
-        date_from: form.date_from || undefined,
-        date_to: form.date_to || undefined,
-      };
+      // your existing endpoint
       const res = await fetch("/api/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(form),
       });
       const data = await res.json();
       if (!res.ok) {
         setErr(data?.error || "Failed");
         return;
       }
-      setOk(`Submitted #${data.id}. Awaiting approval.`);
+      // store the new submission id so we can attach an image
+      if (data?.id) setSubId(data.id);
+      setOk(`Submitted #${data.id}. Awaiting approval. You can optionally add an image now.`);
     } catch (e: any) {
       setErr(e.message || "Network error");
     } finally {
@@ -67,21 +62,27 @@ export default function Submit() {
     }
   }
 
+  async function uploadSubmissionImage(file: File) {
+    if (!subId) return;
+    const fd = new FormData();
+    fd.append("file", file);
+    const r = await fetch(`/api/uploads/submission-image/${subId}`, {
+      method: "POST",
+      body: fd,
+    });
+    const j = await r.json();
+    if (!r.ok) {
+      setErr(j?.error || "Upload failed");
+      return;
+    }
+    setSubImg(j.temp_image_url);
+    setOk("Image uploaded. It will be attached when the submission is approved.");
+  }
+
   return (
     <main className="max-w-2xl mx-auto p-6 grid gap-4">
       <h1 className="text-2xl font-bold">Submit a race</h1>
       <form onSubmit={onSubmit} className="grid gap-4">
-        {/* Past vs Future */}
-        <div className="flex gap-4 items-center">
-          <label className="flex items-center gap-2 text-sm">
-            <input type="radio" name="kind" checked={!form.is_future} onChange={()=>setForm(prev=>({...prev, is_future:false}))} />
-            Past event
-          </label>
-          <label className="flex items-center gap-2 text-sm">
-            <input type="radio" name="kind" checked={form.is_future} onChange={()=>setForm(prev=>({...prev, is_future:true}))} />
-            Future event
-          </label>
-        </div>
         {/* Race Name */}
         <div className="grid gap-2">
           <label className="text-sm font-medium">Race name</label>
@@ -117,39 +118,6 @@ export default function Submit() {
           </div>
         </div>
 
-        {/* Event date(s) */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">Event date (start)</label>
-            <input
-              type="date"
-              className="border rounded p-2"
-              value={form.date_from}
-              required
-              onChange={(e) => {
-                const v = e.target.value;
-                setForm(prev => ({ ...prev, date_from: v, year: v ? Number(v.slice(0,4)) : prev.year }));
-              }}
-            />
-          </div>
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">Event date (end, optional)</label>
-            <input
-              type="date"
-              className="border rounded p-2"
-              value={form.date_to}
-              onChange={(e) => setForm(prev => ({ ...prev, date_to: e.target.value }))}
-            />
-          </div>
-        </div>
-
-        {/* Map Picker — functional updater onPick */}
-        <MapPicker
-          lat={form.lat}
-          lng={form.lng}
-          onPick={(lat, lng) => setForm(prev => ({ ...prev, lat, lng }))}
-        />
-
         {/* Lat/Lng inputs */}
         <div className="grid grid-cols-2 gap-4">
           <div className="grid gap-2">
@@ -178,30 +146,26 @@ export default function Submit() {
           </div>
         </div>
 
-        {/* URLs */}
+        {/* Map Picker */}
+        <MapPicker
+          lat={form.lat}
+          lng={form.lng}
+          onPick={(lat, lng) => setForm(prev => ({ ...prev, lat, lng }))}
+        />
+
+        {/* Source URL */}
         <div className="grid gap-2">
-          <label className="text-sm font-medium">Event page URL (optional)</label>
+          <label className="text-sm font-medium">Source URL (optional)</label>
           <input
             className="border rounded p-2"
-            value={form.event_url}
+            value={form.source_url}
             onChange={(e) =>
-              setForm(prev => ({ ...prev, event_url: e.target.value }))
+              setForm(prev => ({ ...prev, source_url: e.target.value }))
             }
           />
         </div>
-        {!form.is_future && (
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">YouTube URL (optional)</label>
-            <input
-              className="border rounded p-2"
-              value={form.youtube_url}
-              onChange={(e) => setForm(prev => ({ ...prev, youtube_url: e.target.value }))}
-            />
-          </div>
-        )}
 
         {/* Top 3 Riders */}
-        {!form.is_future && (
         <div className="grid gap-3">
           <div className="font-medium">Top 3 riders</div>
           {[0, 1, 2].map((i) => (
@@ -214,37 +178,8 @@ export default function Submit() {
                 className="border rounded p-2"
                 placeholder="Full name"
                 value={form.top3[i].name}
-                onChange={async (e) => {
-                  const v = e.target.value; setRider(i, { name: v });
-                  if (v.length >= 2) {
-                    setNameBusy(prev => prev.map((b, idx) => idx===i ? true : b) as any);
-                    try {
-                      const res = await fetch(`/api/bio/riders/search?q=${encodeURIComponent(v)}`);
-                      const data = await res.json();
-                      const arr = Array.isArray(data) ? data : [];
-                      const opts = arr.map((x: any) => x?.name).filter(Boolean);
-                      setNameOptions(prev => prev.map((arr, idx) => idx===i ? opts : arr) as any);
-                    } finally {
-                      setNameBusy(prev => prev.map((b, idx) => idx===i ? false : b) as any);
-                    }
-                  } else {
-                    setNameOptions(prev => prev.map((arr, idx) => idx===i ? [] : arr) as any);
-                  }
-                }}
+                onChange={(e) => setRider(i, { name: e.target.value })}
               />
-              {nameOptions[i]?.length > 0 && (
-                <div className="col-span-3 -mt-1 ml-[60px] bg-white border rounded shadow p-2 z-10">
-                  <ul className="text-sm">
-                    {nameOptions[i].map((n, idx) => (
-                      <li key={idx}>
-                        <button type="button" className="w-full text-left hover:bg-gray-50 px-1 py-0.5" onClick={() => { setRider(i, { name: n }); setNameOptions(prev => prev.map((arr, j) => j===i ? [] : arr) as any); }}>
-                          {n}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
               <input
                 className="border rounded p-2"
                 placeholder="Country (ISO-2)"
@@ -260,7 +195,6 @@ export default function Submit() {
             </div>
           ))}
         </div>
-        )}
 
         {/* Submit button */}
         <button
@@ -270,6 +204,31 @@ export default function Submit() {
           {busy ? "Submitting…" : "Submit"}
         </button>
       </form>
+
+      {/* Optional image upload once we have a submission id */}
+      {subId && (
+        <div className="grid gap-2 mt-4">
+          <div className="text-sm">Optional: add an image for this event</div>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) uploadSubmissionImage(f);
+            }}
+          />
+          {subImg && (
+            <img
+              src={subImg}
+              className="w-48 h-32 object-cover rounded border"
+              alt="submission preview"
+            />
+          )}
+          <div className="text-xs text-gray-600">
+            The image will be attached to the event when an admin approves the submission.
+          </div>
+        </div>
+      )}
 
       {/* Feedback */}
       {ok && <p className="text-green-700">{ok}</p>}

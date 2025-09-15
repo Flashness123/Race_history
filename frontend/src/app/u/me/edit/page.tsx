@@ -5,6 +5,8 @@ export default function EditMyBio() {
   const [form, setForm] = useState({ nationality: "", place_of_birth: "", date_of_birth: "", message: "" });
   const [ok, setOk] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [uploadBusy, setUploadBusy] = useState(false);
+  const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -17,6 +19,7 @@ export default function EditMyBio() {
         date_of_birth: data.date_of_birth || "",
         message: data.message || "",
       });
+      setProfileImageUrl(data.profile_image_url || null);
     })();
   }, []);
 
@@ -32,9 +35,30 @@ export default function EditMyBio() {
     setOk("Saved!");
   }
 
+  async function onUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadBusy(true); setErr(null); setOk(null);
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await fetch("/api/uploads/profile-image", { method: "POST", body: formData });
+    const data = await res.json();
+    setUploadBusy(false);
+    if (!res.ok) { setErr(data?.error || "Upload failed"); return; }
+    setProfileImageUrl(data.profile_image_url);
+    setOk("Profile image updated");
+  }
+
   return (
     <main className="max-w-xl mx-auto p-6 grid gap-4">
       <h1 className="text-2xl font-bold">Edit my bio</h1>
+      <div className="flex items-center gap-3">
+        <img src={profileImageUrl ? `${process.env.NEXT_PUBLIC_API_BASE}${profileImageUrl}` : "/file.svg"} className="w-16 h-16 rounded-full object-cover border" alt="Profile" />
+        <label className="text-sm">
+          <span className="block">Change profile image</span>
+          <input type="file" accept="image/*" onChange={onUpload} disabled={uploadBusy} />
+        </label>
+      </div>
       <form onSubmit={save} className="grid gap-3">
         <label className="grid gap-1 text-sm">
           Nationality (ISO-2)

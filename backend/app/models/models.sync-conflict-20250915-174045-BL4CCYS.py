@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import String, Integer, DateTime, ForeignKey, UniqueConstraint, Boolean, Enum, JSON, Date, Text
+from sqlalchemy import String, Integer, DateTime, ForeignKey, UniqueConstraint, Boolean, Enum, JSON, Date, Text, Enum as SAEnum, Float
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from geoalchemy2 import Geography
 import enum
@@ -33,9 +33,9 @@ class RaceEvent(Base):
     # NOTE: store as GEOGRAPHY(Point, 4326) for distance/bbox; use long,lat order for POINT
     geom = mapped_column(Geography(geometry_type="POINT", srid=4326))
     source_url: Mapped[str | None]
-    image_url: Mapped[str | None] = mapped_column(String(400))
     results: Mapped[list["Result"]] = relationship(back_populates="event")
-
+    image_url: Mapped[str | None] = mapped_column(String(400))
+    
 class Result(Base):
     __tablename__ = "results"
     id: Mapped[int] = mapped_column(primary_key=True)
