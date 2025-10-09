@@ -1,12 +1,8 @@
-Create better looks with tailwind
-
 Different type of passwording, sending out email and waiting for confirmation - also option to forget password
 
-Different categories, spots,wdsc events, euro tour events etc.
+add more event categories 
 
-insert spots etc much easier
-
-media category with links to youtube and inside ranking (top 3 videos displayed up top)
+category filter fix box design
 
 improve Admin page, submitted by user, show not number but the name of the user
 
@@ -14,4 +10,12 @@ improve scrollbar, not just write scroll for other years
 
 different points in map with different colors
 
-I would like to add a media page which also not signed in users can see but only signed in users can upload a video, this happens via a youtube link, then on the media page the video is visible. There should also be a video ranking system, where signed in users can like a video and the likes are shown publicly, the videos are shown in hierarchy of likes, there should be on top of the media page a nice design with a podest for the 1st second and 3rd placed video and under it all the other ones, also ranked by likes
+improve rider icon
+
+in rider profie also see uploaded videos and number of likes that he got in total
+
+contribution point system
+
+main page improve layout and riders design, different background
+
+add freerides
