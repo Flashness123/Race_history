@@ -1,0 +1,9 @@
+Create better looks with tailwind
+
+Different type of passwording, sending out email and waiting for confirmation - also option to forget password
+
+Different categories, spots,wdsc events, euro tour events etc.
+
+insert spots etc much easier
+
+media category with links to youtube and inside ranking (top 3 videos displayed up top)

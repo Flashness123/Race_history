@@ -20,9 +20,11 @@ depends_on = None
 def upgrade():
     op.add_column("users", sa.Column("profile_image_url", sa.String(length=400), nullable=True))
     op.add_column("race_events", sa.Column("image_url", sa.String(length=400), nullable=True))
+    op.add_column("race_events", sa.Column("category", sa.String(length=20), nullable=True))
 
 
 def downgrade():
+    op.drop_column("race_events", "category")
     op.drop_column("race_events", "image_url")
     op.drop_column("users", "profile_image_url")
 

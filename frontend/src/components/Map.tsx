@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
-export default function Map({ geojson, onSelect }: { geojson: any, onSelect?: (id: number | null) => void }) {
+export default function Map({ geojson, onSelect, filters }: { geojson: any, onSelect?: (id: number | null) => void, filters?: { SPOT: boolean; WDSC: boolean; EURO: boolean } }) {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
 
@@ -24,9 +24,19 @@ export default function Map({ geojson, onSelect }: { geojson: any, onSelect?: (i
     map.addControl(new maplibregl.NavigationControl(), "top-right");
 
     map.on("load", () => {
+      // Optionally filter features by category
+      const filtered = {
+        ...geojson,
+        features: geojson.features.filter((f: any) => {
+          const cat = f.properties?.category || "WDSC";
+          if (!filters) return true;
+          return Boolean((filters as any)[cat]);
+        })
+      };
+
       map.addSource("races", {
         type: "geojson",
-        data: geojson,
+        data: filtered,
       });
 
       map.addLayer({
@@ -81,9 +91,17 @@ export default function Map({ geojson, onSelect }: { geojson: any, onSelect?: (i
   useEffect(() => {
     const m = mapRef.current;
     if (m && m.isStyleLoaded() && m.getSource("races")) {
-      (m.getSource("races") as maplibregl.GeoJSONSource).setData(geojson);
+      const filtered = {
+        ...geojson,
+        features: geojson.features.filter((f: any) => {
+          const cat = f.properties?.category || "WDSC";
+          if (!filters) return true;
+          return Boolean((filters as any)[cat]);
+        })
+      };
+      (m.getSource("races") as maplibregl.GeoJSONSource).setData(filtered);
     }
-  }, [geojson]);
+  }, [geojson, filters]);
 
   return <div ref={mapContainer} className="w-full h-[70vh] rounded-lg shadow" />;
 }

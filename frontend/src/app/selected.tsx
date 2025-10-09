@@ -7,6 +7,7 @@ export default function ClientSelected({ geojson }: { geojson: any }) {
   const [detail, setDetail] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [filters, setFilters] = useState<{SPOT:boolean;WDSC:boolean;EURO:boolean}>({ SPOT: true, WDSC: true, EURO: true });
 
   const onSelect = useCallback((id: number | null) => {
     setSelectedId(id);
@@ -30,8 +31,13 @@ export default function ClientSelected({ geojson }: { geojson: any }) {
 
   return (
     <div className="px-4">
+      <div className="flex items-center gap-3 mb-2">
+        <label className="text-sm flex items-center gap-1"><input type="checkbox" checked={filters.WDSC} onChange={e=>setFilters(f=>({...f, WDSC:e.target.checked}))} /> WDSC</label>
+        <label className="text-sm flex items-center gap-1"><input type="checkbox" checked={filters.EURO} onChange={e=>setFilters(f=>({...f, EURO:e.target.checked}))} /> Euro Tour</label>
+        <label className="text-sm flex items-center gap-1"><input type="checkbox" checked={filters.SPOT} onChange={e=>setFilters(f=>({...f, SPOT:e.target.checked}))} /> Spots</label>
+      </div>
       <div className={`grid gap-4 transition-[grid-template-columns] duration-200 ease-out`} style={{ gridTemplateColumns: selectedId ? "1fr 380px" : "1fr" }}>
-        <Map geojson={geojson} onSelect={onSelect} />
+        <Map geojson={geojson} onSelect={onSelect} filters={filters} />
         {selectedId && (
           <aside className="border rounded-lg p-4 h-[70vh] overflow-auto bg-white">
             {loading && <div>Loading…</div>}

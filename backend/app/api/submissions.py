@@ -20,24 +20,37 @@ class SubmissionIn(BaseModel):
     event_url: str | None = None
     youtube_url: str | None = None
     is_future: bool = False
+    category: str = Field(pattern=r"^(SPOT|WDSC|EURO)$")
     top3: list[dict] | None = None  # [{name,country,position}, ...]
     date_from: date
     date_to: date | None = None
 
 @router.post("", status_code=201)
 def create_submission(data: SubmissionIn, db: Session = Depends(get_db), claims: dict = Depends(get_current_user_claims)):
-    user_id = int(claims["sub"])
-    user = db.get(User, user_id)
-    if not user or not user.is_active:
-        raise HTTPException(status_code=403, detail="Inactive user")
-    if not user.can_submit:
-        raise HTTPException(status_code=403, detail="Submitting disabled for your account")
+    try:
+        user_id = int(claims["sub"])
+        user = db.get(User, user_id)
+        if not user or not user.is_active:
+            raise HTTPException(status_code=403, detail="Inactive user")
+        if not user.can_submit:
+            raise HTTPException(status_code=403, detail="Submitting disabled for your account")
 
-    sub = Submission(submitted_by_user_id=user_id, payload=data.dict(), status="PENDING")
-    db.add(sub)
-    db.commit()
-    db.refresh(sub)
-    return {"id": sub.id, "status": sub.status}
+        # Convert dates to strings for JSON serialization
+        payload = data.dict()
+        if payload.get("date_from"):
+            payload["date_from"] = payload["date_from"].isoformat()
+        if payload.get("date_to"):
+            payload["date_to"] = payload["date_to"].isoformat()
+        
+        sub = Submission(submitted_by_user_id=user_id, payload=payload, status="PENDING")
+        db.add(sub)
+        db.commit()
+        db.refresh(sub)
+        return {"id": sub.id, "status": sub.status}
+    except Exception as e:
+        db.rollback()
+        print(f"Error creating submission: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 @router.get("", dependencies=[Depends(require_role("ADMIN","OWNER"))])
 def list_pending(db: Session = Depends(get_db)):
@@ -68,10 +81,11 @@ def approve(submission_id: int, db: Session = Depends(get_db)):
         source_url=p.get("event_url") or None,
         date_from=p.get("date_from"),
         date_to=p.get("date_to"),
+        category=p.get("category"),
     )
     db.add(ev); db.flush()
 
-    # optional top-3 (skip for future events)
+    # optional top-3 (skip for future events or spots)
     # Treat as future if flagged or if date_from is in the future
     is_future = bool(p.get("is_future"))
     try:
@@ -80,7 +94,8 @@ def approve(submission_id: int, db: Session = Depends(get_db)):
     except Exception:
         pass
 
-    if not is_future:
+    # Skip top3 for future events or spots
+    if not is_future and p.get("category") != "SPOT":
         for item in (p.get("top3") or []):
             n = norm(item["name"])  # normalized key
             person = db.scalar(select(Person).where(Person.full_name_norm == n))

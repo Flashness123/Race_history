@@ -34,6 +34,7 @@ class RaceEvent(Base):
     geom = mapped_column(Geography(geometry_type="POINT", srid=4326))
     source_url: Mapped[str | None]
     image_url: Mapped[str | None] = mapped_column(String(400))
+    category: Mapped[str | None] = mapped_column(String(20))  # SPOT | WDSC | EURO
     results: Mapped[list["Result"]] = relationship(back_populates="event")
 
 class Result(Base):

@@ -14,22 +14,24 @@ def list_races(year: int = Query(..., ge=1900, le=2100), db: Session = Depends(g
         select(
             RaceEvent.id, RaceEvent.name, RaceEvent.year,
             RaceEvent.location, RaceEvent.lat, RaceEvent.lng, RaceEvent.source_url,
-            RaceEvent.date_from
+            RaceEvent.date_from, RaceEvent.category
         ).where(RaceEvent.year == year)
     ).all()
 
     features = []
-    for (id_, name, yr, loc, lat, lng, src, dfrom) in rows:
+    for (id_, name, yr, loc, lat, lng, src, dfrom, category) in rows:
         # Determine future by date_from if available; fallback to year comparison
+        # Spots are never "future" regardless of date
         is_future = False
-        if dfrom is not None:
-            try:
-                is_future = dfrom.date() > today
-            except AttributeError:
-                # dfrom may already be date
-                is_future = dfrom > today
-        else:
-            is_future = yr > today.year
+        if category != "SPOT":
+            if dfrom is not None:
+                try:
+                    is_future = dfrom.date() > today
+                except AttributeError:
+                    # dfrom may already be date
+                    is_future = dfrom > today
+            else:
+                is_future = yr > today.year
         features.append({
             "type": "Feature",
             "geometry": {"type": "Point", "coordinates": [lng, lat]},
@@ -40,6 +42,7 @@ def list_races(year: int = Query(..., ge=1900, le=2100), db: Session = Depends(g
                 "location": loc,
                 "source_url": src,
                 "future": is_future,
+                "category": category or "WDSC",
             },
         })
     return {"type": "FeatureCollection", "features": features}
