@@ -22,104 +22,161 @@ export default function Contact() {
 
   if (submitted) {
     return (
-      <main className="max-w-2xl mx-auto p-6">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold mb-4">Message Sent!</h1>
-          <p className="text-gray-700 mb-6">
-            Thank you for your message. We'll get back to you as soon as possible.
-          </p>
-          <button 
-            onClick={() => setSubmitted(false)}
-            className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800"
-          >
-            Send Another Message
-          </button>
+      <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 flex items-center justify-center px-6">
+        <div className="w-full max-w-md text-center">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-8">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <span className="text-green-600 text-3xl">✓</span>
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">Message Sent!</h1>
+            <p className="text-gray-600 mb-8">
+              Thank you for your message. We'll get back to you as soon as possible.
+            </p>
+            <button 
+              onClick={() => setSubmitted(false)}
+              className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 hover-lift"
+            >
+              Send Another Message
+            </button>
+          </div>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="max-w-2xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6">Contact Us</h1>
-      
-      <div className="mb-8">
-        <p className="text-gray-700 mb-4">
-          Have questions about the platform? Want to submit a race or report an issue? 
-          We'd love to hear from you!
-        </p>
-        
-        <div className="grid gap-4">
-          <div>
-            <h3 className="font-semibold">General Inquiries</h3>
-            <p className="text-gray-600">For general questions about the platform</p>
+    <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
+      <div className="max-w-4xl mx-auto px-6 py-12">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <span className="text-white font-bold text-3xl">📧</span>
           </div>
-          <div>
-            <h3 className="font-semibold">Race Submissions</h3>
-            <p className="text-gray-600">Submit races through the platform or contact us for bulk submissions</p>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent mb-4">
+            Contact Us
+          </h1>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            Have questions about the platform? Want to submit a race or report an issue? 
+            We'd love to hear from you!
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Contact Types */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Get in Touch</h2>
+              <div className="space-y-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-blue-600 text-xl">💬</span>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-1">General Inquiries</h3>
+                    <p className="text-gray-600 text-sm">For general questions about the platform</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-green-600 text-xl">🏁</span>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-1">Race Submissions</h3>
+                    <p className="text-gray-600 text-sm">Submit races through the platform or contact us for bulk submissions</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-purple-600 text-xl">🔧</span>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-1">Technical Support</h3>
+                    <p className="text-gray-600 text-sm">Report bugs or request new features</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div>
-            <h3 className="font-semibold">Technical Support</h3>
-            <p className="text-gray-600">Report bugs or request new features</p>
+
+          {/* Contact Form */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Send us a Message</h2>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                    <input
+                      type="text"
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                      placeholder="Your full name"
+                      value={form.name}
+                      onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    <input
+                      type="email"
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                      placeholder="your.email@example.com"
+                      value={form.email}
+                      onChange={(e) => setForm(prev => ({ ...prev, email: e.target.value }))}
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+                  <input
+                    type="text"
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    placeholder="What's this about?"
+                    value={form.subject}
+                    onChange={(e) => setForm(prev => ({ ...prev, subject: e.target.value }))}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
+                  <textarea
+                    required
+                    rows={6}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
+                    placeholder="Tell us more about your inquiry..."
+                    value={form.message}
+                    onChange={(e) => setForm(prev => ({ ...prev, message: e.target.value }))}
+                  />
+                </div>
+                
+                {error && (
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center">
+                        <span className="text-red-600 text-sm">⚠</span>
+                      </div>
+                      <p className="text-red-800 text-sm font-medium">{error}</p>
+                    </div>
+                  </div>
+                )}
+                
+                <button
+                  type="submit"
+                  className="w-full px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 hover-lift"
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <span>📤</span>
+                    <span>Send Message</span>
+                  </div>
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       </div>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Name</label>
-            <input
-              type="text"
-              required
-              className="w-full border rounded p-2"
-              value={form.name}
-              onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Email</label>
-            <input
-              type="email"
-              required
-              className="w-full border rounded p-2"
-              value={form.email}
-              onChange={(e) => setForm(prev => ({ ...prev, email: e.target.value }))}
-            />
-          </div>
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium mb-1">Subject</label>
-          <input
-            type="text"
-            required
-            className="w-full border rounded p-2"
-            value={form.subject}
-            onChange={(e) => setForm(prev => ({ ...prev, subject: e.target.value }))}
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium mb-1">Message</label>
-          <textarea
-            required
-            rows={6}
-            className="w-full border rounded p-2"
-            value={form.message}
-            onChange={(e) => setForm(prev => ({ ...prev, message: e.target.value }))}
-          />
-        </div>
-        
-        {error && <p className="text-red-600">{error}</p>}
-        
-        <button
-          type="submit"
-          className="bg-black text-white px-6 py-2 rounded hover:bg-gray-800"
-        >
-          Send Message
-        </button>
-      </form>
     </main>
   );
 }

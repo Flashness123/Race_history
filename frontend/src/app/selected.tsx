@@ -30,41 +30,155 @@ export default function ClientSelected({ geojson }: { geojson: any }) {
   }, [selectedId]);
 
   return (
-    <div className="px-4">
-      <div className="flex items-center gap-3 mb-2">
-        <label className="text-sm flex items-center gap-1"><input type="checkbox" checked={filters.WDSC} onChange={e=>setFilters(f=>({...f, WDSC:e.target.checked}))} /> WDSC</label>
-        <label className="text-sm flex items-center gap-1"><input type="checkbox" checked={filters.EURO} onChange={e=>setFilters(f=>({...f, EURO:e.target.checked}))} /> Euro Tour</label>
-        <label className="text-sm flex items-center gap-1"><input type="checkbox" checked={filters.SPOT} onChange={e=>setFilters(f=>({...f, SPOT:e.target.checked}))} /> Spots</label>
+    <div className="space-y-6">
+      {/* Filter Controls */}
+      <div className="flex flex-wrap items-center gap-4 p-4 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 shadow-sm">
+        <span className="text-sm font-medium text-gray-700">Filter by category:</span>
+        <div className="flex flex-wrap gap-3">
+          <label className="flex items-center gap-2 cursor-pointer group">
+            <input 
+              type="checkbox" 
+              checked={filters.WDSC} 
+              onChange={e=>setFilters(f=>({...f, WDSC:e.target.checked}))}
+              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+            />
+            <span className="text-sm font-medium text-gray-700 group-hover:text-blue-600 transition-colors duration-200">WDSC Events</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer group">
+            <input 
+              type="checkbox" 
+              checked={filters.EURO} 
+              onChange={e=>setFilters(f=>({...f, EURO:e.target.checked}))}
+              className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 focus:ring-2"
+            />
+            <span className="text-sm font-medium text-gray-700 group-hover:text-purple-600 transition-colors duration-200">Euro Tour</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer group">
+            <input 
+              type="checkbox" 
+              checked={filters.SPOT} 
+              onChange={e=>setFilters(f=>({...f, SPOT:e.target.checked}))}
+              className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 focus:ring-2"
+            />
+            <span className="text-sm font-medium text-gray-700 group-hover:text-green-600 transition-colors duration-200">Spots</span>
+          </label>
+        </div>
       </div>
-      <div className={`grid gap-4 transition-[grid-template-columns] duration-200 ease-out`} style={{ gridTemplateColumns: selectedId ? "1fr 380px" : "1fr" }}>
-        <Map geojson={geojson} onSelect={onSelect} filters={filters} />
+
+      {/* Map and Details Layout */}
+      <div className={`grid gap-6 transition-[grid-template-columns] duration-300 ease-out`} style={{ gridTemplateColumns: selectedId ? "1fr 400px" : "1fr" }}>
+        <div className="rounded-xl overflow-hidden shadow-lg border border-gray-200/50">
+          <Map geojson={geojson} onSelect={onSelect} filters={filters} />
+        </div>
+        
         {selectedId && (
-          <aside className="border rounded-lg p-4 h-[70vh] overflow-auto bg-white">
-            {loading && <div>Loading…</div>}
-            {err && <div className="text-red-600 text-sm">{err}</div>}
-            {detail && (
-              <div className="grid gap-3">
-                <div className="flex items-center gap-3">
-                  <img src={detail.image_url ? `${process.env.NEXT_PUBLIC_API_BASE}${detail.image_url}` : "/file.svg"} className="w-16 h-16 rounded object-cover border" alt={detail.name} />
-                  <div>
-                    <div className="font-semibold">{detail.name}</div>
-                    <div className="text-gray-600 text-sm">{detail.location} · {detail.year}</div>
+          <aside className="bg-white rounded-xl shadow-lg border border-gray-200/50 overflow-hidden">
+            <div className="h-[70vh] overflow-auto">
+              {loading && (
+                <div className="flex items-center justify-center h-full">
+                  <div className="flex flex-col items-center space-y-3">
+                    <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+                    <p className="text-gray-600 text-sm">Loading event details...</p>
                   </div>
                 </div>
-                {Array.isArray(detail.top3) && detail.top3.length > 0 && (
-                  <div className="text-sm">
-                    <div className="font-medium mb-1">Top 3</div>
-                    <ol className="list-decimal ml-5 grid gap-0.5">
-                      {detail.top3.map((p: any) => (
-                        <li key={p.position}>#{p.position} {p.name}{p.country ? ` (${p.country})` : ""}</li>
-                      ))}
-                    </ol>
+              )}
+              
+              {err && (
+                <div className="p-6 text-center">
+                  <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <span className="text-red-600 text-xl">⚠️</span>
                   </div>
-                )}
-                {detail.source_url && <a className="underline text-sm" href={detail.source_url} target="_blank">source</a>}
-                <button className="justify-self-start px-2 py-1 border rounded" onClick={() => setSelectedId(null)}>Close</button>
-              </div>
-            )}
+                  <p className="text-red-600 text-sm">{err}</p>
+                </div>
+              )}
+              
+              {detail && (
+                <div className="p-6 space-y-6">
+                  {/* Event Header */}
+                  <div className="flex items-start gap-4">
+                    <img 
+                      src={detail.image_url ? `${process.env.NEXT_PUBLIC_API_BASE}${detail.image_url}` : "/file.svg"} 
+                      className="w-20 h-20 rounded-xl object-cover border-2 border-gray-200 shadow-sm" 
+                      alt={detail.name} 
+                    />
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-gray-900 mb-1">{detail.name}</h3>
+                      <div className="flex items-center gap-2 text-gray-600">
+                        <span className="text-sm">📍 {detail.location}</span>
+                        <span className="text-gray-400">•</span>
+                        <span className="text-sm">📅 {detail.year}</span>
+                      </div>
+                      {detail.category && (
+                        <div className="mt-2">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            detail.category === 'WDSC' ? 'bg-blue-100 text-blue-800' :
+                            detail.category === 'EURO' ? 'bg-purple-100 text-purple-800' :
+                            'bg-green-100 text-green-800'
+                          }`}>
+                            {detail.category === 'WDSC' ? 'WDSC Event' :
+                             detail.category === 'EURO' ? 'Euro Tour' : 'Spot'}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Top 3 Results */}
+                  {Array.isArray(detail.top3) && detail.top3.length > 0 && (
+                    <div className="bg-gray-50 rounded-xl p-4">
+                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                        <span className="text-lg">🏆</span>
+                        Top 3 Results
+                      </h4>
+                      <div className="space-y-2">
+                        {detail.top3.map((p: any, index: number) => (
+                          <div key={p.position} className="flex items-center gap-3 p-2 bg-white rounded-lg border border-gray-200">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white ${
+                              index === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600' :
+                              index === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-500' :
+                              'bg-gradient-to-br from-orange-400 to-orange-600'
+                            }`}>
+                              {p.position}
+                            </div>
+                            <div className="flex-1">
+                              <div className="font-medium text-gray-900">{p.name}</div>
+                              {p.country && (
+                                <div className="text-xs text-gray-500">{p.country}</div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Source Link */}
+                  {detail.source_url && (
+                    <div className="pt-4 border-t border-gray-200">
+                      <a 
+                        href={detail.source_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors duration-200 text-sm font-medium"
+                      >
+                        <span>🔗</span>
+                        View Source
+                      </a>
+                    </div>
+                  )}
+
+                  {/* Close Button */}
+                  <div className="pt-4 border-t border-gray-200">
+                    <button 
+                      onClick={() => setSelectedId(null)} 
+                      className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200 font-medium"
+                    >
+                      Close Details
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </aside>
         )}
       </div>
