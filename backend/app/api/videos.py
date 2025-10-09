@@ -251,6 +251,48 @@ def unlike_video(video_id: int, db: Session = Depends(get_db), claims: dict = De
     
     return {"ok": True, "like_count": video.like_count}
 
+@router.get("/user/{user_id}")
+def get_user_videos(user_id: int, db: Session = Depends(get_db)):
+    """Get all videos uploaded by a specific user with total likes"""
+    user = db.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Get videos uploaded by this user
+    videos_query = (
+        select(
+            Video.id, Video.title, Video.description, Video.youtube_url,
+            Video.youtube_id, Video.thumbnail_url, Video.created_at, Video.like_count
+        )
+        .where(and_(Video.uploaded_by_user_id == user_id, Video.is_active == True))
+        .order_by(desc(Video.like_count), desc(Video.created_at))
+    )
+    
+    videos = db.execute(videos_query).all()
+    
+    # Calculate total likes
+    total_likes = sum(v.like_count for v in videos)
+    
+    return {
+        "user_id": user_id,
+        "user_name": user.display_name or user.name,
+        "total_videos": len(videos),
+        "total_likes": total_likes,
+        "videos": [
+            {
+                "id": v.id,
+                "title": v.title,
+                "description": v.description,
+                "youtube_url": v.youtube_url,
+                "youtube_id": v.youtube_id,
+                "thumbnail_url": v.thumbnail_url,
+                "created_at": v.created_at.isoformat(),
+                "like_count": v.like_count
+            }
+            for v in videos
+        ]
+    }
+
 @router.delete("/{video_id}", dependencies=[Depends(require_role("ADMIN", "OWNER"))])
 def delete_video(video_id: int, db: Session = Depends(get_db)):
     """Delete a video (admin only)"""

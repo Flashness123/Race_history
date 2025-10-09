@@ -21,9 +21,9 @@ def list_races(year: int = Query(..., ge=1900, le=2100), db: Session = Depends(g
     features = []
     for (id_, name, yr, loc, lat, lng, src, dfrom, category) in rows:
         # Determine future by date_from if available; fallback to year comparison
-        # Spots are never "future" regardless of date
+        # Spots and freerides are never "future" regardless of date
         is_future = False
-        if category != "SPOT":
+        if category not in ["SPOT", "FREERIDE"]:
             if dfrom is not None:
                 try:
                     is_future = dfrom.date() > today

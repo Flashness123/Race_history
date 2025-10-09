@@ -10,8 +10,6 @@ improve scrollbar, not just write scroll for other years
 
 different points in map with different colors
 
-improve rider icon
-
 in rider profie also see uploaded videos and number of likes that he got in total
 
 contribution point system

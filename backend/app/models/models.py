@@ -34,7 +34,7 @@ class RaceEvent(Base):
     geom = mapped_column(Geography(geometry_type="POINT", srid=4326))
     source_url: Mapped[str | None]
     image_url: Mapped[str | None] = mapped_column(String(400))
-    category: Mapped[str | None] = mapped_column(String(20))  # SPOT | WDSC | EURO
+    category: Mapped[str | None] = mapped_column(String(20))  # SPOT | WDSC | EURO | FREERIDE
     results: Mapped[list["Result"]] = relationship(back_populates="event")
 
 class Result(Base):
@@ -78,6 +78,8 @@ class User(Base):
 def _user_before_insert(mapper, conn, target: User):
     target.display_name = target.display_name or target.name
     target.display_name_norm = norm(target.display_name or target.name)
+    if not target.profile_image_url:
+        target.profile_image_url = "/static/uploads/profiles/default_avatar.jpg"
 
 @event.listens_for(User, "before_update")
 def _user_before_update(mapper, conn, target: User):

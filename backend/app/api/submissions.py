@@ -20,7 +20,7 @@ class SubmissionIn(BaseModel):
     event_url: str | None = None
     youtube_url: str | None = None
     is_future: bool = False
-    category: str = Field(pattern=r"^(SPOT|WDSC|EURO)$")
+    category: str = Field(pattern=r"^(SPOT|WDSC|EURO|FREERIDE)$")
     top3: list[dict] | None = None  # [{name,country,position}, ...]
     date_from: date
     date_to: date | None = None
@@ -94,8 +94,8 @@ def approve(submission_id: int, db: Session = Depends(get_db)):
     except Exception:
         pass
 
-    # Skip top3 for future events or spots
-    if not is_future and p.get("category") != "SPOT":
+    # Skip top3 for future events, spots, or freerides
+    if not is_future and p.get("category") not in ["SPOT", "FREERIDE"]:
         for item in (p.get("top3") or []):
             n = norm(item["name"])  # normalized key
             person = db.scalar(select(Person).where(Person.full_name_norm == n))

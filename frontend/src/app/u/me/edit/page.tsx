@@ -53,7 +53,7 @@ export default function EditMyBio() {
     <main className="max-w-xl mx-auto p-6 grid gap-4">
       <h1 className="text-2xl font-bold">Edit my bio</h1>
       <div className="flex items-center gap-3">
-        <img src={profileImageUrl ? `${process.env.NEXT_PUBLIC_API_BASE}${profileImageUrl}` : "/file.svg"} className="w-16 h-16 rounded-full object-cover border" alt="Profile" />
+        <img src={`${process.env.NEXT_PUBLIC_API_BASE}${profileImageUrl}`} className="w-16 h-16 rounded-full object-cover border" alt="Profile" />
         <label className="text-sm">
           <span className="block">Change profile image</span>
           <input type="file" accept="image/*" onChange={onUpload} disabled={uploadBusy} />
