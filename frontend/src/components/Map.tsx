@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
-export default function Map({ geojson, onSelect, filters }: { geojson: any, onSelect?: (id: number | null) => void, filters?: { SPOT: boolean; WDSC: boolean; EURO: boolean } }) {
+export default function Map({ geojson, onSelect, filters }: { geojson: any, onSelect?: (id: number | null) => void, filters?: { SPOT: boolean; WDSC: boolean; EURO: boolean; FREERIDE: boolean } }) {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
 
@@ -45,12 +45,21 @@ export default function Map({ geojson, onSelect, filters }: { geojson: any, onSe
         source: "races",
         paint: {
           "circle-radius": 6,
-          // Future events in red, past in blue
+          // Color by category: WDSC=orange, EURO=blue, FREERIDE=green, SPOT=gray
           "circle-color": [
             "case",
             ["==", ["get", "future"], true],
-            "#dc2626",
-            "#2563eb",
+            "#dc2626", // Future events in red
+            [
+              "case",
+              ["==", ["get", "category"], "WDSC"],
+              "#ea580c", // Orange for WDSC
+              ["==", ["get", "category"], "EURO"],
+              "#2563eb", // Blue for EURO
+              ["==", ["get", "category"], "FREERIDE"],
+              "#16a34a", // Green for FREERIDE
+              "#6b7280"  // Gray for SPOT
+            ]
           ],
           "circle-stroke-width": 1.5,
           "circle-stroke-color": "#fff",

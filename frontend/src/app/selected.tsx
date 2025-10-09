@@ -7,7 +7,7 @@ export default function ClientSelected({ geojson }: { geojson: any }) {
   const [detail, setDetail] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const [filters, setFilters] = useState<{SPOT:boolean;WDSC:boolean;EURO:boolean}>({ SPOT: true, WDSC: true, EURO: true });
+  const [filters, setFilters] = useState<{SPOT:boolean;WDSC:boolean;EURO:boolean;FREERIDE:boolean}>({ SPOT: true, WDSC: true, EURO: true, FREERIDE: true });
 
   const onSelect = useCallback((id: number | null) => {
     setSelectedId(id);
@@ -40,27 +40,72 @@ export default function ClientSelected({ geojson }: { geojson: any }) {
               type="checkbox" 
               checked={filters.WDSC} 
               onChange={e=>setFilters(f=>({...f, WDSC:e.target.checked}))}
-              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+              className="w-4 h-4 text-orange-600 bg-gray-100 border-orange-300 rounded focus:ring-orange-500 focus:ring-2 checked:bg-orange-600 checked:border-orange-600 focus:outline-none appearance-none relative"
+              style={{
+                accentColor: 'transparent',
+                WebkitAppearance: 'none',
+                MozAppearance: 'none',
+                backgroundImage: filters.WDSC ? 'url("data:image/svg+xml,%3csvg viewBox=\'0 0 16 16\' fill=\'white\' xmlns=\'http://www.w3.org/2000/svg\'%3e%3cpath d=\'m13.854 3.646-7.5 7.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6 10.293l7.146-7.147a.5.5 0 0 1 .708.708z\'/%3e%3c/svg%3e")' : 'none',
+                backgroundSize: '12px 12px',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat'
+              }}
             />
-            <span className="text-sm font-medium text-gray-700 group-hover:text-blue-600 transition-colors duration-200">WDSC Events</span>
+            <span className="text-sm font-medium text-orange-600 transition-colors duration-200">WDSC Events</span>
           </label>
           <label className="flex items-center gap-2 cursor-pointer group">
             <input 
               type="checkbox" 
               checked={filters.EURO} 
               onChange={e=>setFilters(f=>({...f, EURO:e.target.checked}))}
-              className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 focus:ring-2"
+              className="w-4 h-4 text-blue-600 bg-gray-100 border-blue-300 rounded focus:ring-blue-500 focus:ring-2 checked:bg-blue-600 checked:border-blue-600 focus:outline-none appearance-none relative"
+              style={{
+                accentColor: 'transparent',
+                WebkitAppearance: 'none',
+                MozAppearance: 'none',
+                backgroundImage: filters.EURO ? 'url("data:image/svg+xml,%3csvg viewBox=\'0 0 16 16\' fill=\'white\' xmlns=\'http://www.w3.org/2000/svg\'%3e%3cpath d=\'m13.854 3.646-7.5 7.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6 10.293l7.146-7.147a.5.5 0 0 1 .708.708z\'/%3e%3c/svg%3e")' : 'none',
+                backgroundSize: '12px 12px',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat'
+              }}
             />
-            <span className="text-sm font-medium text-gray-700 group-hover:text-purple-600 transition-colors duration-200">Euro Tour</span>
+            <span className="text-sm font-medium text-blue-600 transition-colors duration-200">Euro Tour</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer group">
+            <input 
+              type="checkbox" 
+              checked={filters.FREERIDE} 
+              onChange={e=>setFilters(f=>({...f, FREERIDE:e.target.checked}))}
+              className="w-4 h-4 text-green-600 bg-gray-100 border-green-300 rounded focus:ring-green-500 focus:ring-2 checked:bg-green-600 checked:border-green-600 focus:outline-none appearance-none relative"
+              style={{
+                accentColor: 'transparent',
+                WebkitAppearance: 'none',
+                MozAppearance: 'none',
+                backgroundImage: filters.FREERIDE ? 'url("data:image/svg+xml,%3csvg viewBox=\'0 0 16 16\' fill=\'white\' xmlns=\'http://www.w3.org/2000/svg\'%3e%3cpath d=\'m13.854 3.646-7.5 7.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6 10.293l7.146-7.147a.5.5 0 0 1 .708.708z\'/%3e%3c/svg%3e")' : 'none',
+                backgroundSize: '12px 12px',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat'
+              }}
+            />
+            <span className="text-sm font-medium text-green-600 transition-colors duration-200">Freerides</span>
           </label>
           <label className="flex items-center gap-2 cursor-pointer group">
             <input 
               type="checkbox" 
               checked={filters.SPOT} 
               onChange={e=>setFilters(f=>({...f, SPOT:e.target.checked}))}
-              className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 focus:ring-2"
+              className="w-4 h-4 text-gray-600 bg-gray-100 border-gray-300 rounded focus:ring-gray-500 focus:ring-2 checked:bg-gray-600 checked:border-gray-600 focus:outline-none appearance-none relative"
+              style={{
+                accentColor: 'transparent',
+                WebkitAppearance: 'none',
+                MozAppearance: 'none',
+                backgroundImage: filters.SPOT ? 'url("data:image/svg+xml,%3csvg viewBox=\'0 0 16 16\' fill=\'white\' xmlns=\'http://www.w3.org/2000/svg\'%3e%3cpath d=\'m13.854 3.646-7.5 7.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6 10.293l7.146-7.147a.5.5 0 0 1 .708.708z\'/%3e%3c/svg%3e")' : 'none',
+                backgroundSize: '12px 12px',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat'
+              }}
             />
-            <span className="text-sm font-medium text-gray-700 group-hover:text-green-600 transition-colors duration-200">Spots</span>
+            <span className="text-sm font-medium text-gray-600 transition-colors duration-200">Spots</span>
           </label>
         </div>
       </div>
@@ -111,12 +156,14 @@ export default function ClientSelected({ geojson }: { geojson: any }) {
                       {detail.category && (
                         <div className="mt-2">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            detail.category === 'WDSC' ? 'bg-blue-100 text-blue-800' :
-                            detail.category === 'EURO' ? 'bg-purple-100 text-purple-800' :
-                            'bg-green-100 text-green-800'
+                            detail.category === 'WDSC' ? 'bg-orange-100 text-orange-800' :
+                            detail.category === 'EURO' ? 'bg-blue-100 text-blue-800' :
+                            detail.category === 'FREERIDE' ? 'bg-green-100 text-green-800' :
+                            'bg-gray-100 text-gray-800'
                           }`}>
                             {detail.category === 'WDSC' ? 'WDSC Event' :
-                             detail.category === 'EURO' ? 'Euro Tour' : 'Spot'}
+                             detail.category === 'EURO' ? 'Euro Tour' :
+                             detail.category === 'FREERIDE' ? 'Freeride Event' : 'Spot'}
                           </span>
                         </div>
                       )}

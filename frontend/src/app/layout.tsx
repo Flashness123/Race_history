@@ -19,7 +19,7 @@ export const metadata: Metadata = { title: "Downhill Race History" };
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 text-gray-900 flex flex-col">
+      <body className="min-h-screen text-gray-900 flex flex-col">
         <Header />
         <main className="flex-1">
           {children}

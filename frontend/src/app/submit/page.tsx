@@ -180,6 +180,7 @@ export default function Submit() {
                 >
                   <option value="WDSC">🏁 WDSC Event</option>
                   <option value="EURO">🌍 Euro Tour Event</option>
+                  <option value="FREERIDE">🏄 Freeride Event</option>
                   <option value="SPOT">📍 Spot (not an event)</option>
                 </select>
               </div>
@@ -273,7 +274,7 @@ export default function Submit() {
                   }
                 />
               </div>
-              {!form.is_future && form.category !== "SPOT" && (
+              {!form.is_future && form.category !== "SPOT" && form.category !== "FREERIDE" && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">YouTube URL (optional)</label>
                   <input
@@ -288,7 +289,7 @@ export default function Submit() {
           </div>
 
           {/* Top 3 Riders */}
-          {!form.is_future && form.category !== "SPOT" && (
+          {!form.is_future && form.category !== "SPOT" && form.category !== "FREERIDE" && (
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                 <span className="text-xl">🏆</span>

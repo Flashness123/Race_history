@@ -11,6 +11,8 @@ from app.models.models import User, Person, Result, RaceEvent, Bio
 
 router = APIRouter(prefix="/bio", tags=["bio"])
 
+DEFAULT_AVATAR = "/static/uploads/profiles/default_avatar.jpg"
+
 class BioOut(BaseModel):
     name: str | None
     profile_image_url: str | None = None
@@ -67,7 +69,7 @@ def get_my_bio(db: Session = Depends(get_db), claims: dict = Depends(get_current
     ach = _achievements(db, user)
     return BioOut(
         name=user.display_name or user.name,
-        profile_image_url=user.profile_image_url,
+        profile_image_url=user.profile_image_url or DEFAULT_AVATAR,
         nationality=bio.nationality if bio else None,
         place_of_birth=bio.place_of_birth if bio else None,
         date_of_birth=bio.date_of_birth if bio else None,
@@ -105,7 +107,7 @@ def update_my_bio(payload: BioIn, db: Session = Depends(get_db), claims: dict = 
 
     return BioOut(
         name=user.display_name or user.name,
-        profile_image_url=user.profile_image_url,
+        profile_image_url=user.profile_image_url or DEFAULT_AVATAR,
         nationality=bio.nationality,
         place_of_birth=bio.place_of_birth,
         date_of_birth=bio.date_of_birth,
@@ -141,7 +143,7 @@ def list_riders(db: Session = Depends(get_db)):
             name=name,
             nationality=bio.nationality if bio else None,
             achievements_count=count,
-            profile_image_url=user.profile_image_url if user else None,
+            profile_image_url=(user.profile_image_url or DEFAULT_AVATAR) if user else DEFAULT_AVATAR,
         ))
     return out
 
@@ -169,7 +171,7 @@ def top_riders(db: Session = Depends(get_db)):
             id=user.id if user else None,
             name=user.display_name or user.name if user else full_name,
             achievements_count=cnt,
-            profile_image_url=user.profile_image_url if user else None,
+            profile_image_url=(user.profile_image_url or DEFAULT_AVATAR) if user else DEFAULT_AVATAR,
         ))
     return out
 
@@ -206,7 +208,7 @@ def public_rider(user_id: int, db: Session = Depends(get_db)):
     return PublicRiderOut(
         id=user.id,
         name=user.display_name or user.name,
-        profile_image_url=user.profile_image_url,
+        profile_image_url=user.profile_image_url or DEFAULT_AVATAR,
         nationality=bio.nationality if bio else None,
         place_of_birth=bio.place_of_birth if bio else None,
         date_of_birth=bio.date_of_birth if bio else None,
