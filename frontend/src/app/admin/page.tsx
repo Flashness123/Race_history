@@ -126,171 +126,328 @@ export default function AdminPage() {
   useEffect(() => { loadRaces(); }, [raceYear]);
 
   return (
-    <main className="max-w-6xl mx-auto p-6 grid gap-8">
-      <h1 className="text-2xl font-bold">Admin</h1>
-      {loading && <p>Loading…</p>}
-      {err && <p className="text-red-600">{err}</p>}
-
-      {/* Races */}
-      <section className="grid gap-3">
-        <h2 className="text-xl font-semibold">Races</h2>
-        <div className="flex items-center gap-2">
-          <label className="text-sm">Year filter:</label>
-          <input
-            type="number"
-            placeholder="(all)"
-            className="border rounded px-2 py-1 w-28"
-            value={raceYear}
-            onChange={(e) => setRaceYear(e.target.value ? Number(e.target.value) as number : "")}
-          />
-          <button onClick={loadRaces} className="px-2 py-1 border rounded">Reload</button>
+    <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <div className="w-20 h-20 bg-gradient-to-br from-red-600 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <span className="text-white font-bold text-3xl">⚙️</span>
+          </div>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent mb-2">
+            Admin Dashboard
+          </h1>
+          <p className="text-gray-600">Manage submissions, users, and races</p>
         </div>
 
-        {races.length === 0 && <p className="text-gray-600">No races found.</p>}
+        {loading && (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading admin data...</p>
+            </div>
+          </div>
+        )}
+        
+        {err && (
+          <div className="mb-8 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-center gap-3">
+              <div className="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center">
+                <span className="text-red-600 text-sm">⚠</span>
+              </div>
+              <p className="text-red-800 font-medium">{err}</p>
+            </div>
+          </div>
+        )}
 
-        <div className="grid gap-2">
-          {races.map(r => (
-            <div key={r.id} className="border rounded p-3 flex items-center justify-between">
-              <div className="text-sm flex items-center gap-3">
-                <img src={r.image_url ? `${process.env.NEXT_PUBLIC_API_BASE}${r.image_url}` : "/file.svg"} className="w-16 h-16 rounded object-cover border" alt={r.name} />
-                <div className="font-medium">
-                  {r.name} <span className="text-gray-600">({r.year})</span>
+        {!loading && !err && (
+          <div className="space-y-12">
+
+            {/* Races Section */}
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                  <span className="text-white text-lg">🏁</span>
                 </div>
-                <div className="text-gray-700">{r.location} · {r.lat}, {r.lng}</div>
-                {r.source_url && (
-                  <div className="text-gray-600">
-                    <a className="underline" href={r.source_url} target="_blank">source</a>
+                <h2 className="text-2xl font-bold text-gray-900">Races</h2>
+              </div>
+              
+              <div className="flex items-center gap-4 mb-6">
+                <label className="text-sm font-medium text-gray-700">Year filter:</label>
+                <input
+                  type="number"
+                  placeholder="(all)"
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 w-32"
+                  value={raceYear}
+                  onChange={(e) => setRaceYear(e.target.value ? Number(e.target.value) as number : "")}
+                />
+                <button 
+                  onClick={loadRaces} 
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                >
+                  Reload
+                </button>
+              </div>
+
+              {races.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="text-2xl">🏁</span>
                   </div>
+                  <p className="text-gray-600">No races found.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {races.map(r => (
+                    <div key={r.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl border border-gray-200 hover:shadow-md transition-shadow duration-200">
+                      <img 
+                        src={r.image_url ? `${process.env.NEXT_PUBLIC_API_BASE}${r.image_url}` : "/file.svg"} 
+                        className="w-20 h-20 rounded-xl object-cover border-2 border-gray-200 shadow-sm" 
+                        alt={r.name} 
+                      />
+                      
+                      <div className="flex-1">
+                        <div className="font-semibold text-gray-900 mb-1">
+                          {r.name} <span className="text-gray-500">({r.year})</span>
+                        </div>
+                        <div className="text-sm text-gray-600 mb-1">
+                          📍 {r.location} · {r.lat}, {r.lng}
+                        </div>
+                        {r.source_url && (
+                          <div className="text-sm">
+                            <a className="text-blue-600 hover:text-blue-700 underline" href={r.source_url} target="_blank" rel="noopener noreferrer">
+                              🔗 View source
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center gap-3">
+                        <label className="cursor-pointer">
+                          <div className="px-4 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors duration-200 text-sm font-medium">
+                            📷 Change image
+                          </div>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              const fd = new FormData();
+                              fd.append("file", file);
+                              const res = await fetch(`/api/uploads/event-image/${r.id}`, { method: "POST", body: fd });
+                              const data = await res.json();
+                              if (!res.ok) { alert(data?.error || "Upload failed"); return; }
+                              setRaces(prev => prev.map(x => x.id === r.id ? { ...x, image_url: data.image_url } : x));
+                            }}
+                          />
+                        </label>
+                        <button
+                          onClick={() => deleteRace(r.id, r.name)}
+                          disabled={raceBusy === r.id}
+                          className="px-4 py-2 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+                        >
+                          {raceBusy === r.id ? "Deleting…" : "🗑 Delete"}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Pending Submissions Section */}
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-lg">⏳</span>
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900">Pending Submissions</h2>
+                {items.length > 0 && (
+                  <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">
+                    {items.length} pending
+                  </span>
                 )}
               </div>
-              <div className="flex items-center gap-2">
-                <label className="text-sm">
-                  <span className="block">Change image</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      const fd = new FormData();
-                      fd.append("file", file);
-                      const res = await fetch(`/api/uploads/event-image/${r.id}`, { method: "POST", body: fd });
-                      const data = await res.json();
-                      if (!res.ok) { alert(data?.error || "Upload failed"); return; }
-                      setRaces(prev => prev.map(x => x.id === r.id ? { ...x, image_url: data.image_url } : x));
-                    }}
-                  />
-                </label>
-                <button
-                  onClick={() => deleteRace(r.id, r.name)}
-                  disabled={raceBusy === r.id}
-                  className="bg-red-600 text-white rounded px-3 py-2 disabled:opacity-60"
-                >
-                  {raceBusy === r.id ? "Deleting…" : "🗑 Delete"}
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+              
+              {items.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="text-2xl">✅</span>
+                  </div>
+                  <p className="text-gray-600">No pending submissions.</p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {items.map((s) => (
+                    <div key={s.id} className="p-6 bg-gray-50 rounded-xl border border-gray-200">
+                      <div className="flex justify-between items-start gap-6">
+                        <div className="flex-1">
+                          <div className="font-semibold text-lg text-gray-900 mb-2">
+                            {s.payload.name} <span className="text-gray-500">({s.payload.year})</span>
+                          </div>
+                          <div className="text-sm text-gray-600 mb-2">
+                            📍 {s.payload.location} · {s.payload.lat}, {s.payload.lng}
+                          </div>
+                          {s.payload.source_url && (
+                            <div className="text-sm mb-2">
+                              <a className="text-blue-600 hover:text-blue-700 underline" href={s.payload.source_url} target="_blank" rel="noopener noreferrer">
+                                🔗 View source
+                              </a>
+                            </div>
+                          )}
+                          {Array.isArray(s.payload.top3) && s.payload.top3.length > 0 && (
+                            <div className="mt-3">
+                              <div className="text-sm font-medium text-gray-700 mb-2">Top 3 Results:</div>
+                              <div className="space-y-1">
+                                {s.payload.top3
+                                  .slice()
+                                  .sort((a,b)=>a.position-b.position)
+                                  .map(r=>(
+                                    <div key={r.position} className="flex items-center gap-2 text-sm">
+                                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold ${
+                                        r.position === 1 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600' :
+                                        r.position === 2 ? 'bg-gradient-to-br from-gray-300 to-gray-500' :
+                                        'bg-gradient-to-br from-orange-400 to-orange-600'
+                                      }`}>
+                                        {r.position}
+                                      </div>
+                                      <span className="font-medium">{r.name}</span>
+                                      {r.country && <span className="text-gray-500">({r.country})</span>}
+                                      {r.instagram && <span className="text-gray-500">📸 {r.instagram}</span>}
+                                    </div>
+                                  ))}
+                              </div>
+                            </div>
+                          )}
+                          <p className="text-xs text-gray-500 mt-3">
+                            Submitted by user: {s.submitted_by_user_id ?? "unknown"}
+                          </p>
+                        </div>
 
-      {/* Pending Submissions */}
-      <section className="grid gap-3">
-        <h2 className="text-xl font-semibold">Pending submissions</h2>
-        {items.length === 0 && <p className="text-gray-600">No pending submissions.</p>}
-        <div className="grid gap-4">
-          {items.map((s) => (
-            <div key={s.id} className="border rounded p-4">
-              <div className="flex justify-between items-start gap-3">
-                <div>
-                  <div className="font-semibold">
-                    {s.payload.name} <span className="text-gray-500">({s.payload.year})</span>
-                  </div>
-                  <div className="text-sm text-gray-700">
-                    {s.payload.location} · {s.payload.lat}, {s.payload.lng}
-                  </div>
-                  {s.payload.source_url && (
-                    <div className="text-sm">
-                      Source: <a className="underline" href={s.payload.source_url} target="_blank">link</a>
+                        <div className="flex flex-col gap-3">
+                          <button
+                            onClick={() => approve(s.id)}
+                            disabled={busyId === s.id}
+                            className="px-6 py-3 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed font-medium"
+                          >
+                            {busyId === s.id ? (
+                              <div className="flex items-center gap-2">
+                                <div className="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
+                                <span>Approving…</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                <span>✅</span>
+                                <span>Approve</span>
+                              </div>
+                            )}
+                          </button>
+                          <button
+                            onClick={() => deleteSubmission(s.id)}
+                            className="px-6 py-3 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors duration-200 font-medium"
+                            title="Hard delete submission"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span>🗑</span>
+                              <span>Delete</span>
+                            </div>
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                  )}
-                  {Array.isArray(s.payload.top3) && s.payload.top3.length > 0 && (
-                    <ul className="text-sm mt-2">
-                      {s.payload.top3
-                        .slice()
-                        .sort((a,b)=>a.position-b.position)
-                        .map(r=>(
-                          <li key={r.position}>
-                            #{r.position}: {r.name}
-                            {r.country ? ` (${r.country})` : ""}
-                            {r.instagram ? ` · 📸 ${r.instagram}` : ""}
-                          </li>
-                        ))}
-                    </ul>
-                  )}
-                  <p className="text-xs text-gray-500 mt-1">
-                    Submitted by user: {s.submitted_by_user_id ?? "unknown"}
-                  </p>
+                  ))}
                 </div>
+              )}
+            </div>
 
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => approve(s.id)}
-                    disabled={busyId === s.id}
-                    className="bg-green-600 text-white rounded px-3 py-2 disabled:opacity-60"
-                  >
-                    {busyId === s.id ? "Approving…" : "✅ Approve"}
-                  </button>
-                  <button
-                    onClick={() => deleteSubmission(s.id)}
-                    className="bg-gray-700 text-white rounded px-3 py-2"
-                    title="Hard delete submission"
-                  >
-                    🗑 Delete
-                </button>
+            {/* Users Section */}
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
+                  <span className="text-white text-lg">👥</span>
                 </div>
-
+                <h2 className="text-2xl font-bold text-gray-900">Users</h2>
+                {users.length > 0 && (
+                  <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
+                    {users.length} users
+                  </span>
+                )}
               </div>
+              
+              {users.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="text-2xl">👥</span>
+                  </div>
+                  <p className="text-gray-600">No users found.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {users.map((u) => (
+                    <div key={u.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl border border-gray-200 hover:shadow-md transition-shadow duration-200">
+                      <div className="w-12 h-12 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold text-lg">
+                          {u.name ? u.name.charAt(0).toUpperCase() : "U"}
+                        </span>
+                      </div>
+                      
+                      <div className="flex-1">
+                        <div className="font-semibold text-gray-900 mb-1">
+                          {u.name || "(no name)"} · {u.email}
+                        </div>
+                        <div className="flex items-center gap-4 text-sm text-gray-600">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            u.role === 'OWNER' ? 'bg-red-100 text-red-800' :
+                            u.role === 'ADMIN' ? 'bg-blue-100 text-blue-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {u.role}
+                          </span>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            u.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          }`}>
+                            {u.is_active ? 'Active' : 'Inactive'}
+                          </span>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            u.can_submit ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {u.can_submit ? 'Can Submit' : 'Cannot Submit'}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-3">
+                        <button
+                          className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors duration-200 ${
+                            u.can_submit 
+                              ? 'bg-red-50 text-red-700 hover:bg-red-100' 
+                              : 'bg-green-50 text-green-700 hover:bg-green-100'
+                          }`}
+                          disabled={userBusy === u.id}
+                          onClick={() => updateUser(u.id, { can_submit: !u.can_submit })}
+                        >
+                          {u.can_submit ? "Disable Submit" : "Enable Submit"}
+                        </button>
+                        <select
+                          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                          disabled={userBusy === u.id}
+                          value={u.role}
+                          onChange={(e) => updateUser(u.id, { role: e.target.value as User["role"] })}
+                        >
+                          <option value="USER">USER</option>
+                          <option value="ADMIN">ADMIN</option>
+                          <option value="OWNER">OWNER</option>
+                        </select>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Users */}
-      <section className="grid gap-3">
-        <h2 className="text-xl font-semibold">Users</h2>
-        {users.length === 0 && <p className="text-gray-600">No users.</p>}
-        <div className="grid gap-2">
-          {users.map((u) => (
-            <div key={u.id} className="border rounded p-3 flex items-center justify-between gap-3">
-              <div className="text-sm">
-                <div className="font-medium">{u.name || "(no name)"} · {u.email}</div>
-                <div className="text-gray-600">Role: {u.role} · Active: {String(u.is_active)} · Can submit: {String(u.can_submit)}</div>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  className="px-2 py-1 border rounded"
-                  disabled={userBusy === u.id}
-                  onClick={() => updateUser(u.id, { can_submit: !u.can_submit })}
-                >
-                  {u.can_submit ? "Disable submit" : "Enable submit"}
-                </button>
-                {/* Owner-only role changes will error for non-owners */}
-                <select
-                  className="px-2 py-1 border rounded"
-                  disabled={userBusy === u.id}
-                  value={u.role}
-                  onChange={(e) => updateUser(u.id, { role: e.target.value as User["role"] })}
-                >
-                  <option value="USER">USER</option>
-                  <option value="ADMIN">ADMIN</option>
-                  <option value="OWNER">OWNER</option>
-                </select>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+          </div>
+        )}
+      </div>
     </main>
   );
 }
