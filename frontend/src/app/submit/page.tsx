@@ -1,16 +1,19 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import MapPicker from "@/components/MapPicker";
 
 type Rider = { name: string; country?: string; instagram?: string; position: number };
 
 export default function Submit() {
+  const router = useRouter();
   const [form, setForm] = useState({
     name: "",
     year: new Date().getFullYear(),
     location: "",
     lat: 50.08804,
     lng: 14.42076,
+    category: "WDSC",
     event_url: "",
     youtube_url: "",
     is_future: false,
@@ -27,6 +30,8 @@ export default function Submit() {
   const [busy, setBusy] = useState(false);
   const [nameOptions, setNameOptions] = useState<string[][]>([[],[],[]]);
   const [nameBusy, setNameBusy] = useState([false,false,false]);
+
+  // No authentication check on page load - let the submit handle it
 
   // IMPORTANT: functional updater, so we never lose other fields
   function setRider(i: number, patch: Partial<Rider>) {
@@ -46,17 +51,30 @@ export default function Submit() {
       // Convert date strings to proper format for backend
       const payload = {
         ...form,
-        date_from: form.date_from || undefined,
-        date_to: form.date_to || undefined,
+        date_from: form.date_from || new Date().toISOString().slice(0,10),
+        date_to: form.date_to || null,
       };
       const res = await fetch("/api/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      const data = await res.json();
+      
+      let data;
+      try {
+        data = await res.json();
+      } catch (jsonError) {
+        setErr(`Server error: ${res.status} ${res.statusText}`);
+        return;
+      }
+      
       if (!res.ok) {
-        setErr(data?.error || "Failed");
+        if (res.status === 401) {
+          setErr("Please sign in to submit races");
+          setTimeout(() => router.push("/login"), 2000);
+        } else {
+          setErr(data?.error || `Failed: ${res.status}`);
+        }
         return;
       }
       setOk(`Submitted #${data.id}. Awaiting approval.`);
@@ -115,6 +133,20 @@ export default function Submit() {
               }
             />
           </div>
+        </div>
+
+        {/* Category */}
+        <div className="grid gap-2">
+          <label className="text-sm font-medium">Category</label>
+          <select
+            className="border rounded p-2"
+            value={form.category}
+            onChange={(e) => setForm(prev => ({ ...prev, category: e.target.value }))}
+          >
+            <option value="WDSC">WDSC Event</option>
+            <option value="EURO">Euro Tour Event</option>
+            <option value="SPOT">Spot (not an event)</option>
+          </select>
         </div>
 
         {/* Event date(s) */}
@@ -189,7 +221,7 @@ export default function Submit() {
             }
           />
         </div>
-        {!form.is_future && (
+        {!form.is_future && form.category !== "SPOT" && (
           <div className="grid gap-2">
             <label className="text-sm font-medium">YouTube URL (optional)</label>
             <input
@@ -201,7 +233,7 @@ export default function Submit() {
         )}
 
         {/* Top 3 Riders */}
-        {!form.is_future && (
+        {!form.is_future && form.category !== "SPOT" && (
         <div className="grid gap-3">
           <div className="font-medium">Top 3 riders</div>
           {[0, 1, 2].map((i) => (
