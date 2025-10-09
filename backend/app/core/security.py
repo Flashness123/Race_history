@@ -3,7 +3,7 @@ from jose import jwt, JWTError
 from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.core.config import settings
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
@@ -22,6 +22,14 @@ def get_current_user_claims(creds: HTTPAuthorizationCredentials = Depends(bearer
     if not creds:
         raise HTTPException(status_code=401, detail="Not authenticated")
     return decode_token(creds.credentials)
+
+def get_optional_user_claims(creds: HTTPAuthorizationCredentials = Depends(bearer_scheme)) -> Optional[dict]:
+    if not creds:
+        return None
+    try:
+        return decode_token(creds.credentials)
+    except HTTPException:
+        return None
 
 def require_role(*allowed: str):
     def _dep(claims: dict = Depends(get_current_user_claims)):

@@ -102,3 +102,34 @@ class Bio(Base):
     date_of_birth: Mapped[date | None] = mapped_column(Date)
     message: Mapped[str | None] = mapped_column(Text) # short motivational text
     user: Mapped["User"] = relationship("User", backref="bio", uselist=False)
+
+class Video(Base):
+    __tablename__ = "videos"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str] = mapped_column(String(200), index=True)
+    description: Mapped[str | None] = mapped_column(Text)
+    youtube_url: Mapped[str] = mapped_column(String(500), unique=True, index=True)
+    youtube_id: Mapped[str] = mapped_column(String(50), unique=True, index=True)  # extracted from URL
+    thumbnail_url: Mapped[str | None] = mapped_column(String(500))
+    uploaded_by_user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    like_count: Mapped[int] = mapped_column(Integer, default=0, index=True)
+    
+    # Relationships
+    uploaded_by: Mapped["User"] = relationship("User", backref="uploaded_videos")
+    likes: Mapped[list["VideoLike"]] = relationship("VideoLike", back_populates="video", cascade="all, delete-orphan")
+
+class VideoLike(Base):
+    __tablename__ = "video_likes"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    video_id: Mapped[int] = mapped_column(ForeignKey("videos.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+    
+    # Relationships
+    video: Mapped["Video"] = relationship("Video", back_populates="likes")
+    user: Mapped["User"] = relationship("User", backref="video_likes")
+    
+    # Ensure one like per user per video
+    __table_args__ = (UniqueConstraint("video_id", "user_id", name="uq_video_user_like"),)
