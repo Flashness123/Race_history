@@ -2,18 +2,43 @@ Different type of passwording, sending out email and waiting for confirmation - 
 
 add more event categories 
 
-category filter fix box design
-
 improve Admin page, submitted by user, show not number but the name of the user
-
-improve scrollbar, not just write scroll for other years
-
-different points in map with different colors
-
-in rider profie also see uploaded videos and number of likes that he got in total
 
 contribution point system
 
-main page improve layout and riders design, different background
+!!!
+make races editable by users, with message on info that is missing
+change name to: Longboarding worldwide
+Top riders, if picture display it over whole square 
+make pdfs and pictures and excels etc uploadable
 
-add freerides
+inmprove submit! possibility to add documents, more then top 3 riders, add time trial
+add street luge
+
+create drop in over xlsx, what if event already there?
+
+a lot of icons on bottom are not clickable
+
+in media page write and publish news
+
+
+
+
+
+
+
+
+
+
+prompts:
+
+improve admin page(see all the details of the submission, and by whom submitted)
+great, now please delete all the races I have submitted so far
+
+add qualification
+
+
+at the very top of the submit page, next to submit a race(still keep it as a heading), add submit spots and batch submit which changes the layout completely, on submit spots you have the name mandatory and location as optional and a text field for writing down important things like what to care about who to call, mention that, 
+
+for batch submit accept .xlsx and .ods files which must be only in the layout of these columns: 
+make event_name the Race Name, date_start the start date , date_end the end date, add standup_top_1 - 3 as top 3 riders open, luge_top_1-3 as top in luge and women_top_1-3 as top in women enter track_record_open as track record apoen and accordinly the time, do this for all three 3 track records, make category as WDSC Event if in category is WDSC, IDF for a new category called IDF Event, EURO for Euro Tour and FREERIDE for Freeride, check if these events arent already in the database, if yes skip them and inform the user,  if some information are missing its ok, only race name and start date are mandatory, for the location look in the location column and search it on the map and fill it in, inform the user about which race names from the batch upload were submitted correctly
