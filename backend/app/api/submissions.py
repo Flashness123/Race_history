@@ -39,6 +39,7 @@ class SubmissionIn(BaseModel):
     top_riders_open: list[RiderData] = Field(default_factory=list)
     top_riders_luge: list[RiderData] = Field(default_factory=list)
     top_riders_woman: list[RiderData] = Field(default_factory=list)
+    top_qualifiers: list[RiderData] = Field(default_factory=list)
     track_record_open: TrackRecordData | None = None
     track_record_luge: TrackRecordData | None = None
     track_record_woman: TrackRecordData | None = None
@@ -53,6 +54,17 @@ def create_submission(data: SubmissionIn, db: Session = Depends(get_db), claims:
         if not user.can_submit:
             raise HTTPException(status_code=403, detail="Submitting disabled for your account")
 
+        # Check for duplicate spots (if category is SPOT)
+        if data.category == "SPOT":
+            existing_spot = db.scalar(
+                select(RaceEvent).where(
+                    RaceEvent.name == data.name,
+                    RaceEvent.category == "SPOT"
+                )
+            )
+            if existing_spot:
+                raise HTTPException(status_code=400, detail=f"A spot with the name '{data.name}' already exists")
+
         # Convert dates to strings for JSON serialization
         payload = data.dict()
         if payload.get("date_from"):
@@ -65,6 +77,8 @@ def create_submission(data: SubmissionIn, db: Session = Depends(get_db), claims:
         db.commit()
         db.refresh(sub)
         return {"id": sub.id, "status": sub.status}
+    except HTTPException:
+        raise
     except Exception as e:
         db.rollback()
         print(f"Error creating submission: {e}")
@@ -226,6 +240,41 @@ def approve(submission_id: int, db: Session = Depends(get_db)):
                         continue
                     else:
                         raise
+        
+        # Process Qualifiers category (use positions 100+ to avoid conflicts)
+        for rider in p.get("top_qualifiers", []):
+            n = norm(rider["name"])
+            person = db.scalar(select(Person).where(Person.full_name_norm == n))
+            if not person:
+                person = Person(
+                    full_name=rider["name"],
+                    full_name_norm=n,
+                )
+                db.add(person); db.flush()
+
+            # Use position 100 + original position to avoid conflicts with regular riders
+            qualifier_position = 100 + int(rider["position"])
+            
+            # Check if result already exists
+            existing_result = db.scalar(select(Result).where(
+                Result.event_id == ev.id,
+                Result.position == qualifier_position
+            ))
+            if not existing_result:
+                try:
+                    result = Result(
+                        event_id=ev.id,
+                        person_id=person.id,
+                        position=qualifier_position
+                    )
+                    db.add(result)
+                    db.flush()
+                except Exception as e:
+                    if "uq_event_position" in str(e) or "duplicate key" in str(e).lower():
+                        db.rollback()
+                        continue
+                    else:
+                        raise
 
     sub.status = "APPROVED"
     db.commit()
@@ -317,6 +366,7 @@ def batch_submit(file: UploadFile = File(...), db: Session = Depends(get_db), cl
                     "top_riders_open": [],
                     "top_riders_luge": [],
                     "top_riders_woman": [],
+                    "top_qualifiers": [],
                     "track_record_open": None,
                     "track_record_luge": None,
                     "track_record_woman": None,
@@ -339,6 +389,16 @@ def batch_submit(file: UploadFile = File(...), db: Session = Depends(get_db), cl
                             "name": str(row[f'women_top_{i}']),
                             "position": i
                         })
+                
+                # Add qualifiers if they exist (support unlimited qualifiers)
+                qualifier_position = 1
+                for i in range(1, 11):  # Support up to 10 qualifiers
+                    if pd.notna(row.get(f'qualifier_{i}')):
+                        submission_data["top_qualifiers"].append({
+                            "name": str(row[f'qualifier_{i}']),
+                            "position": qualifier_position
+                        })
+                        qualifier_position += 1
 
                 # Add track records if they exist
                 if pd.notna(row.get('track_record_open')) and pd.notna(row.get('track_record_open_time')):
