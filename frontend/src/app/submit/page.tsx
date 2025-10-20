@@ -20,9 +20,10 @@ export default function Submit() {
     lng: 14.42076,
     category: "WDSC",
     links: [{ name: "Event Page", url: "" }] as Link[],
-    top_riders_open: [] as Rider[],
-    top_riders_luge: [] as Rider[],
-    top_riders_woman: [] as Rider[],
+  top_riders_open: [] as Rider[],
+  top_riders_luge: [] as Rider[],
+  top_riders_woman: [] as Rider[],
+  top_qualifiers: [] as Rider[],
     track_record_open: null as TrackRecord | null,
     track_record_luge: null as TrackRecord | null,
     track_record_woman: null as TrackRecord | null,
@@ -62,14 +63,14 @@ export default function Submit() {
     }));
   }
 
-  function addRider(category: 'top_riders_open' | 'top_riders_luge' | 'top_riders_woman') {
+  function addRider(category: 'top_riders_open' | 'top_riders_luge' | 'top_riders_woman' | 'top_qualifiers') {
     setForm(prev => ({
       ...prev,
       [category]: [...prev[category], { name: "", position: prev[category].length + 1 }]
     }));
   }
 
-  function updateRider(category: 'top_riders_open' | 'top_riders_luge' | 'top_riders_woman', index: number, field: keyof Rider, value: string | number) {
+  function updateRider(category: 'top_riders_open' | 'top_riders_luge' | 'top_riders_woman' | 'top_qualifiers', index: number, field: keyof Rider, value: string | number) {
     setForm(prev => ({
       ...prev,
       [category]: prev[category].map((rider, i) => 
@@ -78,7 +79,7 @@ export default function Submit() {
     }));
   }
 
-  function removeRider(category: 'top_riders_open' | 'top_riders_luge' | 'top_riders_woman', index: number) {
+  function removeRider(category: 'top_riders_open' | 'top_riders_luge' | 'top_riders_woman' | 'top_qualifiers', index: number) {
     setForm(prev => ({
       ...prev,
       [category]: prev[category].filter((_, i) => i !== index)
@@ -173,6 +174,7 @@ export default function Submit() {
       const filteredOpenRiders = form.top_riders_open.filter(rider => rider.name.trim());
       const filteredLugeRiders = form.top_riders_luge.filter(rider => rider.name.trim());
       const filteredWomanRiders = form.top_riders_woman.filter(rider => rider.name.trim());
+      const filteredQualifiers = form.top_qualifiers.filter(rider => rider.name.trim());
 
       const payload = {
         name: form.name,
@@ -186,6 +188,7 @@ export default function Submit() {
         top_riders_open: submissionMode === 'spot' ? [] : filteredOpenRiders,
         top_riders_luge: submissionMode === 'spot' ? [] : filteredLugeRiders,
         top_riders_woman: submissionMode === 'spot' ? [] : filteredWomanRiders,
+        top_qualifiers: submissionMode === 'spot' ? [] : filteredQualifiers,
         track_record_open: submissionMode === 'spot' ? null : form.track_record_open,
         track_record_luge: submissionMode === 'spot' ? null : form.track_record_luge,
         track_record_woman: submissionMode === 'spot' ? null : form.track_record_woman,
@@ -336,69 +339,69 @@ export default function Submit() {
             <>
               {/* Basic Information and Event Image */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Basic Information */}
+          {/* Basic Information */}
                 <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Basic Information</h2>
-                  <div className="space-y-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Basic Information</h2>
+            <div className="space-y-6">
                     {/* Race Name - Required */}
-                    <div>
+              <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Race Name <span className="text-red-500">*</span>
                       </label>
-                      <input
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                        placeholder="Enter race name"
-                        value={form.name}
-                        onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))}
+                <input
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  placeholder="Enter race name"
+                  value={form.name}
+                  onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))}
                         required
-                      />
-                    </div>
+                />
+              </div>
 
                     {/* Start Date - Required */}
-                    <div>
+                <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Start Date <span className="text-red-500">*</span>
                       </label>
-                      <input
+                  <input
                         type="date"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                         value={form.date_from}
                         onChange={(e) => setForm(prev => ({ ...prev, date_from: e.target.value }))}
                         required
-                      />
-                    </div>
+                  />
+                </div>
 
                     {/* End Date - Optional */}
-                    <div>
+                <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">End Date (Optional)</label>
-                      <input
+                  <input
                         type="date"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                         value={form.date_to}
                         onChange={(e) => setForm(prev => ({ ...prev, date_to: e.target.value }))}
                       />
-                    </div>
+              </div>
 
-                    {/* Category */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                      <select
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                        value={form.category}
-                        onChange={(e) => setForm(prev => ({ ...prev, category: e.target.value }))}
-                      >
-                        <option value="WDSC">🏁 WDSC Event</option>
-                        <option value="EURO">🌍 Euro Tour Event</option>
+              {/* Category */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                <select
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  value={form.category}
+                  onChange={(e) => setForm(prev => ({ ...prev, category: e.target.value }))}
+                >
+                  <option value="WDSC">🏁 WDSC Event</option>
+                  <option value="EURO">🌍 Euro Tour Event</option>
                         <option value="FREERIDE">🏄 Freeride Event</option>
                         <option value="IDF">🏆 IDF Event</option>
-                        <option value="SPOT">📍 Spot (not an event)</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
+                  <option value="SPOT">📍 Spot (not an event)</option>
+                </select>
+              </div>
+            </div>
+          </div>
 
                 {/* Event Image - Smaller */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                   <h2 className="text-lg font-semibold text-gray-900 mb-4">Event Image</h2>
                   <div className="space-y-4">
                     {form.event_image_url ? (
@@ -422,10 +425,10 @@ export default function Submit() {
                           <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
                             <span className="text-xl">📷</span>
                           </div>
-                          <div>
+              <div>
                             <h3 className="text-sm font-medium text-gray-900 mb-1">Upload Image</h3>
                             <p className="text-xs text-gray-600 mb-3">Optional</p>
-                            <input
+                <input
                               type="file"
                               accept="image/*"
                               onChange={handleImageUpload}
@@ -495,6 +498,18 @@ export default function Submit() {
                   />
                 </div>
 
+                {/* Map Picker for Spot */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Select Location on Map</label>
+                  <div className="rounded-lg overflow-hidden border border-gray-200">
+                    <MapPicker
+                      lat={form.lat}
+                      lng={form.lng}
+                      onPick={(lat, lng) => setForm(prev => ({ ...prev, lat, lng }))}
+                    />
+                  </div>
+                </div>
+
                 {/* Important Notes */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Important Information</label>
@@ -551,7 +566,7 @@ export default function Submit() {
                       </p>
                     </div>
                   )}
-                </div>
+          </div>
 
                        {/* Instructions */}
                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -565,6 +580,7 @@ export default function Submit() {
                            <p><strong>standup_top_1, standup_top_2, standup_top_3</strong> - Top 3 Open riders</p>
                            <p><strong>luge_top_1, luge_top_2, luge_top_3</strong> - Top 3 Luge riders</p>
                            <p><strong>women_top_1, women_top_2, women_top_3</strong> - Top 3 Women riders</p>
+                           <p><strong>qualifier_1, qualifier_2, qualifier_3, ...</strong> - Top Qualifiers (unlimited)</p>
                            <p><strong>track_record_open, track_record_open_time</strong> - Open track record</p>
                            <p><strong>track_record_luge, track_record_luge_time</strong> - Luge track record</p>
                            <p><strong>track_record_women, track_record_women_time</strong> - Women track record</p>
@@ -576,6 +592,24 @@ export default function Submit() {
                              Processing may take a few seconds per location.
                            </p>
                          </div>
+                         
+                         {/* Template Download */}
+                         <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                           <div className="flex items-center justify-between">
+                             <div>
+                               <h4 className="font-medium text-blue-900 mb-1">Need a Template?</h4>
+                               <p className="text-sm text-blue-800">Download our sample file to see the correct column format</p>
+                             </div>
+                             <a
+                               href="/batch_submission_template.ods"
+                               download="batch_submission_template.ods"
+                               className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
+                             >
+                               <span>📥</span>
+                               <span>Download Template</span>
+                             </a>
+                           </div>
+                         </div>
                        </div>
               </div>
             </div>
@@ -583,17 +617,17 @@ export default function Submit() {
 
           {/* Location - Only for race mode */}
           {submissionMode === 'race' && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Location (Optional)</h2>
-              <div className="space-y-6">
-                {/* Map Picker */}
-                <div className="rounded-lg overflow-hidden border border-gray-200">
-                  <MapPicker
-                    lat={form.lat}
-                    lng={form.lng}
-                    onPick={(lat, lng) => setForm(prev => ({ ...prev, lat, lng }))}
-                  />
-                </div>
+            <div className="space-y-6">
+              {/* Map Picker */}
+              <div className="rounded-lg overflow-hidden border border-gray-200">
+                <MapPicker
+                  lat={form.lat}
+                  lng={form.lng}
+                  onPick={(lat, lng) => setForm(prev => ({ ...prev, lat, lng }))}
+                />
+              </div>
 
                 {/* Location Name */}
                 <div>
@@ -606,40 +640,40 @@ export default function Submit() {
                   />
                 </div>
 
-                {/* Lat/Lng inputs */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Latitude</label>
-                    <input
-                      type="number"
-                      step="any"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                      value={form.lat}
-                      onChange={(e) =>
-                        setForm(prev => ({ ...prev, lat: Number(e.target.value) }))
-                      }
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Longitude</label>
-                    <input
-                      type="number"
-                      step="any"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                      value={form.lng}
-                      onChange={(e) =>
-                        setForm(prev => ({ ...prev, lng: Number(e.target.value) }))
-                      }
-                    />
-                  </div>
+              {/* Lat/Lng inputs */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Latitude</label>
+                  <input
+                    type="number"
+                    step="any"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    value={form.lat}
+                    onChange={(e) =>
+                      setForm(prev => ({ ...prev, lat: Number(e.target.value) }))
+                    }
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Longitude</label>
+                  <input
+                    type="number"
+                    step="any"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    value={form.lng}
+                    onChange={(e) =>
+                      setForm(prev => ({ ...prev, lng: Number(e.target.value) }))
+                    }
+                  />
                 </div>
               </div>
             </div>
+          </div>
           )}
 
           {/* Links - Only for race mode */}
           {submissionMode === 'race' && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-gray-900">Links (Optional)</h2>
                 <button
@@ -656,22 +690,22 @@ export default function Submit() {
                   <div key={index} className="flex gap-4 items-end">
                     <div className="flex-1">
                     <label className="block text-sm font-medium text-gray-700 mb-2">Link Name</label>
-                      <input
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                <input
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                         placeholder="e.g., Event Page, Results, Photos"
                         value={link.name}
                         onChange={(e) => updateLink(index, 'name', e.target.value)}
-                      />
-                    </div>
+                />
+              </div>
                     <div className="flex-1">
                       <label className="block text-sm font-medium text-gray-700 mb-2">URL</label>
-                      <input
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  <input
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                         placeholder="https://example.com"
                         value={link.url}
                         onChange={(e) => updateLink(index, 'url', e.target.value)}
-                      />
-                    </div>
+                  />
+                </div>
                     <button
                       type="button"
                       onClick={() => removeLink(index)}
@@ -689,12 +723,12 @@ export default function Submit() {
           {submissionMode === 'race' && form.category !== "SPOT" && form.category !== "FREERIDE" && (
             <div className="space-y-6">
               {/* Top Riders Open */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                    <span className="text-xl">🏆</span>
+                <span className="text-xl">🏆</span>
                     Top Riders Open
-                  </h2>
+              </h2>
                   <button
                     type="button"
                     onClick={() => addRider('top_riders_open')}
@@ -704,16 +738,16 @@ export default function Submit() {
                     <span>Add Rider</span>
                   </button>
                 </div>
-                <div className="space-y-4">
+              <div className="space-y-4">
                   {form.top_riders_open.map((rider, index) => (
                     <div key={index} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
                       <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                         <span className="text-white font-bold text-lg">#{rider.position}</span>
                       </div>
                       <div className="flex-1">
-                        <input
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                          placeholder="Full name"
+                          <input
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                            placeholder="Full name"
                           value={rider.name}
                           onChange={(e) => updateRider('top_riders_open', index, 'name', e.target.value)}
                         />
@@ -727,9 +761,9 @@ export default function Submit() {
                       </button>
                     </div>
                   ))}
-                </div>
-              </div>
-
+                            </div>
+                        </div>
+                        
               {/* Top Riders Luge */}
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div className="flex items-center justify-between mb-4">
@@ -811,6 +845,48 @@ export default function Submit() {
                       </button>
                     </div>
                   ))}
+                      </div>
+                    </div>
+                    
+              {/* Top Qualifiers */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                    <span className="text-xl">🏃</span>
+                    Top Qualifiers
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={() => addRider('top_qualifiers')}
+                    className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
+                  >
+                    <span>+</span>
+                    <span>Add Qualifier</span>
+                  </button>
+                </div>
+                <div className="space-y-4">
+                  {form.top_qualifiers.map((rider, index) => (
+                    <div key={index} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                      <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-green-500 to-teal-600 rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold text-lg">#{rider.position}</span>
+                      </div>
+                      <div className="flex-1">
+                        <input
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                          placeholder="Full name"
+                          value={rider.name}
+                          onChange={(e) => updateRider('top_qualifiers', index, 'name', e.target.value)}
+                        />
+                      </div>
+                              <button 
+                                type="button" 
+                        onClick={() => removeRider('top_qualifiers', index)}
+                        className="px-3 py-3 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors duration-200"
+                      >
+                        ✕
+                              </button>
+                    </div>
+                          ))}
                 </div>
               </div>
             </div>
