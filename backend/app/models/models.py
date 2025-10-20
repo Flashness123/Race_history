@@ -50,6 +50,7 @@ class Result(Base):
     event_id: Mapped[int] = mapped_column(ForeignKey("race_events.id"))
     person_id: Mapped[int] = mapped_column(ForeignKey("people.id"))
     position: Mapped[int]
+    category: Mapped[str | None] = mapped_column(String(20))  # OPEN | LUGE | WOMAN | QUALIFIER
     time_str: Mapped[str | None]
     notes: Mapped[str | None]
     person: Mapped[Person] = relationship(back_populates="results")

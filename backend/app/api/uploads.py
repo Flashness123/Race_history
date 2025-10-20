@@ -65,10 +65,20 @@ def upload_submission_image(
         rel = save_file(content, file.filename, kind="event", owner_id=submission_id)
     except ValueError as e:
         raise HTTPException(400, str(e))
-    # stash it in payload under a known key
-    payload = sub.payload or {}
-    payload["_uploaded_image_url"] = rel
-    sub.payload = payload
-    db.add(sub); db.commit(); db.refresh(sub)
+    
+    # Update payload using raw SQL to avoid SQLAlchemy JSON field issues
+    import json
+    from sqlalchemy import text
+    
+    current_payload = sub.payload or {}
+    current_payload["_uploaded_image_url"] = rel
+    updated_payload_json = json.dumps(current_payload)
+    
+    db.execute(
+        text("UPDATE submissions SET payload = :payload WHERE id = :submission_id"),
+        {"payload": updated_payload_json, "submission_id": submission_id}
+    )
+    db.commit()
+    
     return {"temp_image_url": rel}
 
