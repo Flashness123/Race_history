@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from pydantic import BaseModel, Field
 from datetime import date, datetime
 from sqlalchemy.orm import Session
-from sqlalchemy import select, func, cast
+from sqlalchemy import select, func, cast, delete
 from geoalchemy2 import Geography
 from app.core.db import get_db
 from app.core.security import get_current_user_claims, require_role
@@ -43,6 +43,10 @@ class SubmissionIn(BaseModel):
     track_record_open: TrackRecordData | None = None
     track_record_luge: TrackRecordData | None = None
     track_record_woman: TrackRecordData | None = None
+    organizer_name: str | None = Field(None, max_length=200)
+    # Edit mode fields
+    is_edit: bool = False
+    editing_event_id: int | None = None
 
 @router.post("", status_code=201)
 def create_submission(data: SubmissionIn, db: Session = Depends(get_db), claims: dict = Depends(get_current_user_claims)):
@@ -72,11 +76,19 @@ def create_submission(data: SubmissionIn, db: Session = Depends(get_db), claims:
         if payload.get("date_to"):
             payload["date_to"] = payload["date_to"].isoformat()
         
-        sub = Submission(submitted_by_user_id=user_id, payload=payload, status="PENDING")
+        # Determine submission type
+        submission_type = "EDIT" if data.is_edit else "NEW"
+        
+        sub = Submission(
+            submitted_by_user_id=user_id, 
+            payload=payload, 
+            status="PENDING",
+            submission_type=submission_type
+        )
         db.add(sub)
         db.commit()
         db.refresh(sub)
-        return {"id": sub.id, "status": sub.status}
+        return {"id": sub.id, "status": sub.status, "type": submission_type}
     except HTTPException:
         raise
     except Exception as e:
@@ -87,7 +99,7 @@ def create_submission(data: SubmissionIn, db: Session = Depends(get_db), claims:
 @router.get("", dependencies=[Depends(require_role("ADMIN","OWNER"))])
 def list_pending(db: Session = Depends(get_db)):
     rows = db.execute(
-        select(Submission.id, Submission.payload, Submission.submitted_by_user_id, User.name, User.email)
+        select(Submission.id, Submission.payload, Submission.submitted_by_user_id, Submission.submission_type, User.name, User.email)
         .join(User, User.id == Submission.submitted_by_user_id)
         .where(Submission.status == "PENDING")
     ).all()
@@ -96,8 +108,9 @@ def list_pending(db: Session = Depends(get_db)):
             "id": s[0], 
             "payload": s[1], 
             "submitted_by_user_id": s[2],
-            "submitted_by_name": s[3] or "Unknown",
-            "submitted_by_email": s[4] or "Unknown"
+            "submission_type": s[3],
+            "submitted_by_name": s[4] or "Unknown",
+            "submitted_by_email": s[5] or "Unknown"
         } 
         for s in rows
     ]
@@ -109,6 +122,10 @@ def approve(submission_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Not found or not pending")
 
     p = sub.payload
+    
+    # Check if this is an edit submission
+    is_edit = sub.submission_type == "EDIT" or p.get("is_edit", False)
+    editing_event_id = p.get("editing_event_id") if is_edit else None
 
     # Cast the point to Geography(POINT,4326) - only if valid lat/lng are provided
     geo_value = None
@@ -133,28 +150,65 @@ def approve(submission_id: int, db: Session = Depends(get_db)):
         random_index = random.randint(1, 6)
         image_url = f"/static/uploads/events/event_{random_index}.jpg"
 
-    ev = RaceEvent(
-        name=p["name"],
-        year=year,
-        location=p.get("location") or "Unknown",
-        lat=lat if lat is not None and lat != 0.0 else 0.0,
-        lng=lng if lng is not None and lng != 0.0 else 0.0,
-        geom=geo_value,
-        source_url=p.get("links", [{}])[0].get("url") if p.get("links") else None,  # First link as source
-        date_from=p.get("date_from"),
-        date_to=p.get("date_to"),
-        category=p.get("category"),
-        image_url=image_url,
-        # Track records
-        track_record_open_name=p.get("track_record_open", {}).get("name") if p.get("track_record_open") else None,
-        track_record_open_time=p.get("track_record_open", {}).get("time") if p.get("track_record_open") else None,
-        track_record_luge_name=p.get("track_record_luge", {}).get("name") if p.get("track_record_luge") else None,
-        track_record_luge_time=p.get("track_record_luge", {}).get("time") if p.get("track_record_luge") else None,
-        track_record_woman_name=p.get("track_record_woman", {}).get("name") if p.get("track_record_woman") else None,
-        track_record_woman_time=p.get("track_record_woman", {}).get("time") if p.get("track_record_woman") else None,
-    )
-    db.add(ev); db.flush()
-    db.commit()  # Commit the event first
+    if is_edit and editing_event_id:
+        # Update existing event
+        ev = db.get(RaceEvent, editing_event_id)
+        if not ev:
+            raise HTTPException(status_code=404, detail="Event to edit not found")
+        
+        # Update event fields
+        ev.name = p["name"]
+        ev.year = year
+        ev.location = p.get("location") or "Unknown"
+        ev.lat = lat if lat is not None and lat != 0.0 else 0.0
+        ev.lng = lng if lng is not None and lng != 0.0 else 0.0
+        ev.geom = geo_value
+        ev.source_url = p.get("links", [{}])[0].get("url") if p.get("links") else None
+        ev.date_from = p.get("date_from")
+        ev.date_to = p.get("date_to")
+        ev.category = p.get("category")
+        if image_url:  # Only update image if a new one was uploaded
+            ev.image_url = image_url
+        # Update track records
+        ev.track_record_open_name = p.get("track_record_open", {}).get("name") if p.get("track_record_open") else None
+        ev.track_record_open_time = p.get("track_record_open", {}).get("time") if p.get("track_record_open") else None
+        ev.track_record_luge_name = p.get("track_record_luge", {}).get("name") if p.get("track_record_luge") else None
+        ev.track_record_luge_time = p.get("track_record_luge", {}).get("time") if p.get("track_record_luge") else None
+        ev.track_record_woman_name = p.get("track_record_woman", {}).get("name") if p.get("track_record_woman") else None
+        ev.track_record_woman_time = p.get("track_record_woman", {}).get("time") if p.get("track_record_woman") else None
+        ev.organizer_name = p.get("organizer_name")
+        
+        db.add(ev); db.flush()
+        db.commit()  # Commit the updated event first
+        
+        # Clear existing results for this event
+        db.execute(delete(Result).where(Result.event_id == ev.id))
+        db.flush()
+    else:
+        # Create new event
+        ev = RaceEvent(
+            name=p["name"],
+            year=year,
+            location=p.get("location") or "Unknown",
+            lat=lat if lat is not None and lat != 0.0 else 0.0,
+            lng=lng if lng is not None and lng != 0.0 else 0.0,
+            geom=geo_value,
+            source_url=p.get("links", [{}])[0].get("url") if p.get("links") else None,  # First link as source
+            date_from=p.get("date_from"),
+            date_to=p.get("date_to"),
+            category=p.get("category"),
+            image_url=image_url,
+            # Track records
+            track_record_open_name=p.get("track_record_open", {}).get("name") if p.get("track_record_open") else None,
+            track_record_open_time=p.get("track_record_open", {}).get("time") if p.get("track_record_open") else None,
+            track_record_luge_name=p.get("track_record_luge", {}).get("name") if p.get("track_record_luge") else None,
+            track_record_luge_time=p.get("track_record_luge", {}).get("time") if p.get("track_record_luge") else None,
+            track_record_woman_name=p.get("track_record_woman", {}).get("name") if p.get("track_record_woman") else None,
+            track_record_woman_time=p.get("track_record_woman", {}).get("time") if p.get("track_record_woman") else None,
+            organizer_name=p.get("organizer_name"),
+        )
+        db.add(ev); db.flush()
+        db.commit()  # Commit the event first
 
     # Process riders for each category (skip for spots and freerides)
     if p.get("category") not in ["SPOT", "FREERIDE"]:
@@ -299,6 +353,40 @@ def approve(submission_id: int, db: Session = Depends(get_db)):
                     else:
                         raise
 
+    # Handle organizer as a special achievement
+    if p.get("organizer_name"):
+        organizer_name = p["organizer_name"].strip()
+        if organizer_name:
+            # First, remove any existing organizer results for this event
+            db.execute(delete(Result).where(Result.event_id == ev.id, Result.category == "ORGANIZER"))
+            db.flush()
+            
+            # Find or create person for organizer
+            person = db.scalar(select(Person).where(Person.full_name_norm == norm(organizer_name)))
+            if not person:
+                person = Person(
+                    full_name=organizer_name,
+                    full_name_norm=norm(organizer_name)
+                )
+                db.add(person)
+                db.flush()
+            
+            # Add organizer result with special category
+            organizer_result = Result(
+                event_id=ev.id,
+                person_id=person.id,
+                position=999,  # Special position for organizers
+                category="ORGANIZER",
+                time_str=None,
+                notes=None
+            )
+            db.add(organizer_result)
+            db.flush()
+    else:
+        # If no organizer name provided, remove any existing organizer results
+        db.execute(delete(Result).where(Result.event_id == ev.id, Result.category == "ORGANIZER"))
+        db.flush()
+
     sub.status = "APPROVED"
     db.commit()
     return {"ok": True, "event_id": ev.id}
@@ -393,6 +481,7 @@ def batch_submit(file: UploadFile = File(...), db: Session = Depends(get_db), cl
                     "track_record_open": None,
                     "track_record_luge": None,
                     "track_record_woman": None,
+                    "organizer_name": str(row.get('organizer_name', '')).strip() if pd.notna(row.get('organizer_name')) else None,
                 }
 
                 # Add riders if they exist

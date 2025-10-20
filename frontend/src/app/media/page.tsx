@@ -330,18 +330,17 @@ export default function MediaPage() {
           </div>
         )}
 
-        {/* Podium Section */}
-        {allVideos.length > 0 && (
+        {/* Podium Section - Only show if we have 3+ videos */}
+        {allVideos.length >= 3 && (
           <div className="mb-16">
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">🏆 Top Videos</h2>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">🏆 Top 3 Videos</h2>
               <p className="text-gray-600">The most liked videos from the community</p>
             </div>
             
             <div className="relative">
               {/* Podium for top 3 */}
-              {allVideos.length >= 3 && (
-                <div className="flex justify-center items-end gap-6 mb-8 max-w-5xl mx-auto">
+              <div className="flex justify-center items-end gap-6 mb-8 max-w-5xl mx-auto">
                   {/* 2nd place (Left) */}
                   <div className="flex flex-col items-center">
                     <div className="bg-white rounded-xl shadow-lg border-2 border-gray-200 p-4 mb-2 w-64">
@@ -384,49 +383,12 @@ export default function MediaPage() {
                     </div>
                   </div>
                 </div>
-              )}
-              
-              {/* Handle cases with fewer than 3 videos */}
-              {allVideos.length > 0 && allVideos.length < 3 && (
-                <div className="flex justify-center items-end gap-6 mb-8 max-w-5xl mx-auto">
-                  {allVideos.map((video, index) => (
-                    <div key={video.id} className="flex flex-col items-center">
-                      <div className={`rounded-xl shadow-lg border-2 p-4 mb-2 w-64 ${
-                        index === 0 
-                          ? 'bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-300' 
-                          : 'bg-white border-gray-200'
-                      }`}>
-                        <div className="text-center">
-                          <div className={`text-xl font-bold mb-2 ${
-                            index === 0 ? 'text-yellow-600' : 'text-gray-400'
-                          }`}>
-                            {index === 0 ? '🥇 1st Place' : `${index + 1}${index === 1 ? 'nd' : 'rd'} Place`}
-                          </div>
-                          <VideoCard video={video} isPodium={true} position={index + 1} />
-                          <div className="text-sm text-gray-500 mt-2">{video.like_count} likes</div>
-                        </div>
-                      </div>
-                      <div className={`rounded-lg w-20 h-16 flex items-center justify-center shadow-md ${
-                        index === 0 
-                          ? 'bg-gradient-to-br from-yellow-400 to-yellow-500' 
-                          : 'bg-gray-300'
-                      }`}>
-                        <span className={`text-3xl font-bold ${
-                          index === 0 ? 'text-white' : 'text-gray-600'
-                        }`}>
-                          {index + 1}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           </div>
         )}
 
         {/* All Videos Section */}
-        {allVideos.length > 3 && (
+        {allVideos.length > 0 && (
           <div>
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold text-gray-900 mb-2">All Videos</h2>
@@ -434,8 +396,22 @@ export default function MediaPage() {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {allVideos.slice(3).map((video) => (
-                <VideoCard key={video.id} video={video} />
+              {allVideos.map((video, index) => (
+                <div key={video.id} className="relative">
+                  {/* Top 3 Badge */}
+                  {index < 3 && (
+                    <div className="absolute -top-2 -right-2 z-10">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg ${
+                        index === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500' :
+                        index === 1 ? 'bg-gradient-to-br from-gray-400 to-gray-500' :
+                        'bg-gradient-to-br from-orange-400 to-orange-500'
+                      }`}>
+                        {index + 1}
+                      </div>
+                    </div>
+                  )}
+                  <VideoCard video={video} />
+                </div>
               ))}
             </div>
           </div>

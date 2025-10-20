@@ -1,5 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import ClickableRiderName from "@/components/ClickableRiderName";
 
 interface Event {
   id: number;
@@ -16,13 +18,192 @@ interface ClientEventsListProps {
   year: number;
 }
 
+interface EventMissingInfoProps {
+  eventId: number;
+  eventName: string;
+}
+
+// Component to display missing information for each event
+function EventMissingInfo({ eventId, eventName }: EventMissingInfoProps) {
+  const router = useRouter();
+  const [eventDetails, setEventDetails] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchDetails = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/events/${eventId}`);
+        const details = await res.json();
+        setEventDetails(details);
+      } catch (error) {
+        console.error("Failed to fetch event details:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDetails();
+  }, [eventId]);
+
+  // Function to detect missing information
+  const getMissingInfo = (event: any) => {
+    if (!event) return [];
+    
+    const missing: string[] = [];
+    
+    if (!event.date_from) missing.push("Start Date");
+    if (!event.date_to) missing.push("End Date");
+    
+    // Check track records - if any are missing, show "Track record incomplete"
+    const hasAnyTrackRecord = (event.track_record_open_name && event.track_record_open_time) ||
+                             (event.track_record_luge_name && event.track_record_luge_time) ||
+                             (event.track_record_woman_name && event.track_record_woman_time);
+    if (!hasAnyTrackRecord) missing.push("Track record incomplete");
+    
+    // Check rider results - if any are missing, show "Top riders incomplete"
+    const hasAnyRiderResults = (event.open_results && event.open_results.length > 0) ||
+                              (event.luge_results && event.luge_results.length > 0) ||
+                              (event.woman_results && event.woman_results.length > 0);
+    if (!hasAnyRiderResults) missing.push("Top riders incomplete");
+    
+    // Check qualifiers separately
+    if (!event.qualifier_results || event.qualifier_results.length === 0) missing.push("Qualifier Results");
+    
+    // Check organizer
+    if (!event.organizer_name) missing.push("Organizer");
+    
+    return missing;
+  };
+
+  if (loading) {
+    return (
+      <div className="mt-3 p-2 bg-gray-50 rounded-lg">
+        <div className="text-xs text-gray-500">Loading details...</div>
+      </div>
+    );
+  }
+
+  const missingInfo = getMissingInfo(eventDetails);
+  
+  if (missingInfo.length === 0) {
+    return null; // Don't show anything if no missing info
+  }
+
+  return (
+    <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+      <div className="flex items-start gap-2">
+        <span className="text-yellow-600 text-sm">⚠️</span>
+        <div className="flex-1">
+          <div className="text-xs text-yellow-800 font-medium mb-1">
+            Missing: {missingInfo.join(", ")}
+          </div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent event card click
+              // Navigate to submit page with prefilled data
+              const params = new URLSearchParams({
+                edit: 'true',
+                eventId: eventId.toString(),
+                name: eventDetails?.name || '',
+                location: eventDetails?.location || '',
+                lat: eventDetails?.lat?.toString() || '',
+                lng: eventDetails?.lng?.toString() || '',
+                category: eventDetails?.category || 'WDSC',
+                date_from: eventDetails?.date_from || '',
+                date_to: eventDetails?.date_to || '',
+                source_url: eventDetails?.source_url || '',
+                track_record_open_name: eventDetails?.track_record_open_name || '',
+                track_record_open_time: eventDetails?.track_record_open_time || '',
+                track_record_luge_name: eventDetails?.track_record_luge_name || '',
+                track_record_luge_time: eventDetails?.track_record_luge_time || '',
+                track_record_woman_name: eventDetails?.track_record_woman_name || '',
+                track_record_woman_time: eventDetails?.track_record_woman_time || '',
+                organizer_name: eventDetails?.organizer_name || '',
+              });
+              
+              // Add rider data
+              if (eventDetails?.open_results && eventDetails.open_results.length > 0) {
+                eventDetails.open_results.forEach((rider: any, index: number) => {
+                  params.append(`open_${index}_name`, rider.name);
+                  params.append(`open_${index}_position`, rider.position.toString());
+                  if (rider.country) params.append(`open_${index}_country`, rider.country);
+                });
+              }
+              
+              if (eventDetails?.luge_results && eventDetails.luge_results.length > 0) {
+                eventDetails.luge_results.forEach((rider: any, index: number) => {
+                  params.append(`luge_${index}_name`, rider.name);
+                  params.append(`luge_${index}_position`, rider.position.toString());
+                  if (rider.country) params.append(`luge_${index}_country`, rider.country);
+                });
+              }
+              
+              if (eventDetails?.woman_results && eventDetails.woman_results.length > 0) {
+                eventDetails.woman_results.forEach((rider: any, index: number) => {
+                  params.append(`woman_${index}_name`, rider.name);
+                  params.append(`woman_${index}_position`, rider.position.toString());
+                  if (rider.country) params.append(`woman_${index}_country`, rider.country);
+                });
+              }
+              
+              if (eventDetails?.qualifier_results && eventDetails.qualifier_results.length > 0) {
+                eventDetails.qualifier_results.forEach((rider: any, index: number) => {
+                  params.append(`qualifier_${index}_name`, rider.name);
+                  params.append(`qualifier_${index}_position`, rider.position.toString());
+                  if (rider.country) params.append(`qualifier_${index}_country`, rider.country);
+                });
+              }
+              
+              router.push(`/submit?${params.toString()}`);
+            }}
+            className="text-xs bg-yellow-600 text-white px-2 py-1 rounded hover:bg-yellow-700 transition-colors duration-200"
+          >
+            Submit Missing Details
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ClientEventsList({ year }: ClientEventsListProps) {
+  const router = useRouter();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [eventDetails, setEventDetails] = useState<any>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
+  const [eventDetailsCache, setEventDetailsCache] = useState<{[key: number]: any}>({});
+
+  // Function to detect missing information
+  const getMissingInfo = (event: any) => {
+    const missing: string[] = [];
+    
+    if (!event.date_from) missing.push("Start Date");
+    if (!event.date_to) missing.push("End Date");
+    
+    // Check track records - if any are missing, show "Track record incomplete"
+    const hasAnyTrackRecord = (event.track_record_open_name && event.track_record_open_time) ||
+                             (event.track_record_luge_name && event.track_record_luge_time) ||
+                             (event.track_record_woman_name && event.track_record_woman_time);
+    if (!hasAnyTrackRecord) missing.push("Track record incomplete");
+    
+    // Check rider results - if any are missing, show "Top riders incomplete"
+    const hasAnyRiderResults = (event.open_results && event.open_results.length > 0) ||
+                              (event.luge_results && event.luge_results.length > 0) ||
+                              (event.woman_results && event.woman_results.length > 0);
+    if (!hasAnyRiderResults) missing.push("Top riders incomplete");
+    
+    // Check qualifiers separately
+    if (!event.qualifier_results || event.qualifier_results.length === 0) missing.push("Qualifier Results");
+    
+    // Check organizer
+    if (!event.organizer_name) missing.push("Organizer");
+    
+    return missing;
+  };
 
   useEffect(() => {
     async function fetchEvents() {
@@ -55,6 +236,22 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
       console.error("Failed to fetch event details:", error);
     } finally {
       setLoadingDetails(false);
+    }
+  };
+
+  const fetchEventDetails = async (eventId: number) => {
+    if (eventDetailsCache[eventId]) {
+      return eventDetailsCache[eventId];
+    }
+    
+    try {
+      const res = await fetch(`/api/events/${eventId}`);
+      const details = await res.json();
+      setEventDetailsCache(prev => ({ ...prev, [eventId]: details }));
+      return details;
+    } catch (error) {
+      console.error("Failed to fetch event details:", error);
+      return null;
     }
   };
 
@@ -135,6 +332,7 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
                   </span>
                 </div>
               </div>
+              
             </div>
           </div>
         ))}
@@ -220,6 +418,9 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
                     </div>
                   </div>
 
+                  {/* Missing Information Section */}
+                  <EventMissingInfo eventId={selectedEvent.id} eventName={selectedEvent.name} />
+
                   {/* Track Records */}
                   {(eventDetails.track_record_open_name || eventDetails.track_record_luge_name || eventDetails.track_record_woman_name) && (
                     <div className="bg-gray-50 rounded-xl p-6">
@@ -253,6 +454,23 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
                     </div>
                   )}
 
+                  {/* Organizer */}
+                  {eventDetails.organizer_name && (
+                    <div className="bg-gray-50 rounded-xl p-6">
+                      <h4 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <span>👤</span>
+                        Organizer
+                      </h4>
+                      <div className="bg-white rounded-lg p-4 border border-gray-200">
+                        <h5 className="font-medium text-gray-700 mb-2">Event Organizer</h5>
+                        <ClickableRiderName 
+                          name={eventDetails.organizer_name} 
+                          className="text-lg font-bold text-blue-600 hover:text-blue-700 hover:underline"
+                        />
+                      </div>
+                    </div>
+                  )}
+
                   {/* Results by Category */}
                   <div className="space-y-6">
                     {/* Open Results */}
@@ -274,7 +492,7 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
                                 {result.position}
                               </div>
                               <div className="flex-1">
-                                <div className="font-medium text-gray-900">{result.name}</div>
+                                <ClickableRiderName name={result.name} className="font-medium text-gray-900 hover:text-blue-600 transition-colors duration-200" />
                                 {result.country && (
                                   <div className="text-xs text-gray-500">{result.country}</div>
                                 )}
@@ -304,7 +522,7 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
                                 {result.position}
                               </div>
                               <div className="flex-1">
-                                <div className="font-medium text-gray-900">{result.name}</div>
+                                <ClickableRiderName name={result.name} className="font-medium text-gray-900 hover:text-blue-600 transition-colors duration-200" />
                                 {result.country && (
                                   <div className="text-xs text-gray-500">{result.country}</div>
                                 )}
@@ -334,7 +552,7 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
                                 {result.position}
                               </div>
                               <div className="flex-1">
-                                <div className="font-medium text-gray-900">{result.name}</div>
+                                <ClickableRiderName name={result.name} className="font-medium text-gray-900 hover:text-blue-600 transition-colors duration-200" />
                                 {result.country && (
                                   <div className="text-xs text-gray-500">{result.country}</div>
                                 )}
@@ -359,7 +577,7 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
                                 Q{result.position - 100}
                               </div>
                               <div className="flex-1">
-                                <div className="font-medium text-gray-900">{result.name}</div>
+                                <ClickableRiderName name={result.name} className="font-medium text-gray-900 hover:text-blue-600 transition-colors duration-200" />
                                 {result.country && (
                                   <div className="text-xs text-gray-500">{result.country}</div>
                                 )}

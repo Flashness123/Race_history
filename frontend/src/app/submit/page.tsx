@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import MapPicker from "@/components/MapPicker";
 
 type Link = { name: string; url: string };
@@ -10,7 +10,12 @@ type SubmissionMode = 'race' | 'spot' | 'batch';
 
 export default function Submit() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [submissionMode, setSubmissionMode] = useState<SubmissionMode>('race');
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingEventId, setEditingEventId] = useState<number | null>(null);
+  const [editingSubmissionId, setEditingSubmissionId] = useState<number | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [form, setForm] = useState({
     name: "",
     date_from: new Date().toISOString().slice(0,10),
@@ -27,6 +32,7 @@ export default function Submit() {
     track_record_open: null as TrackRecord | null,
     track_record_luge: null as TrackRecord | null,
     track_record_woman: null as TrackRecord | null,
+    organizer_name: "",
     event_image: null as File | null,
     event_image_url: null as string | null,
     // Spot-specific fields
@@ -38,6 +44,96 @@ export default function Submit() {
   const [ok, setOk] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  // Check if the event is in the future
+  const isFutureEvent = () => {
+    if (!form.date_from) return false;
+    const eventDate = new Date(form.date_from);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to start of day
+    eventDate.setHours(0, 0, 0, 0); // Reset time to start of day
+    return eventDate > today;
+  };
+
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const res = await fetch("/api/me", { cache: "no-store" });
+        const data = await res.json();
+        setIsAuthenticated(data.authenticated);
+      } catch (error) {
+        setIsAuthenticated(false);
+      }
+    };
+    checkAuth();
+  }, []);
+
+  // Handle URL parameters for edit mode
+  useEffect(() => {
+    const edit = searchParams.get('edit');
+    const eventId = searchParams.get('eventId');
+    const submissionId = searchParams.get('submissionId');
+    
+    if (edit === 'true') {
+      setIsEditMode(true);
+      if (eventId) {
+        setEditingEventId(parseInt(eventId));
+      }
+      if (submissionId) {
+        setEditingSubmissionId(parseInt(submissionId));
+      }
+      
+      // Prefill form with URL parameters
+      setForm(prev => ({
+        ...prev,
+        name: searchParams.get('name') || '',
+        location: searchParams.get('location') || '',
+        lat: parseFloat(searchParams.get('lat') || '50.08804'),
+        lng: parseFloat(searchParams.get('lng') || '14.42076'),
+        category: searchParams.get('category') || 'WDSC',
+        date_from: searchParams.get('date_from') ? new Date(searchParams.get('date_from')!).toISOString().slice(0,10) : new Date().toISOString().slice(0,10),
+        date_to: searchParams.get('date_to') ? new Date(searchParams.get('date_to')!).toISOString().slice(0,10) : '',
+        links: searchParams.get('source_url') ? 
+          [{ name: "Event Page", url: searchParams.get('source_url') || '' }] : 
+          [{ name: "Event Page", url: "" }],
+        track_record_open: searchParams.get('track_record_open_name') && searchParams.get('track_record_open_time') ? 
+          { name: searchParams.get('track_record_open_name') || '', time: searchParams.get('track_record_open_time') || '' } : 
+          null,
+        track_record_luge: searchParams.get('track_record_luge_name') && searchParams.get('track_record_luge_time') ? 
+          { name: searchParams.get('track_record_luge_name') || '', time: searchParams.get('track_record_luge_time') || '' } : 
+          null,
+        track_record_woman: searchParams.get('track_record_woman_name') && searchParams.get('track_record_woman_time') ? 
+          { name: searchParams.get('track_record_woman_name') || '', time: searchParams.get('track_record_woman_time') || '' } : 
+          null,
+        organizer_name: searchParams.get('organizer_name') || '',
+      }));
+      
+      // Load rider data from URL parameters
+      const loadRiderData = (category: string, riders: any[]) => {
+        const riderData: any[] = [];
+        let index = 0;
+        while (searchParams.get(`${category}_${index}_name`)) {
+          riderData.push({
+            name: searchParams.get(`${category}_${index}_name`) || '',
+            position: parseInt(searchParams.get(`${category}_${index}_position`) || '1'),
+            country: searchParams.get(`${category}_${index}_country`) || '',
+          });
+          index++;
+        }
+        return riderData;
+      };
+      
+      // Update form with rider data
+      setForm(prev => ({
+        ...prev,
+        top_riders_open: loadRiderData('open', prev.top_riders_open),
+        top_riders_luge: loadRiderData('luge', prev.top_riders_luge),
+        top_riders_woman: loadRiderData('woman', prev.top_riders_woman),
+        top_qualifiers: loadRiderData('qualifier', prev.top_qualifiers),
+      }));
+    }
+  }, [searchParams]);
 
   // Helper functions for dynamic form management
   function addLink() {
@@ -185,14 +281,18 @@ export default function Submit() {
         lng: form.lng || null,
         category: submissionMode === 'spot' ? 'SPOT' : form.category,
         links: filteredLinks,
-        top_riders_open: submissionMode === 'spot' ? [] : filteredOpenRiders,
-        top_riders_luge: submissionMode === 'spot' ? [] : filteredLugeRiders,
-        top_riders_woman: submissionMode === 'spot' ? [] : filteredWomanRiders,
-        top_qualifiers: submissionMode === 'spot' ? [] : filteredQualifiers,
+        top_riders_open: (submissionMode === 'spot' || isFutureEvent()) ? [] : filteredOpenRiders,
+        top_riders_luge: (submissionMode === 'spot' || isFutureEvent()) ? [] : filteredLugeRiders,
+        top_riders_woman: (submissionMode === 'spot' || isFutureEvent()) ? [] : filteredWomanRiders,
+        top_qualifiers: (submissionMode === 'spot' || isFutureEvent()) ? [] : filteredQualifiers,
         track_record_open: submissionMode === 'spot' ? null : form.track_record_open,
         track_record_luge: submissionMode === 'spot' ? null : form.track_record_luge,
         track_record_woman: submissionMode === 'spot' ? null : form.track_record_woman,
+        organizer_name: submissionMode === 'spot' ? null : form.organizer_name,
         spot_notes: submissionMode === 'spot' ? form.spot_notes : null,
+        // Edit mode information
+        is_edit: isEditMode,
+        editing_event_id: isEditMode ? editingEventId : null,
       };
       
       // First, create the submission
@@ -213,7 +313,7 @@ export default function Submit() {
       if (!res.ok) {
         if (res.status === 401) {
           setErr("Please sign in to submit races");
-          setTimeout(() => router.push("/login"), 2000);
+          setIsAuthenticated(false);
         } else {
           setErr(data?.error || `Failed: ${res.status}`);
         }
@@ -236,7 +336,15 @@ export default function Submit() {
       }
 
       const modeText = submissionMode === 'spot' ? 'spot' : 'race';
-      setOk(`Submitted ${modeText} #${data.id}. Awaiting approval.`);
+      let editText = 'submission';
+      if (isEditMode) {
+        if (editingSubmissionId) {
+          editText = 'updated pending submission';
+        } else {
+          editText = 'edit submission';
+        }
+      }
+      setOk(`Submitted ${editText} #${data.id}. Awaiting approval.`);
     } catch (e: any) {
       setErr(e.message || "Network error");
     } finally {
@@ -269,7 +377,7 @@ export default function Submit() {
     if (!res.ok) {
       if (res.status === 401) {
         setErr("Please sign in to submit races");
-        setTimeout(() => router.push("/login"), 2000);
+        setIsAuthenticated(false);
       } else {
         setErr(data?.error || `Failed: ${res.status}`);
       }
@@ -280,14 +388,71 @@ export default function Submit() {
     setOk(`Batch upload completed! ${data.message || `${data.successful} races submitted successfully. ${data.skipped} races were skipped (already exist).`}`);
   }
 
+  // Show loading state while checking authentication
+  if (isAuthenticated === null) {
+    return (
+      <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
       <div className="max-w-4xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-6">
-            Submit a Race
+            {isEditMode ? (editingSubmissionId ? 'Edit Pending Submission' : 'Edit Event Details') : 'Submit a Race'}
           </h1>
+          {isEditMode && (
+            <p className="text-gray-600 text-lg">
+              {editingSubmissionId ? (
+                <>Editing pending submission: <span className="font-semibold">{form.name}</span></>
+              ) : (
+                <>Updating event: <span className="font-semibold">{form.name}</span></>
+              )}
+            </p>
+          )}
+          
+          {/* Registration Prompt for Unauthenticated Users */}
+          {isAuthenticated === false && (
+            <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-white text-2xl">👥</span>
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-3">
+                  Join Our Community!
+                </h2>
+                <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
+                  You're viewing the submission form as a guest. <strong>Register for free</strong> to upload events, 
+                  strengthen our community database, and help preserve downhill racing history. 
+                  It only takes a minute!
+                </p>
+                <div className="flex justify-center gap-4">
+                  <button
+                    onClick={() => router.push('/register')}
+                    className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                  >
+                    🚀 Register Now
+                  </button>
+                  <button
+                    onClick={() => router.push('/login')}
+                    className="px-8 py-3 bg-white text-gray-700 font-semibold rounded-lg border border-gray-300 hover:bg-gray-50 transition-all duration-200"
+                  >
+                    🔑 Sign In
+                  </button>
+                </div>
+                <p className="text-sm text-gray-500 mt-4">
+                  You can still browse the form below, but you'll need to register to submit
+                </p>
+              </div>
+            </div>
+          )}
           
           {/* Submission Mode Selector */}
           <div className="flex justify-center gap-4 mb-6">
@@ -584,6 +749,7 @@ export default function Submit() {
                            <p><strong>track_record_open, track_record_open_time</strong> - Open track record</p>
                            <p><strong>track_record_luge, track_record_luge_time</strong> - Luge track record</p>
                            <p><strong>track_record_women, track_record_women_time</strong> - Women track record</p>
+                           <p><strong>organizer_name</strong> - Event organizer name (optional)</p>
                            <p><strong>link_event_page</strong> - Event page URL</p>
                          </div>
                          <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded">
@@ -719,8 +885,8 @@ export default function Submit() {
             </div>
           )}
 
-          {/* Top Riders - Only for race mode and WDSC/EURO/IDF events */}
-          {submissionMode === 'race' && form.category !== "SPOT" && form.category !== "FREERIDE" && (
+          {/* Top Riders - Only for race mode, WDSC/EURO/IDF events, and past events */}
+          {submissionMode === 'race' && form.category !== "SPOT" && form.category !== "FREERIDE" && !isFutureEvent() && (
             <div className="space-y-6">
               {/* Top Riders Open */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -892,6 +1058,28 @@ export default function Submit() {
             </div>
           )}
 
+          {/* Future Event Message - Show when event is in the future */}
+          {submissionMode === 'race' && form.category !== "SPOT" && form.category !== "FREERIDE" && isFutureEvent() && (
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-blue-600 text-lg">ℹ️</span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-blue-900 mb-2">
+                    Future Event
+                  </h3>
+                  <p className="text-blue-800 mb-3">
+                    This event is scheduled for the future. Top riders and qualifiers can only be added after the event has taken place.
+                  </p>
+                  <p className="text-sm text-blue-700">
+                    You can still submit the event details now and add results later by editing the event.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Track Records - Only for race mode and WDSC/EURO/IDF events */}
           {submissionMode === 'race' && form.category !== "SPOT" && form.category !== "FREERIDE" && (
             <div className="space-y-6">
@@ -1047,11 +1235,34 @@ export default function Submit() {
             </div>
           )}
 
+          {/* Organizer - Only for race mode */}
+          {submissionMode === 'race' && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <span>👤</span>
+                Organizer
+              </h2>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Organizer Name (Optional)</label>
+                <input
+                  type="text"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  placeholder="Enter organizer name"
+                  value={form.organizer_name}
+                  onChange={(e) => setForm(prev => ({ ...prev, organizer_name: e.target.value }))}
+                />
+                <p className="text-sm text-gray-500 mt-2">
+                  The organizer will be treated as a rider and can be clicked on the event page.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Submit Button */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <button
               className="w-full px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200 hover-lift"
-              disabled={busy}
+              disabled={busy || isAuthenticated === false}
             >
               {busy ? (
                 <div className="flex items-center justify-center gap-3">

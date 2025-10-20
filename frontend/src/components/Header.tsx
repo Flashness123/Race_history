@@ -39,11 +39,9 @@ export default function Header() {
           <Link href="/media" className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-pink-600 hover:bg-pink-50 rounded-lg transition-all duration-200 hover-lift">
             Media
           </Link>
-          {me.authenticated && (
-            <Link href="/submit" className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 hover-lift">
-              Submit
-            </Link>
-          )}
+          <Link href="/submit" className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 hover-lift">
+            Submit
+          </Link>
           {me.authenticated && (me.user?.role === "ADMIN" || me.user?.role === "OWNER") && (
             <Link href="/admin" className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 hover-lift">
               Admin
