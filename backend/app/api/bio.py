@@ -20,6 +20,12 @@ class BioOut(BaseModel):
     place_of_birth: str | None = None
     date_of_birth: date | None = None
     message: str | None = None
+    phone_number: str | None = None
+    email: str | None = None
+    instagram: str | None = None
+    facebook: str | None = None
+    youtube: str | None = None
+    tiktok: str | None = None
     achievements: list[dict]
 
 class BioIn(BaseModel):
@@ -27,6 +33,12 @@ class BioIn(BaseModel):
     place_of_birth: str | None = None
     date_of_birth: date | None = None
     message: str | None = None
+    phone_number: str | None = None
+    email: str | None = None
+    instagram: str | None = None
+    facebook: str | None = None
+    youtube: str | None = None
+    tiktok: str | None = None
 
 def _achievements(db: Session, user: User) -> list[dict]:
     key = user.display_name_norm or norm(user.display_name or user.name)
@@ -39,6 +51,7 @@ def _achievements(db: Session, user: User) -> list[dict]:
         select(
             Person.full_name,
             Result.position,
+            Result.category,
             RaceEvent.id, RaceEvent.name, RaceEvent.year, RaceEvent.location,
         )
         .join(Result, Result.person_id == Person.id)
@@ -46,17 +59,35 @@ def _achievements(db: Session, user: User) -> list[dict]:
         .where(Person.id.in_(person_ids))
         .order_by(RaceEvent.year.desc(), Result.position.asc())
     ).all()
-    return [
-        {
+    
+    achievements = []
+    for r in rows:
+        position = r[1]
+        category = r[2] or "OPEN"
+        
+        # Convert database positions back to display positions
+        if category == "LUGE" and position >= 10:
+            display_position = position - 10
+        elif category == "WOMAN" and position >= 20:
+            display_position = position - 20
+        elif category == "QUALIFIER" and position >= 100:
+            display_position = position - 100
+        elif category == "ORGANIZER":
+            display_position = 0  # Special position for organizers
+        else:
+            display_position = position
+            
+        achievements.append({
             "person_name": r[0],
-            "position": r[1],
-            "event_id": r[2],
-            "event_name": r[3],
-            "year": r[4],
-            "location": r[5],
-        }
-        for r in rows
-    ]
+            "position": display_position,
+            "category": category,
+            "event_id": r[3],
+            "event_name": r[4],
+            "year": r[5],
+            "location": r[6],
+        })
+    
+    return achievements
 
 
 @router.get("/me", response_model=BioOut)
@@ -74,6 +105,12 @@ def get_my_bio(db: Session = Depends(get_db), claims: dict = Depends(get_current
         place_of_birth=bio.place_of_birth if bio else None,
         date_of_birth=bio.date_of_birth if bio else None,
         message=bio.message if bio else None,
+        phone_number=bio.phone_number if bio else None,
+        email=bio.email if bio else None,
+        instagram=bio.instagram if bio else None,
+        facebook=bio.facebook if bio else None,
+        youtube=bio.youtube if bio else None,
+        tiktok=bio.tiktok if bio else None,
         achievements=ach,
     )
 
@@ -101,6 +138,12 @@ def update_my_bio(payload: BioIn, db: Session = Depends(get_db), claims: dict = 
     bio.place_of_birth = payload.place_of_birth
     bio.date_of_birth  = payload.date_of_birth
     bio.message        = payload.message
+    bio.phone_number   = payload.phone_number
+    bio.email          = payload.email
+    bio.instagram      = payload.instagram
+    bio.facebook       = payload.facebook
+    bio.youtube        = payload.youtube
+    bio.tiktok         = payload.tiktok
     # -------------------------
 
     db.commit(); db.refresh(bio)
@@ -112,6 +155,12 @@ def update_my_bio(payload: BioIn, db: Session = Depends(get_db), claims: dict = 
         place_of_birth=bio.place_of_birth,
         date_of_birth=bio.date_of_birth,
         message=bio.message,
+        phone_number=bio.phone_number,
+        email=bio.email,
+        instagram=bio.instagram,
+        facebook=bio.facebook,
+        youtube=bio.youtube,
+        tiktok=bio.tiktok,
         achievements=_achievements(db, user),
     )
 
@@ -145,6 +194,68 @@ def list_riders(db: Session = Depends(get_db)):
             achievements_count=count,
             profile_image_url=(user.profile_image_url or DEFAULT_AVATAR) if user else DEFAULT_AVATAR,
         ))
+    return out
+
+# Extended rider info for unregistered riders
+class AllRiderOut(BaseModel):
+    id: int | None  # User ID if registered, None if unregistered
+    person_id: int  # Person ID from results
+    name: str
+    nationality: str | None
+    achievements_count: int
+    profile_image_url: str | None = None
+    is_registered: bool
+    user_id: int | None = None  # For linking to user profile if registered
+
+@router.get("/riders/all", response_model=list[AllRiderOut])
+def list_all_riders(db: Session = Depends(get_db)):
+    """Get all riders including unregistered ones from race results"""
+    # Get all unique persons who have race results
+    person_results = db.execute(
+        select(
+            Person.id,
+            Person.full_name,
+            func.count(Result.id).label('achievements_count')
+        )
+        .join(Result, Result.person_id == Person.id)
+        .group_by(Person.id, Person.full_name)
+        .order_by(func.count(Result.id).desc())
+    ).all()
+    
+    out: list[AllRiderOut] = []
+    
+    for person_id, full_name, achievements_count in person_results:
+        # Check if this person has a registered account
+        user = db.scalar(
+            select(User).where(User.display_name_norm == norm(full_name))
+        )
+        
+        if user:
+            # Registered user - get their bio info
+            bio = db.scalar(select(Bio).where(Bio.user_id == user.id))
+            out.append(AllRiderOut(
+                id=user.id,
+                person_id=person_id,
+                name=user.display_name or user.name or full_name,
+                nationality=bio.nationality if bio else None,
+                achievements_count=achievements_count,
+                profile_image_url=user.profile_image_url or DEFAULT_AVATAR,
+                is_registered=True,
+                user_id=user.id
+            ))
+        else:
+            # Unregistered rider - use person data
+            out.append(AllRiderOut(
+                id=None,
+                person_id=person_id,
+                name=full_name,
+                nationality=None,
+                achievements_count=achievements_count,
+                profile_image_url=DEFAULT_AVATAR,
+                is_registered=False,
+                user_id=None
+            ))
+    
     return out
 
 class TopRiderOut(BaseModel):
@@ -215,3 +326,107 @@ def public_rider(user_id: int, db: Session = Depends(get_db)):
         message=bio.message if bio else None,
         achievements=_achievements(db, user),
     )
+
+# Extended rider profile for both registered and unregistered riders
+class ExtendedRiderOut(BaseModel):
+    id: int | None
+    person_id: int
+    name: str
+    profile_image_url: str
+    nationality: str | None
+    place_of_birth: str | None
+    date_of_birth: str | None
+    message: str | None
+    achievements: list[dict]
+    is_registered: bool
+    user_id: int | None
+
+@router.get("/riders/person/{person_id}", response_model=ExtendedRiderOut)
+def public_rider_by_person(person_id: int, db: Session = Depends(get_db)):
+    """Get rider profile by person_id (works for both registered and unregistered riders)"""
+    # Get person data
+    person = db.get(Person, person_id)
+    if not person:
+        raise HTTPException(404, "Person not found")
+    
+    # Check if this person has a registered account
+    user = db.scalar(
+        select(User).where(User.display_name_norm == norm(person.full_name))
+    )
+    
+    if user:
+        # Registered user - get their bio info
+        bio = db.scalar(select(Bio).where(Bio.user_id == user.id))
+        return ExtendedRiderOut(
+            id=user.id,
+            person_id=person_id,
+            name=user.display_name or user.name or person.full_name,
+            profile_image_url=user.profile_image_url or DEFAULT_AVATAR,
+            nationality=bio.nationality if bio else None,
+            place_of_birth=bio.place_of_birth if bio else None,
+            date_of_birth=bio.date_of_birth if bio else None,
+            message=bio.message if bio else None,
+            achievements=_achievements(db, user),
+            is_registered=True,
+            user_id=user.id
+        )
+    else:
+        # Unregistered rider - get achievements directly from person
+        achievements = _achievements_by_person(db, person)
+        return ExtendedRiderOut(
+            id=None,
+            person_id=person_id,
+            name=person.full_name,
+            profile_image_url=DEFAULT_AVATAR,
+            nationality=None,
+            place_of_birth=None,
+            date_of_birth=None,
+            message=None,
+            achievements=achievements,
+            is_registered=False,
+            user_id=None
+        )
+
+def _achievements_by_person(db: Session, person: Person) -> list[dict]:
+    """Get achievements for a person (unregistered rider)"""
+    rows = db.execute(
+        select(
+            Person.full_name,
+            Result.position,
+            Result.category,
+            RaceEvent.id, RaceEvent.name, RaceEvent.year, RaceEvent.location,
+        )
+        .join(Result, Result.person_id == Person.id)
+        .join(RaceEvent, RaceEvent.id == Result.event_id)
+        .where(Person.id == person.id)
+        .order_by(RaceEvent.year.desc(), Result.position.asc())
+    ).all()
+    
+    achievements = []
+    for r in rows:
+        position = r[1]
+        category = r[2] or "OPEN"
+        
+        # Convert database positions back to display positions
+        if category == "LUGE" and position >= 10:
+            display_position = position - 10
+        elif category == "WOMAN" and position >= 20:
+            display_position = position - 20
+        elif category == "QUALIFIER" and position >= 100:
+            display_position = position - 100
+        elif category == "ORGANIZER":
+            display_position = 0  # Special position for organizers
+        else:
+            display_position = position
+            
+        achievements.append({
+            "person_name": r[0],
+            "position": display_position,
+            "category": category,
+            "event_id": r[3],
+            "event_name": r[4],
+            "year": r[5],
+            "location": r[6],
+        })
+    
+    return achievements

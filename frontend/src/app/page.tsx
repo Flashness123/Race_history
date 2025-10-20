@@ -3,6 +3,7 @@ import YearBar from "@/components/YearBar";
 import { fetchRaces } from "@/lib/api";
 import ClientSelected from "./selected";
 import ClientEventsList from "./events-list";
+import ClickableRiderName from "@/components/ClickableRiderName";
 
 export default async function Home({
   searchParams,
@@ -82,9 +83,8 @@ export default async function Home({
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-6">
                 {top.map((r: any, i: number) => (
-                  <a 
+                  <div 
                     key={i} 
-                    href={r.id ? `/riders/${r.id}` : undefined} 
                     className="group flex flex-col items-center p-4 bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 hover:shadow-xl hover:bg-white hover:border-blue-200 transition-all duration-300 hover-lift"
                   >
                     <div className="relative mb-3">
@@ -100,14 +100,15 @@ export default async function Home({
                       )}
                     </div>
                     <div className="text-center">
-                      <div className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-300">
-                        {r.name}
-                      </div>
+                      <ClickableRiderName 
+                        name={r.name} 
+                        className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-300"
+                      />
                       <div className="text-xs text-gray-500 mt-1">
                         {r.achievements_count} result{r.achievements_count !== 1 ? 's' : ''}
                       </div>
                     </div>
-                  </a>
+                  </div>
                 ))}
               </div>
             )}

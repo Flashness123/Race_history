@@ -16,7 +16,8 @@ def events_by_year(year: int, db: Session = Depends(get_db)):
             RaceEvent.category,
             RaceEvent.location,
             RaceEvent.date_from,
-            RaceEvent.date_to
+            RaceEvent.date_to,
+            RaceEvent.organizer_name
         ).where(RaceEvent.year == year).order_by(RaceEvent.name.asc())
     ).all()
     return [
@@ -28,6 +29,7 @@ def events_by_year(year: int, db: Session = Depends(get_db)):
             "location": r[4] or "Unknown Location",
             "date_from": r[5].isoformat() if r[5] else None,
             "date_to": r[6].isoformat() if r[6] else None,
+            "organizer_name": r[7],
             "year": year
         } 
         for r in rows
@@ -75,6 +77,7 @@ def event_detail(event_id: int, db: Session = Depends(get_db)):
     luge_results = [r for r in results if r["category"] == "LUGE"]
     woman_results = [r for r in results if r["category"] == "WOMAN"]
     qualifier_results = [r for r in results if r["category"] == "QUALIFIER"]
+    organizer_results = [r for r in results if r["category"] == "ORGANIZER"]
     
     # Get top 3 for backward compatibility (only from open category)
     top3 = [r for r in open_results if r["position"] <= 3]
@@ -97,6 +100,8 @@ def event_detail(event_id: int, db: Session = Depends(get_db)):
         "luge_results": luge_results,
         "woman_results": woman_results,
         "qualifier_results": qualifier_results,
+        "organizer_results": organizer_results,
+        "organizer_name": ev.organizer_name,
         "track_record_open_name": ev.track_record_open_name,
         "track_record_open_time": ev.track_record_open_time,
         "track_record_luge_name": ev.track_record_luge_name,

@@ -1,13 +1,44 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import Map from "@/components/Map";
+import { useRouter } from "next/navigation";
+import ClickableRiderName from "@/components/ClickableRiderName";
 
 export default function ClientSelected({ geojson }: { geojson: any }) {
+  const router = useRouter();
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [detail, setDetail] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [filters, setFilters] = useState<{SPOT:boolean;WDSC:boolean;EURO:boolean;FREERIDE:boolean;IDF:boolean}>({ SPOT: true, WDSC: true, EURO: true, FREERIDE: true, IDF: true });
+
+  // Function to detect missing information
+  const getMissingInfo = (event: any) => {
+    const missing: string[] = [];
+    
+    if (!event.date_from) missing.push("Start Date");
+    if (!event.date_to) missing.push("End Date");
+    
+    // Check track records - if any are missing, show "Track record incomplete"
+    const hasAnyTrackRecord = (event.track_record_open_name && event.track_record_open_time) ||
+                             (event.track_record_luge_name && event.track_record_luge_time) ||
+                             (event.track_record_woman_name && event.track_record_woman_time);
+    if (!hasAnyTrackRecord) missing.push("Track record incomplete");
+    
+    // Check rider results - if any are missing, show "Top riders incomplete"
+    const hasAnyRiderResults = (event.open_results && event.open_results.length > 0) ||
+                              (event.luge_results && event.luge_results.length > 0) ||
+                              (event.woman_results && event.woman_results.length > 0);
+    if (!hasAnyRiderResults) missing.push("Top riders incomplete");
+    
+    // Check qualifiers separately
+    if (!event.qualifier_results || event.qualifier_results.length === 0) missing.push("Qualifier Results");
+    
+    // Check organizer
+    if (!event.organizer_name) missing.push("Organizer");
+    
+    return missing;
+  };
 
   const onSelect = useCallback((id: number | null) => {
     setSelectedId(id);
@@ -244,6 +275,23 @@ export default function ClientSelected({ geojson }: { geojson: any }) {
                     </div>
                   )}
 
+                  {/* Organizer */}
+                  {detail.organizer_name && (
+                    <div className="bg-gray-50 rounded-xl p-4">
+                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                        <span className="text-lg">👤</span>
+                        Organizer
+                      </h4>
+                      <div className="flex justify-between items-center p-2 bg-white rounded-lg border border-gray-200">
+                        <span className="text-sm font-medium text-gray-700">Event Organizer:</span>
+                        <ClickableRiderName 
+                          name={detail.organizer_name} 
+                          className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
+                        />
+                      </div>
+                    </div>
+                  )}
+
                   {/* Results by Category */}
                   <div className="space-y-4">
                     {/* Open Results */}
@@ -265,7 +313,7 @@ export default function ClientSelected({ geojson }: { geojson: any }) {
                                 {p.position}
                               </div>
                               <div className="flex-1">
-                                <div className="font-medium text-gray-900 text-sm">{p.name}</div>
+                                <ClickableRiderName name={p.name} className="font-medium text-gray-900 text-sm hover:text-blue-600 transition-colors duration-200" />
                                 {p.country && (
                                   <div className="text-xs text-gray-500">{p.country}</div>
                                 )}
@@ -295,7 +343,7 @@ export default function ClientSelected({ geojson }: { geojson: any }) {
                                 {p.position}
                               </div>
                               <div className="flex-1">
-                                <div className="font-medium text-gray-900 text-sm">{p.name}</div>
+                                <ClickableRiderName name={p.name} className="font-medium text-gray-900 text-sm hover:text-blue-600 transition-colors duration-200" />
                                 {p.country && (
                                   <div className="text-xs text-gray-500">{p.country}</div>
                                 )}
@@ -325,7 +373,7 @@ export default function ClientSelected({ geojson }: { geojson: any }) {
                                 {p.position}
                               </div>
                               <div className="flex-1">
-                                <div className="font-medium text-gray-900 text-sm">{p.name}</div>
+                                <ClickableRiderName name={p.name} className="font-medium text-gray-900 text-sm hover:text-blue-600 transition-colors duration-200" />
                                 {p.country && (
                                   <div className="text-xs text-gray-500">{p.country}</div>
                                 )}
@@ -350,7 +398,7 @@ export default function ClientSelected({ geojson }: { geojson: any }) {
                                 Q{p.position - 100}
                               </div>
                               <div className="flex-1">
-                                <div className="font-medium text-gray-900 text-sm">{p.name}</div>
+                                <ClickableRiderName name={p.name} className="font-medium text-gray-900 text-sm hover:text-blue-600 transition-colors duration-200" />
                                 {p.country && (
                                   <div className="text-xs text-gray-500">{p.country}</div>
                                 )}
@@ -376,6 +424,95 @@ export default function ClientSelected({ geojson }: { geojson: any }) {
                       </a>
                     </div>
                   )}
+
+                  {/* Missing Information */}
+                  {(() => {
+                    const missingInfo = getMissingInfo(detail);
+                    if (missingInfo.length > 0) {
+                      return (
+                        <div className="pt-4 border-t border-gray-200">
+                          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                            <div className="flex items-start gap-3">
+                              <div className="flex-shrink-0">
+                                <span className="text-yellow-600 text-lg">⚠️</span>
+                              </div>
+                              <div className="flex-1">
+                                <h4 className="text-sm font-medium text-yellow-800 mb-2">
+                                  Missing Information
+                                </h4>
+                                <p className="text-xs text-yellow-700 mb-3">
+                                  This event is missing: {missingInfo.join(", ")}
+                                </p>
+                                <button
+                                  onClick={() => {
+                                    // Navigate to submit page with prefilled data
+                                    const params = new URLSearchParams({
+                                      edit: 'true',
+                                      eventId: detail.id.toString(),
+                                      name: detail.name || '',
+                                      location: detail.location || '',
+                                      lat: detail.lat?.toString() || '',
+                                      lng: detail.lng?.toString() || '',
+                                      category: detail.category || 'WDSC',
+                                      date_from: detail.date_from || '',
+                                      date_to: detail.date_to || '',
+                                      source_url: detail.source_url || '',
+                                      track_record_open_name: detail.track_record_open_name || '',
+                                      track_record_open_time: detail.track_record_open_time || '',
+                                      track_record_luge_name: detail.track_record_luge_name || '',
+                                      track_record_luge_time: detail.track_record_luge_time || '',
+                                      track_record_woman_name: detail.track_record_woman_name || '',
+                                      track_record_woman_time: detail.track_record_woman_time || '',
+                                      organizer_name: detail.organizer_name || '',
+                                    });
+                                    
+                                    // Add rider data
+                                    if (detail.open_results && detail.open_results.length > 0) {
+                                      detail.open_results.forEach((rider: any, index: number) => {
+                                        params.append(`open_${index}_name`, rider.name);
+                                        params.append(`open_${index}_position`, rider.position.toString());
+                                        if (rider.country) params.append(`open_${index}_country`, rider.country);
+                                      });
+                                    }
+                                    
+                                    if (detail.luge_results && detail.luge_results.length > 0) {
+                                      detail.luge_results.forEach((rider: any, index: number) => {
+                                        params.append(`luge_${index}_name`, rider.name);
+                                        params.append(`luge_${index}_position`, rider.position.toString());
+                                        if (rider.country) params.append(`luge_${index}_country`, rider.country);
+                                      });
+                                    }
+                                    
+                                    if (detail.woman_results && detail.woman_results.length > 0) {
+                                      detail.woman_results.forEach((rider: any, index: number) => {
+                                        params.append(`woman_${index}_name`, rider.name);
+                                        params.append(`woman_${index}_position`, rider.position.toString());
+                                        if (rider.country) params.append(`woman_${index}_country`, rider.country);
+                                      });
+                                    }
+                                    
+                                    if (detail.qualifier_results && detail.qualifier_results.length > 0) {
+                                      detail.qualifier_results.forEach((rider: any, index: number) => {
+                                        params.append(`qualifier_${index}_name`, rider.name);
+                                        params.append(`qualifier_${index}_position`, rider.position.toString());
+                                        if (rider.country) params.append(`qualifier_${index}_country`, rider.country);
+                                      });
+                                    }
+                                    router.push(`/submit?${params.toString()}`);
+                                  }}
+                                  className="inline-flex items-center gap-2 px-3 py-2 bg-yellow-600 text-white text-xs font-medium rounded-lg hover:bg-yellow-700 transition-colors duration-200"
+                                >
+                                  <span>✏️</span>
+                                  Submit Missing Details
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
 
                   {/* Close Button */}
                   <div className="pt-4 border-t border-gray-200">

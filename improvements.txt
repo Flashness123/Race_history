@@ -1,32 +1,20 @@
 Different type of passwording, sending out email and waiting for confirmation - also option to forget password
+Write an about stating the issues with the pictures, no copyright also noit for the videos for nothing
 
-add more event categories 
 
-improve Admin page, submitted by user, show not number but the name of the user
-
-contribution point system
-
-!!!
-make races editable by users, with message on info that is missing
-change name to: Longboarding worldwide
+change name
 Top riders, if picture display it over whole square 
-
 
 a lot of icons on bottom are not clickable
 
-in media page write and publish news
 
+all racers under riders just write to them this user has not created a profile yet - done
+nonregistered submit page - done
+fix reregistration - done
+no winners in future - done
+top videos also in all videos - done
+events admin einklappen - done
+make all names clickable to their bio - done
+option to submit organizer - done
+organizer and users can put in sponzors, contact, email etc, instagram - done
 
-
-
-
-
-
-
-
-
-prompts:
-improve admin page(see all the details of the submission, and by whom submitted)
-great, now please delete all the races I have submitted so far
-
-add qualification

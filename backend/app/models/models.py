@@ -42,6 +42,7 @@ class RaceEvent(Base):
     track_record_luge_time: Mapped[str | None] = mapped_column(String(50))
     track_record_woman_name: Mapped[str | None] = mapped_column(String(200))
     track_record_woman_time: Mapped[str | None] = mapped_column(String(50))
+    organizer_name: Mapped[str | None] = mapped_column(String(200))
     results: Mapped[list["Result"]] = relationship(back_populates="event")
 
 class Result(Base):
@@ -101,6 +102,7 @@ class Submission(Base):
     submitted_by_user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
     payload: Mapped[dict] = mapped_column(JSON)  # {name,year,lat,lng,location, source_url, top3?}
     status: Mapped[str] = mapped_column(String(20), default="PENDING")  # PENDING/APPROVED/REJECTED
+    submission_type: Mapped[str] = mapped_column(String(20), default="NEW")  # NEW/EDIT
     review_note: Mapped[str | None]
 
 class Bio(Base):
@@ -111,6 +113,12 @@ class Bio(Base):
     place_of_birth: Mapped[str | None] = mapped_column(String(160))
     date_of_birth: Mapped[date | None] = mapped_column(Date)
     message: Mapped[str | None] = mapped_column(Text) # short motivational text
+    phone_number: Mapped[str | None] = mapped_column(String(20))
+    email: Mapped[str | None] = mapped_column(String(255))
+    instagram: Mapped[str | None] = mapped_column(String(100))
+    facebook: Mapped[str | None] = mapped_column(String(100))
+    youtube: Mapped[str | None] = mapped_column(String(100))
+    tiktok: Mapped[str | None] = mapped_column(String(100))
     user: Mapped["User"] = relationship("User", backref="bio", uselist=False)
 
 class Video(Base):

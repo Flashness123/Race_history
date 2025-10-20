@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import ClickableRiderName from "@/components/ClickableRiderName";
 
 type Top3 = { name: string; country?: string; instagram?: string; position: number };
 
@@ -8,6 +9,7 @@ type PendingItem = {
   submitted_by_user_id: number | null;
   submitted_by_name: string;
   submitted_by_email: string;
+  submission_type: string;
   payload: {
     name: string; 
     year: number; 
@@ -25,6 +27,7 @@ type PendingItem = {
     track_record_open?: { name: string; time: string };
     track_record_luge?: { name: string; time: string };
     track_record_woman?: { name: string; time: string };
+    organizer_name?: string;
     links?: { name: string; url: string }[];
     spot_notes?: string;
   };
@@ -50,6 +53,11 @@ export default function AdminPage() {
   const [races, setRaces] = useState<Race[]>([]);
   const [raceYear, setRaceYear] = useState<number | "">("");
   const [raceBusy, setRaceBusy] = useState<number | null>(null);
+  
+  // Collapsible sections state
+  const [isRacesCollapsed, setIsRacesCollapsed] = useState(false);
+  const [isPendingCollapsed, setIsPendingCollapsed] = useState(false);
+  const [isUsersCollapsed, setIsUsersCollapsed] = useState(false);
 
   // UI state
   const [loading, setLoading] = useState(true);
@@ -182,14 +190,32 @@ export default function AdminPage() {
 
             {/* Races Section */}
             <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-8">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
-                  <span className="text-white text-lg">🏁</span>
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                    <span className="text-white text-lg">🏁</span>
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900">Races</h2>
+                  {races.length > 0 && (
+                    <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                      {races.length} races
+                    </span>
+                  )}
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900">Races</h2>
+                <button
+                  onClick={() => setIsRacesCollapsed(!isRacesCollapsed)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                  title={isRacesCollapsed ? "Expand section" : "Collapse section"}
+                >
+                  <span className={`text-xl transition-transform duration-200 ${isRacesCollapsed ? 'rotate-180' : ''}`}>
+                    ▼
+                  </span>
+                </button>
               </div>
               
-              <div className="flex items-center gap-4 mb-6">
+              {!isRacesCollapsed && (
+                <>
+                  <div className="flex items-center gap-4 mb-6">
                 <label className="text-sm font-medium text-gray-700">Year filter:</label>
                 <input
                   type="number"
@@ -261,6 +287,25 @@ export default function AdminPage() {
                           />
                         </label>
                         <button
+                          onClick={() => {
+                            // Navigate to submit page with prefilled data for editing
+                            const params = new URLSearchParams({
+                              edit: 'true',
+                              eventId: r.id.toString(),
+                              name: r.name || '',
+                              location: r.location || '',
+                              lat: r.lat?.toString() || '',
+                              lng: r.lng?.toString() || '',
+                              category: r.category || 'WDSC',
+                              source_url: r.source_url || '',
+                            });
+                            window.open(`/submit?${params.toString()}`, '_blank');
+                          }}
+                          className="px-4 py-2 bg-yellow-50 text-yellow-700 rounded-lg hover:bg-yellow-100 transition-colors duration-200 text-sm font-medium"
+                        >
+                          ✏️ Edit Event
+                        </button>
+                        <button
                           onClick={() => deleteRace(r.id, r.name)}
                           disabled={raceBusy === r.id}
                           className="px-4 py-2 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
@@ -272,23 +317,38 @@ export default function AdminPage() {
                   ))}
                 </div>
               )}
+                </>
+              )}
             </div>
 
             {/* Pending Submissions Section */}
             <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-8">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-lg">⏳</span>
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-lg">⏳</span>
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900">Pending Submissions</h2>
+                  {items.length > 0 && (
+                    <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">
+                      {items.length} pending
+                    </span>
+                  )}
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900">Pending Submissions</h2>
-                {items.length > 0 && (
-                  <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">
-                    {items.length} pending
+                <button
+                  onClick={() => setIsPendingCollapsed(!isPendingCollapsed)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                  title={isPendingCollapsed ? "Expand section" : "Collapse section"}
+                >
+                  <span className={`text-xl transition-transform duration-200 ${isPendingCollapsed ? 'rotate-180' : ''}`}>
+                    ▼
                   </span>
-                )}
+                </button>
               </div>
               
-              {items.length === 0 ? (
+              {!isPendingCollapsed && (
+                <>
+                  {items.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
                     <span className="text-2xl">✅</span>
@@ -327,6 +387,15 @@ export default function AdminPage() {
                                 {s.payload.date_to && ` - ${new Date(s.payload.date_to).toLocaleDateString()}`}
                               </div>
                             )}
+                            
+                            {/* Submission Type Badge */}
+                            <div className="mt-2">
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                s.submission_type === 'EDIT' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
+                              }`}>
+                                {s.submission_type === 'EDIT' ? '✏️ Edit Submission' : '🆕 New Submission'}
+                              </span>
+                            </div>
                           </div>
 
                           {/* Links */}
@@ -374,7 +443,7 @@ export default function AdminPage() {
                                         }`}>
                                           {r.position}
                                         </div>
-                                        <span className="font-medium">{r.name}</span>
+                                        <ClickableRiderName name={r.name} className="font-medium hover:text-blue-600 transition-colors duration-200" />
                                         {r.country && <span className="text-gray-500">({r.country})</span>}
                                       </div>
                                     ))}
@@ -399,7 +468,7 @@ export default function AdminPage() {
                                         }`}>
                                           {r.position}
                                         </div>
-                                        <span className="font-medium">{r.name}</span>
+                                        <ClickableRiderName name={r.name} className="font-medium hover:text-blue-600 transition-colors duration-200" />
                                         {r.country && <span className="text-gray-500">({r.country})</span>}
                                       </div>
                                     ))}
@@ -424,7 +493,7 @@ export default function AdminPage() {
                                         }`}>
                                           {r.position}
                                         </div>
-                                        <span className="font-medium">{r.name}</span>
+                                        <ClickableRiderName name={r.name} className="font-medium hover:text-blue-600 transition-colors duration-200" />
                                         {r.country && <span className="text-gray-500">({r.country})</span>}
                                       </div>
                                     ))}
@@ -445,7 +514,7 @@ export default function AdminPage() {
                                         <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold bg-gradient-to-br from-green-500 to-teal-600">
                                           Q{r.position}
                                         </div>
-                                        <span className="font-medium">{r.name}</span>
+                                        <ClickableRiderName name={r.name} className="font-medium hover:text-blue-600 transition-colors duration-200" />
                                         {r.country && <span className="text-gray-500">({r.country})</span>}
                                       </div>
                                     ))}
@@ -481,6 +550,19 @@ export default function AdminPage() {
                             </div>
                           )}
 
+                          {/* Organizer */}
+                          {s.payload.organizer_name && (
+                            <div>
+                              <div className="text-sm font-medium text-gray-700 mb-2">👤 Organizer:</div>
+                              <div className="bg-white p-3 rounded-lg border text-sm">
+                                <ClickableRiderName 
+                                  name={s.payload.organizer_name} 
+                                  className="text-blue-600 hover:text-blue-700 hover:underline"
+                                />
+                              </div>
+                            </div>
+                          )}
+
                           <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
                             <div className="text-sm font-medium text-blue-900 mb-1">Submitted by:</div>
                             <div className="text-sm text-blue-800">
@@ -510,6 +592,76 @@ export default function AdminPage() {
                             )}
                           </button>
                           <button
+                            onClick={() => {
+                              // Navigate to submit page with prefilled data for editing pending submission
+                              const params = new URLSearchParams({
+                                edit: 'true',
+                                eventId: s.payload.is_edit ? s.payload.editing_event_id?.toString() || '' : '',
+                                name: s.payload.name || '',
+                                location: s.payload.location || '',
+                                lat: s.payload.lat?.toString() || '',
+                                lng: s.payload.lng?.toString() || '',
+                                category: s.payload.category || 'WDSC',
+                                date_from: s.payload.date_from || '',
+                                date_to: s.payload.date_to || '',
+                                source_url: s.payload.source_url || '',
+                                track_record_open_name: s.payload.track_record_open?.name || '',
+                                track_record_open_time: s.payload.track_record_open?.time || '',
+                                track_record_luge_name: s.payload.track_record_luge?.name || '',
+                                track_record_luge_time: s.payload.track_record_luge?.time || '',
+                                track_record_woman_name: s.payload.track_record_woman?.name || '',
+                                track_record_woman_time: s.payload.track_record_woman?.time || '',
+                                organizer_name: s.payload.organizer_name || '',
+                                spot_notes: s.payload.spot_notes || '',
+                              });
+                              
+                              // Add rider data
+                              if (s.payload.top_riders_open && s.payload.top_riders_open.length > 0) {
+                                s.payload.top_riders_open.forEach((rider: any, index: number) => {
+                                  params.append(`open_${index}_name`, rider.name);
+                                  params.append(`open_${index}_position`, rider.position.toString());
+                                  if (rider.country) params.append(`open_${index}_country`, rider.country);
+                                });
+                              }
+                              
+                              if (s.payload.top_riders_luge && s.payload.top_riders_luge.length > 0) {
+                                s.payload.top_riders_luge.forEach((rider: any, index: number) => {
+                                  params.append(`luge_${index}_name`, rider.name);
+                                  params.append(`luge_${index}_position`, rider.position.toString());
+                                  if (rider.country) params.append(`luge_${index}_country`, rider.country);
+                                });
+                              }
+                              
+                              if (s.payload.top_riders_woman && s.payload.top_riders_woman.length > 0) {
+                                s.payload.top_riders_woman.forEach((rider: any, index: number) => {
+                                  params.append(`woman_${index}_name`, rider.name);
+                                  params.append(`woman_${index}_position`, rider.position.toString());
+                                  if (rider.country) params.append(`woman_${index}_country`, rider.country);
+                                });
+                              }
+                              
+                              if (s.payload.top_qualifiers && s.payload.top_qualifiers.length > 0) {
+                                s.payload.top_qualifiers.forEach((rider: any, index: number) => {
+                                  params.append(`qualifier_${index}_name`, rider.name);
+                                  params.append(`qualifier_${index}_position`, rider.position.toString());
+                                  if (rider.country) params.append(`qualifier_${index}_country`, rider.country);
+                                });
+                              }
+                              
+                              // Add submission ID for reference
+                              params.append('submissionId', s.id.toString());
+                              
+                              window.open(`/submit?${params.toString()}`, '_blank');
+                            }}
+                            className="px-6 py-3 bg-yellow-50 text-yellow-700 rounded-lg hover:bg-yellow-100 transition-colors duration-200 font-medium"
+                            title="Edit submission details before approving"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span>✏️</span>
+                              <span>Edit Submission</span>
+                            </div>
+                          </button>
+                          <button
                             onClick={() => deleteSubmission(s.id)}
                             className="px-6 py-3 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors duration-200 font-medium"
                             title="Hard delete submission"
@@ -525,23 +677,38 @@ export default function AdminPage() {
                   ))}
                 </div>
               )}
+                </>
+              )}
             </div>
 
             {/* Users Section */}
             <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-8">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
-                  <span className="text-white text-lg">👥</span>
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
+                    <span className="text-white text-lg">👥</span>
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900">Users</h2>
+                  {users.length > 0 && (
+                    <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
+                      {users.length} users
+                    </span>
+                  )}
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900">Users</h2>
-                {users.length > 0 && (
-                  <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
-                    {users.length} users
+                <button
+                  onClick={() => setIsUsersCollapsed(!isUsersCollapsed)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                  title={isUsersCollapsed ? "Expand section" : "Collapse section"}
+                >
+                  <span className={`text-xl transition-transform duration-200 ${isUsersCollapsed ? 'rotate-180' : ''}`}>
+                    ▼
                   </span>
-                )}
+                </button>
               </div>
               
-              {users.length === 0 ? (
+              {!isUsersCollapsed && (
+                <>
+                  {users.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
                     <span className="text-2xl">👥</span>
@@ -609,6 +776,8 @@ export default function AdminPage() {
                     </div>
                   ))}
                 </div>
+              )}
+                </>
               )}
             </div>
           </div>

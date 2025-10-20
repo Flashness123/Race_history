@@ -19,7 +19,16 @@ export default function RegisterPage() {
 
     if (!res.ok) {
       const data = await res.json();
-      setErr(data.detail || "Failed to register");
+      // Handle both string errors and validation error arrays
+      if (typeof data.detail === 'string') {
+        setErr(data.detail);
+      } else if (Array.isArray(data.detail)) {
+        // Extract error messages from validation errors
+        const errorMessages = data.detail.map((error: any) => error.msg || error.message || 'Validation error').join(', ');
+        setErr(errorMessages);
+      } else {
+        setErr("Failed to register");
+      }
       return;
     }
 
