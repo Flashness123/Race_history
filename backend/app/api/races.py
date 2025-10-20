@@ -16,6 +16,8 @@ def list_races(year: int = Query(..., ge=1900, le=2100), db: Session = Depends(g
             RaceEvent.location, RaceEvent.lat, RaceEvent.lng, RaceEvent.source_url,
             RaceEvent.date_from, RaceEvent.category
         ).where(RaceEvent.year == year)
+        .where(RaceEvent.lat != 0.0)
+        .where(RaceEvent.lng != 0.0)
     ).all()
 
     features = []

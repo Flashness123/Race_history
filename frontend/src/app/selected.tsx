@@ -188,34 +188,179 @@ export default function ClientSelected({ geojson }: { geojson: any }) {
                     </div>
                   </div>
 
-                  {/* Top 3 Results */}
-                  {Array.isArray(detail.top3) && detail.top3.length > 0 && (
+                  {/* Event Details */}
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                      <span className="text-lg">📅</span>
+                      Event Details
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      {detail.date_from && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Start Date:</span>
+                          <span className="font-medium">{new Date(detail.date_from).toLocaleDateString()}</span>
+                        </div>
+                      )}
+                      {detail.date_to && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">End Date:</span>
+                          <span className="font-medium">{new Date(detail.date_to).toLocaleDateString()}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Coordinates:</span>
+                        <span className="font-medium">{detail.lat.toFixed(4)}, {detail.lng.toFixed(4)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Track Records */}
+                  {(detail.track_record_open_name || detail.track_record_luge_name || detail.track_record_woman_name) && (
                     <div className="bg-gray-50 rounded-xl p-4">
                       <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                        <span className="text-lg">🏆</span>
-                        Top 3 Results
+                        <span className="text-lg">⏱️</span>
+                        Track Records
                       </h4>
                       <div className="space-y-2">
-                        {detail.top3.map((p: any, index: number) => (
-                          <div key={p.position} className="flex items-center gap-3 p-2 bg-white rounded-lg border border-gray-200">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white ${
-                              index === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600' :
-                              index === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-500' :
-                              'bg-gradient-to-br from-orange-400 to-orange-600'
-                            }`}>
-                              {p.position}
-                            </div>
-                            <div className="flex-1">
-                              <div className="font-medium text-gray-900">{p.name}</div>
-                              {p.country && (
-                                <div className="text-xs text-gray-500">{p.country}</div>
-                              )}
-                            </div>
+                        {detail.track_record_open_name && (
+                          <div className="flex justify-between items-center p-2 bg-white rounded-lg border border-gray-200">
+                            <span className="text-sm font-medium text-gray-700">Open:</span>
+                            <span className="text-sm">{detail.track_record_open_name} - {detail.track_record_open_time}</span>
                           </div>
-                        ))}
+                        )}
+                        {detail.track_record_luge_name && (
+                          <div className="flex justify-between items-center p-2 bg-white rounded-lg border border-gray-200">
+                            <span className="text-sm font-medium text-gray-700">Luge:</span>
+                            <span className="text-sm">{detail.track_record_luge_name} - {detail.track_record_luge_time}</span>
+                          </div>
+                        )}
+                        {detail.track_record_woman_name && (
+                          <div className="flex justify-between items-center p-2 bg-white rounded-lg border border-gray-200">
+                            <span className="text-sm font-medium text-gray-700">Women:</span>
+                            <span className="text-sm">{detail.track_record_woman_name} - {detail.track_record_woman_time}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
+
+                  {/* Results by Category */}
+                  <div className="space-y-4">
+                    {/* Open Results */}
+                    {Array.isArray(detail.open_results) && detail.open_results.length > 0 && (
+                      <div className="bg-gray-50 rounded-xl p-4">
+                        <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                          <span className="text-lg">🏆</span>
+                          Open Results ({detail.open_results.length})
+                        </h4>
+                        <div className="space-y-1 max-h-40 overflow-y-auto">
+                          {detail.open_results.map((p: any) => (
+                            <div key={p.position} className="flex items-center gap-3 p-2 bg-white rounded-lg border border-gray-200">
+                              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${
+                                p.position === 1 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600' :
+                                p.position === 2 ? 'bg-gradient-to-br from-gray-300 to-gray-500' :
+                                p.position === 3 ? 'bg-gradient-to-br from-orange-400 to-orange-600' :
+                                'bg-gradient-to-br from-blue-500 to-blue-600'
+                              }`}>
+                                {p.position}
+                              </div>
+                              <div className="flex-1">
+                                <div className="font-medium text-gray-900 text-sm">{p.name}</div>
+                                {p.country && (
+                                  <div className="text-xs text-gray-500">{p.country}</div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Luge Results */}
+                    {Array.isArray(detail.luge_results) && detail.luge_results.length > 0 && (
+                      <div className="bg-gray-50 rounded-xl p-4">
+                        <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                          <span className="text-lg">🛷</span>
+                          Luge Results ({detail.luge_results.length})
+                        </h4>
+                        <div className="space-y-1 max-h-40 overflow-y-auto">
+                          {detail.luge_results.map((p: any) => (
+                            <div key={p.position} className="flex items-center gap-3 p-2 bg-white rounded-lg border border-gray-200">
+                              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${
+                                p.position === 1 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600' :
+                                p.position === 2 ? 'bg-gradient-to-br from-gray-300 to-gray-500' :
+                                p.position === 3 ? 'bg-gradient-to-br from-orange-400 to-orange-600' :
+                                'bg-gradient-to-br from-blue-500 to-blue-600'
+                              }`}>
+                                {p.position}
+                              </div>
+                              <div className="flex-1">
+                                <div className="font-medium text-gray-900 text-sm">{p.name}</div>
+                                {p.country && (
+                                  <div className="text-xs text-gray-500">{p.country}</div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Women Results */}
+                    {Array.isArray(detail.woman_results) && detail.woman_results.length > 0 && (
+                      <div className="bg-gray-50 rounded-xl p-4">
+                        <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                          <span className="text-lg">👩</span>
+                          Women Results ({detail.woman_results.length})
+                        </h4>
+                        <div className="space-y-1 max-h-40 overflow-y-auto">
+                          {detail.woman_results.map((p: any) => (
+                            <div key={p.position} className="flex items-center gap-3 p-2 bg-white rounded-lg border border-gray-200">
+                              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${
+                                p.position === 1 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600' :
+                                p.position === 2 ? 'bg-gradient-to-br from-gray-300 to-gray-500' :
+                                p.position === 3 ? 'bg-gradient-to-br from-orange-400 to-orange-600' :
+                                'bg-gradient-to-br from-blue-500 to-blue-600'
+                              }`}>
+                                {p.position}
+                              </div>
+                              <div className="flex-1">
+                                <div className="font-medium text-gray-900 text-sm">{p.name}</div>
+                                {p.country && (
+                                  <div className="text-xs text-gray-500">{p.country}</div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Qualifier Results */}
+                    {Array.isArray(detail.qualifier_results) && detail.qualifier_results.length > 0 && (
+                      <div className="bg-gray-50 rounded-xl p-4">
+                        <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                          <span className="text-lg">🎯</span>
+                          Qualifiers ({detail.qualifier_results.length})
+                        </h4>
+                        <div className="space-y-1 max-h-40 overflow-y-auto">
+                          {detail.qualifier_results.map((p: any) => (
+                            <div key={p.position} className="flex items-center gap-3 p-2 bg-white rounded-lg border border-gray-200">
+                              <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white bg-gradient-to-br from-green-500 to-teal-600">
+                                Q{p.position - 100}
+                              </div>
+                              <div className="flex-1">
+                                <div className="font-medium text-gray-900 text-sm">{p.name}</div>
+                                {p.country && (
+                                  <div className="text-xs text-gray-500">{p.country}</div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
                   {/* Source Link */}
                   {detail.source_url && (

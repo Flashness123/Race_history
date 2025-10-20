@@ -2,6 +2,7 @@ import Map from "@/components/Map";
 import YearBar from "@/components/YearBar";
 import { fetchRaces } from "@/lib/api";
 import ClientSelected from "./selected";
+import ClientEventsList from "./events-list";
 
 export default async function Home({
   searchParams,
@@ -110,6 +111,21 @@ export default async function Home({
                 ))}
               </div>
             )}
+          </div>
+        </section>
+
+        {/* Events List Section */}
+        <section className="px-6 py-12">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-white mb-4 drop-shadow-lg">
+                All Events in {year}
+              </h2>
+              <p className="text-blue-100 drop-shadow-md">
+                Browse and search through all events from this year
+              </p>
+            </div>
+            <ClientEventsList year={year} />
           </div>
         </section>
       </div>

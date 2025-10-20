@@ -86,8 +86,21 @@ def create_submission(data: SubmissionIn, db: Session = Depends(get_db), claims:
 
 @router.get("", dependencies=[Depends(require_role("ADMIN","OWNER"))])
 def list_pending(db: Session = Depends(get_db)):
-    rows = db.scalars(select(Submission).where(Submission.status == "PENDING")).all()
-    return [{"id": s.id, "payload": s.payload, "submitted_by_user_id": s.submitted_by_user_id} for s in rows]
+    rows = db.execute(
+        select(Submission.id, Submission.payload, Submission.submitted_by_user_id, User.name, User.email)
+        .join(User, User.id == Submission.submitted_by_user_id)
+        .where(Submission.status == "PENDING")
+    ).all()
+    return [
+        {
+            "id": s[0], 
+            "payload": s[1], 
+            "submitted_by_user_id": s[2],
+            "submitted_by_name": s[3] or "Unknown",
+            "submitted_by_email": s[4] or "Unknown"
+        } 
+        for s in rows
+    ]
 
 @router.post("/{submission_id}/approve", dependencies=[Depends(require_role("ADMIN","OWNER"))])
 def approve(submission_id: int, db: Session = Depends(get_db)):
@@ -166,7 +179,8 @@ def approve(submission_id: int, db: Session = Depends(get_db)):
                     result = Result(
                         event_id=ev.id,
                         person_id=person.id,
-                        position=int(rider["position"])
+                        position=int(rider["position"]),
+                        category="OPEN"
                     )
                     db.add(result)
                     db.flush()
@@ -177,7 +191,7 @@ def approve(submission_id: int, db: Session = Depends(get_db)):
                     else:
                         raise
         
-        # Process Luge category
+        # Process Luge category (use positions 10-19)
         for rider in p.get("top_riders_luge", []):
             n = norm(rider["name"])
             person = db.scalar(select(Person).where(Person.full_name_norm == n))
@@ -188,17 +202,21 @@ def approve(submission_id: int, db: Session = Depends(get_db)):
                 )
                 db.add(person); db.flush()
 
+            # Use position 10 + original position to avoid conflicts with Open category
+            luge_position = 10 + int(rider["position"])
+            
             # Check if result already exists
             existing_result = db.scalar(select(Result).where(
                 Result.event_id == ev.id,
-                Result.position == int(rider["position"])
+                Result.position == luge_position
             ))
             if not existing_result:
                 try:
                     result = Result(
                         event_id=ev.id,
                         person_id=person.id,
-                        position=int(rider["position"])
+                        position=luge_position,
+                        category="LUGE"
                     )
                     db.add(result)
                     db.flush()
@@ -209,7 +227,7 @@ def approve(submission_id: int, db: Session = Depends(get_db)):
                     else:
                         raise
         
-        # Process Woman category
+        # Process Woman category (use positions 20-29)
         for rider in p.get("top_riders_woman", []):
             n = norm(rider["name"])
             person = db.scalar(select(Person).where(Person.full_name_norm == n))
@@ -220,17 +238,21 @@ def approve(submission_id: int, db: Session = Depends(get_db)):
                 )
                 db.add(person); db.flush()
 
+            # Use position 20 + original position to avoid conflicts with other categories
+            woman_position = 20 + int(rider["position"])
+            
             # Check if result already exists
             existing_result = db.scalar(select(Result).where(
                 Result.event_id == ev.id,
-                Result.position == int(rider["position"])
+                Result.position == woman_position
             ))
             if not existing_result:
                 try:
                     result = Result(
                         event_id=ev.id,
                         person_id=person.id,
-                        position=int(rider["position"])
+                        position=woman_position,
+                        category="WOMAN"
                     )
                     db.add(result)
                     db.flush()
@@ -265,7 +287,8 @@ def approve(submission_id: int, db: Session = Depends(get_db)):
                     result = Result(
                         event_id=ev.id,
                         person_id=person.id,
-                        position=qualifier_position
+                        position=qualifier_position,
+                        category="QUALIFIER"
                     )
                     db.add(result)
                     db.flush()
@@ -390,9 +413,9 @@ def batch_submit(file: UploadFile = File(...), db: Session = Depends(get_db), cl
                             "position": i
                         })
                 
-                # Add qualifiers if they exist (support unlimited qualifiers)
+                # Add qualifiers if they exist (support up to 64 qualifiers)
                 qualifier_position = 1
-                for i in range(1, 11):  # Support up to 10 qualifiers
+                for i in range(1, 65):  # Support up to 64 qualifiers
                     if pd.notna(row.get(f'qualifier_{i}')):
                         submission_data["top_qualifiers"].append({
                             "name": str(row[f'qualifier_{i}']),

@@ -6,9 +6,27 @@ type Top3 = { name: string; country?: string; instagram?: string; position: numb
 type PendingItem = {
   id: number;
   submitted_by_user_id: number | null;
+  submitted_by_name: string;
+  submitted_by_email: string;
   payload: {
-    name: string; year: number; location: string; lat: number; lng: number;
-    source_url?: string; top3?: Top3[];
+    name: string; 
+    year: number; 
+    location: string; 
+    lat: number; 
+    lng: number;
+    category: string;
+    date_from?: string;
+    date_to?: string;
+    source_url?: string; 
+    top_riders_open?: Top3[];
+    top_riders_luge?: Top3[];
+    top_riders_woman?: Top3[];
+    top_qualifiers?: Top3[];
+    track_record_open?: { name: string; time: string };
+    track_record_luge?: { name: string; time: string };
+    track_record_woman?: { name: string; time: string };
+    links?: { name: string; url: string }[];
+    spot_notes?: string;
   };
 };
 
@@ -282,47 +300,195 @@ export default function AdminPage() {
                   {items.map((s) => (
                     <div key={s.id} className="p-6 bg-gray-50 rounded-xl border border-gray-200">
                       <div className="flex justify-between items-start gap-6">
-                        <div className="flex-1">
-                          <div className="font-semibold text-lg text-gray-900 mb-2">
-                            {s.payload.name} <span className="text-gray-500">({s.payload.year})</span>
-                          </div>
-                          <div className="text-sm text-gray-600 mb-2">
-                            📍 {s.payload.location} · {s.payload.lat}, {s.payload.lng}
-                          </div>
-                          {s.payload.source_url && (
-                            <div className="text-sm mb-2">
-                              <a className="text-blue-600 hover:text-blue-700 underline" href={s.payload.source_url} target="_blank" rel="noopener noreferrer">
-                                🔗 View source
-                              </a>
+                        <div className="flex-1 space-y-4">
+                          {/* Event Header */}
+                          <div>
+                            <div className="font-semibold text-lg text-gray-900 mb-2">
+                              {s.payload.name} <span className="text-gray-500">({s.payload.year})</span>
                             </div>
-                          )}
-                          {Array.isArray(s.payload.top3) && s.payload.top3.length > 0 && (
-                            <div className="mt-3">
-                              <div className="text-sm font-medium text-gray-700 mb-2">Top 3 Results:</div>
+                            <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
+                              <span>📍 {s.payload.location}</span>
+                              <span>•</span>
+                              <span>{s.payload.lat}, {s.payload.lng}</span>
+                              <span>•</span>
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                s.payload.category === 'WDSC' ? 'bg-orange-100 text-orange-800' :
+                                s.payload.category === 'EURO' ? 'bg-blue-100 text-blue-800' :
+                                s.payload.category === 'FREERIDE' ? 'bg-green-100 text-green-800' :
+                                s.payload.category === 'IDF' ? 'bg-purple-100 text-purple-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                {s.payload.category}
+                              </span>
+                            </div>
+                            {s.payload.date_from && (
+                              <div className="text-sm text-gray-600">
+                                📅 {new Date(s.payload.date_from).toLocaleDateString()}
+                                {s.payload.date_to && ` - ${new Date(s.payload.date_to).toLocaleDateString()}`}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Links */}
+                          {s.payload.links && s.payload.links.length > 0 && (
+                            <div>
+                              <div className="text-sm font-medium text-gray-700 mb-2">Links:</div>
                               <div className="space-y-1">
-                                {s.payload.top3
-                                  .slice()
-                                  .sort((a,b)=>a.position-b.position)
-                                  .map(r=>(
-                                    <div key={r.position} className="flex items-center gap-2 text-sm">
-                                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold ${
-                                        r.position === 1 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600' :
-                                        r.position === 2 ? 'bg-gradient-to-br from-gray-300 to-gray-500' :
-                                        'bg-gradient-to-br from-orange-400 to-orange-600'
-                                      }`}>
-                                        {r.position}
-                                      </div>
-                                      <span className="font-medium">{r.name}</span>
-                                      {r.country && <span className="text-gray-500">({r.country})</span>}
-                                      {r.instagram && <span className="text-gray-500">📸 {r.instagram}</span>}
-                                    </div>
-                                  ))}
+                                {s.payload.links.map((link, idx) => (
+                                  <div key={idx} className="text-sm">
+                                    <a className="text-blue-600 hover:text-blue-700 underline" href={link.url} target="_blank" rel="noopener noreferrer">
+                                      🔗 {link.name}
+                                    </a>
+                                  </div>
+                                ))}
                               </div>
                             </div>
                           )}
-                          <p className="text-xs text-gray-500 mt-3">
-                            Submitted by user: {s.submitted_by_user_id ?? "unknown"}
-                          </p>
+
+                          {/* Spot Notes */}
+                          {s.payload.spot_notes && (
+                            <div>
+                              <div className="text-sm font-medium text-gray-700 mb-2">Spot Information:</div>
+                              <div className="text-sm text-gray-600 bg-white p-3 rounded-lg border">
+                                {s.payload.spot_notes}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Results by Category */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Open Results */}
+                            {s.payload.top_riders_open && s.payload.top_riders_open.length > 0 && (
+                              <div>
+                                <div className="text-sm font-medium text-gray-700 mb-2">🏆 Open Results:</div>
+                                <div className="space-y-1">
+                                  {s.payload.top_riders_open
+                                    .slice()
+                                    .sort((a,b)=>a.position-b.position)
+                                    .map(r=>(
+                                      <div key={r.position} className="flex items-center gap-2 text-sm">
+                                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold ${
+                                          r.position === 1 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600' :
+                                          r.position === 2 ? 'bg-gradient-to-br from-gray-300 to-gray-500' :
+                                          'bg-gradient-to-br from-orange-400 to-orange-600'
+                                        }`}>
+                                          {r.position}
+                                        </div>
+                                        <span className="font-medium">{r.name}</span>
+                                        {r.country && <span className="text-gray-500">({r.country})</span>}
+                                      </div>
+                                    ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Luge Results */}
+                            {s.payload.top_riders_luge && s.payload.top_riders_luge.length > 0 && (
+                              <div>
+                                <div className="text-sm font-medium text-gray-700 mb-2">🛷 Luge Results:</div>
+                                <div className="space-y-1">
+                                  {s.payload.top_riders_luge
+                                    .slice()
+                                    .sort((a,b)=>a.position-b.position)
+                                    .map(r=>(
+                                      <div key={r.position} className="flex items-center gap-2 text-sm">
+                                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold ${
+                                          r.position === 1 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600' :
+                                          r.position === 2 ? 'bg-gradient-to-br from-gray-300 to-gray-500' :
+                                          'bg-gradient-to-br from-orange-400 to-orange-600'
+                                        }`}>
+                                          {r.position}
+                                        </div>
+                                        <span className="font-medium">{r.name}</span>
+                                        {r.country && <span className="text-gray-500">({r.country})</span>}
+                                      </div>
+                                    ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Women Results */}
+                            {s.payload.top_riders_woman && s.payload.top_riders_woman.length > 0 && (
+                              <div>
+                                <div className="text-sm font-medium text-gray-700 mb-2">👩 Women Results:</div>
+                                <div className="space-y-1">
+                                  {s.payload.top_riders_woman
+                                    .slice()
+                                    .sort((a,b)=>a.position-b.position)
+                                    .map(r=>(
+                                      <div key={r.position} className="flex items-center gap-2 text-sm">
+                                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold ${
+                                          r.position === 1 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600' :
+                                          r.position === 2 ? 'bg-gradient-to-br from-gray-300 to-gray-500' :
+                                          'bg-gradient-to-br from-orange-400 to-orange-600'
+                                        }`}>
+                                          {r.position}
+                                        </div>
+                                        <span className="font-medium">{r.name}</span>
+                                        {r.country && <span className="text-gray-500">({r.country})</span>}
+                                      </div>
+                                    ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Qualifiers */}
+                            {s.payload.top_qualifiers && s.payload.top_qualifiers.length > 0 && (
+                              <div>
+                                <div className="text-sm font-medium text-gray-700 mb-2">🎯 Qualifiers ({s.payload.top_qualifiers.length}):</div>
+                                <div className="space-y-1 max-h-32 overflow-y-auto">
+                                  {s.payload.top_qualifiers
+                                    .slice()
+                                    .sort((a,b)=>a.position-b.position)
+                                    .map(r=>(
+                                      <div key={r.position} className="flex items-center gap-2 text-sm">
+                                        <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold bg-gradient-to-br from-green-500 to-teal-600">
+                                          Q{r.position}
+                                        </div>
+                                        <span className="font-medium">{r.name}</span>
+                                        {r.country && <span className="text-gray-500">({r.country})</span>}
+                                      </div>
+                                    ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Track Records */}
+                          {(s.payload.track_record_open || s.payload.track_record_luge || s.payload.track_record_woman) && (
+                            <div>
+                              <div className="text-sm font-medium text-gray-700 mb-2">⏱️ Track Records:</div>
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                {s.payload.track_record_open && (
+                                  <div className="bg-white p-3 rounded-lg border text-sm">
+                                    <div className="font-medium text-gray-700">Open:</div>
+                                    <div>{s.payload.track_record_open.name} - {s.payload.track_record_open.time}</div>
+                                  </div>
+                                )}
+                                {s.payload.track_record_luge && (
+                                  <div className="bg-white p-3 rounded-lg border text-sm">
+                                    <div className="font-medium text-gray-700">Luge:</div>
+                                    <div>{s.payload.track_record_luge.name} - {s.payload.track_record_luge.time}</div>
+                                  </div>
+                                )}
+                                {s.payload.track_record_woman && (
+                                  <div className="bg-white p-3 rounded-lg border text-sm">
+                                    <div className="font-medium text-gray-700">Women:</div>
+                                    <div>{s.payload.track_record_woman.name} - {s.payload.track_record_woman.time}</div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                            <div className="text-sm font-medium text-blue-900 mb-1">Submitted by:</div>
+                            <div className="text-sm text-blue-800">
+                              <div className="font-medium">{s.submitted_by_name}</div>
+                              <div className="text-blue-600">{s.submitted_by_email}</div>
+                              <div className="text-xs text-blue-500">User ID: {s.submitted_by_user_id}</div>
+                            </div>
+                          </div>
                         </div>
 
                         <div className="flex flex-col gap-3">

@@ -580,7 +580,7 @@ export default function Submit() {
                            <p><strong>standup_top_1, standup_top_2, standup_top_3</strong> - Top 3 Open riders</p>
                            <p><strong>luge_top_1, luge_top_2, luge_top_3</strong> - Top 3 Luge riders</p>
                            <p><strong>women_top_1, women_top_2, women_top_3</strong> - Top 3 Women riders</p>
-                           <p><strong>qualifier_1, qualifier_2, qualifier_3, ...</strong> - Top Qualifiers (unlimited)</p>
+                           <p><strong>qualifier_1, qualifier_2, qualifier_3, ... qualifier_64</strong> - Top Qualifiers (up to 64)</p>
                            <p><strong>track_record_open, track_record_open_time</strong> - Open track record</p>
                            <p><strong>track_record_luge, track_record_luge_time</strong> - Luge track record</p>
                            <p><strong>track_record_women, track_record_women_time</strong> - Women track record</p>
@@ -597,7 +597,7 @@ export default function Submit() {
                          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                            <div className="flex items-center justify-between">
                              <div>
-                               <h4 className="font-medium text-blue-900 mb-1">Need a Template?</h4>
+                               <h4 className="font-medium text-blue-900 mb-1">Recommended Template</h4>
                                <p className="text-sm text-blue-800">Download our sample file to see the correct column format</p>
                              </div>
                              <a
