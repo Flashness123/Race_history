@@ -7,7 +7,7 @@ export default function ClientSelected({ geojson }: { geojson: any }) {
   const [detail, setDetail] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const [filters, setFilters] = useState<{SPOT:boolean;WDSC:boolean;EURO:boolean;FREERIDE:boolean}>({ SPOT: true, WDSC: true, EURO: true, FREERIDE: true });
+  const [filters, setFilters] = useState<{SPOT:boolean;WDSC:boolean;EURO:boolean;FREERIDE:boolean;IDF:boolean}>({ SPOT: true, WDSC: true, EURO: true, FREERIDE: true, IDF: true });
 
   const onSelect = useCallback((id: number | null) => {
     setSelectedId(id);
@@ -88,6 +88,24 @@ export default function ClientSelected({ geojson }: { geojson: any }) {
               }}
             />
             <span className="text-sm font-medium text-green-600 transition-colors duration-200">Freerides</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer group">
+            <input 
+              type="checkbox" 
+              checked={filters.IDF} 
+              onChange={e=>setFilters(f=>({...f, IDF:e.target.checked}))}
+              className="w-4 h-4 text-purple-600 bg-gray-100 border-purple-300 rounded focus:ring-purple-500 focus:ring-2 checked:bg-purple-600 checked:border-purple-600 focus:outline-none appearance-none relative"
+              style={{
+                accentColor: 'transparent',
+                WebkitAppearance: 'none',
+                MozAppearance: 'none',
+                backgroundImage: filters.IDF ? 'url("data:image/svg+xml,%3csvg viewBox=\'0 0 16 16\' fill=\'white\' xmlns=\'http://www.w3.org/2000/svg\'%3e%3cpath d=\'m13.854 3.646-7.5 7.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6 10.293l7.146-7.147a.5.5 0 0 1 .708.708z\'/%3e%3c/svg%3e")' : 'none',
+                backgroundSize: '12px 12px',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat'
+              }}
+            />
+            <span className="text-sm font-medium text-purple-600 transition-colors duration-200">IDF Events</span>
           </label>
           <label className="flex items-center gap-2 cursor-pointer group">
             <input 

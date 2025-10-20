@@ -35,6 +35,13 @@ class RaceEvent(Base):
     source_url: Mapped[str | None]
     image_url: Mapped[str | None] = mapped_column(String(400))
     category: Mapped[str | None] = mapped_column(String(20))  # SPOT | WDSC | EURO | FREERIDE
+    # Track record fields
+    track_record_open_name: Mapped[str | None] = mapped_column(String(200))
+    track_record_open_time: Mapped[str | None] = mapped_column(String(50))
+    track_record_luge_name: Mapped[str | None] = mapped_column(String(200))
+    track_record_luge_time: Mapped[str | None] = mapped_column(String(50))
+    track_record_woman_name: Mapped[str | None] = mapped_column(String(200))
+    track_record_woman_time: Mapped[str | None] = mapped_column(String(50))
     results: Mapped[list["Result"]] = relationship(back_populates="event")
 
 class Result(Base):
