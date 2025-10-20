@@ -18,17 +18,6 @@ export default function Footer() {
               Track and discover downhill longboard races around the world. 
               Submit races, view results, and connect with the community of passionate riders.
             </p>
-            <div className="mt-4 flex space-x-4">
-              <div className="w-8 h-8 bg-gray-200 rounded-lg flex items-center justify-center hover:bg-blue-100 transition-colors duration-200 cursor-pointer">
-                <span className="text-gray-600 text-sm">📧</span>
-              </div>
-              <div className="w-8 h-8 bg-gray-200 rounded-lg flex items-center justify-center hover:bg-blue-100 transition-colors duration-200 cursor-pointer">
-                <span className="text-gray-600 text-sm">📱</span>
-              </div>
-              <div className="w-8 h-8 bg-gray-200 rounded-lg flex items-center justify-center hover:bg-blue-100 transition-colors duration-200 cursor-pointer">
-                <span className="text-gray-600 text-sm">🌐</span>
-              </div>
-            </div>
           </div>
           
           <div>

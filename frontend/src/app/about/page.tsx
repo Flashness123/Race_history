@@ -86,6 +86,60 @@ export default function About() {
           </div>
         </div>
 
+        {/* Legal Information Section */}
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-8 mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Legal Information</h2>
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 mb-6">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0">
+                  <span className="text-yellow-600 text-2xl">⚠️</span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-yellow-800 mb-2">Copyright Notice</h3>
+                  <p className="text-yellow-700 leading-relaxed">
+                    <strong>Important:</strong> All images, videos, and media content displayed on this platform are 
+                    user-submitted and belong to their respective owners. Downhill Race History does not claim 
+                    ownership or copyright over any of the visual content, race photos, videos, or other media 
+                    materials featured on this website.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-6 text-gray-700">
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900 mb-3">Content Ownership</h4>
+                <ul className="space-y-2 list-disc list-inside">
+                  <li>All race images, videos, and media are submitted by community members</li>
+                  <li>Original creators retain full copyright and ownership rights</li>
+                  <li>We act as a platform for sharing and discovery, not as content owners</li>
+                  <li>If you own content that appears here and want it removed, please contact us</li>
+                </ul>
+              </div>
+              
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900 mb-3">User-Generated Content</h4>
+                <p className="leading-relaxed">
+                  This platform relies on community contributions for race information, results, and media. 
+                  We encourage users to only submit content they own or have permission to share. By submitting 
+                  content, users confirm they have the right to do so and grant us permission to display it 
+                  on the platform.
+                </p>
+              </div>
+              
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900 mb-3">Fair Use & Attribution</h4>
+                <p className="leading-relaxed">
+                  We strive to properly attribute content when possible and operate under fair use principles 
+                  for educational and community purposes. If you believe your copyrighted material is being 
+                  used inappropriately, please contact us immediately for removal.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Get Involved Section */}
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-8 text-center">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">Get Involved</h2>
