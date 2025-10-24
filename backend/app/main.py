@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from app.core.config import settings
 from app.api.races import router as races_router
 from app.api.auth import router as auth_router
 from app.api.submissions import router as subs_router
@@ -16,7 +17,7 @@ app = FastAPI(title="Downhill Longboarding API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=settings.cors_origins_list,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
