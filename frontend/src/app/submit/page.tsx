@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import MapPicker from "@/components/MapPicker";
 
@@ -8,7 +8,7 @@ type Rider = { name: string; position: number };
 type TrackRecord = { name: string; time: string };
 type SubmissionMode = 'race' | 'spot' | 'batch';
 
-export default function Submit() {
+function SubmitContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [submissionMode, setSubmissionMode] = useState<SubmissionMode>('race');
@@ -1303,5 +1303,13 @@ export default function Submit() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function Submit() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SubmitContent />
+    </Suspense>
   );
 }
