@@ -1,3 +1,5 @@
+"use client";
+import { useState, useEffect } from "react";
 import Map from "@/components/Map";
 import YearBar from "@/components/YearBar";
 import { fetchRaces } from "@/lib/api";
@@ -5,26 +7,41 @@ import ClientSelected from "./selected";
 import ClientEventsList from "./events-list";
 import ClickableRiderName from "@/components/ClickableRiderName";
 
-export default async function Home({
-  searchParams,
-}: {
-  searchParams?: Promise<{ year?: string }>;
-}) {
-  const current = new Date().getFullYear();
-  const sp = (await searchParams) ?? {};
-  const year = Number(sp.year ?? current);
+export default function Home() {
+  const [geojson, setGeojson] = useState({ type: "FeatureCollection", features: [] });
+  const [top, setTop] = useState([]);
+  const [year, setYear] = useState(new Date().getFullYear());
+  const [loading, setLoading] = useState(true);
 
-  // Check if API base is configured
-  const apiBase = process.env.NEXT_PUBLIC_API_BASE;
-  if (!apiBase) {
-    console.error('NEXT_PUBLIC_API_BASE is not configured');
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const [racesData, topData] = await Promise.all([
+          fetchRaces(year),
+          fetch(`${process.env.NEXT_PUBLIC_API_BASE}/bio/top`).then(res => res.ok ? res.json() : [])
+        ]);
+        setGeojson(racesData);
+        setTop(topData);
+      } catch (error) {
+        console.error('Error loading data:', error);
+        setGeojson({ type: "FeatureCollection", features: [] });
+        setTop([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [year]);
+
+  if (loading) {
+    return (
+      <main className="flex flex-col min-h-screen items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </main>
+    );
   }
-
-  const geojson = apiBase ? await fetchRaces(year) : { type: "FeatureCollection", features: [] };
-
-  // Fetch top riders server-side
-  const topRes = apiBase ? await fetch(`${apiBase}/bio/top`, { cache: "no-store" }) : null;
-  const top = topRes?.ok ? await topRes.json() : [];
 
   return (
     <main 
@@ -42,7 +59,7 @@ export default async function Home({
       
       {/* Content with relative positioning to appear above overlay */}
       <div className="relative z-10 flex flex-col">
-        <YearBar />
+        <YearBar current={year} onYearChange={setYear} />
         
         {/* Hero Section */}
         <section className="px-6 py-8 text-white">
