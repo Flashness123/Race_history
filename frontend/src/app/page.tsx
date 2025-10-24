@@ -14,11 +14,17 @@ export default async function Home({
   const sp = (await searchParams) ?? {};
   const year = Number(sp.year ?? current);
 
-  const geojson = await fetchRaces(year);
+  // Check if API base is configured
+  const apiBase = process.env.NEXT_PUBLIC_API_BASE;
+  if (!apiBase) {
+    console.error('NEXT_PUBLIC_API_BASE is not configured');
+  }
+
+  const geojson = apiBase ? await fetchRaces(year) : { type: "FeatureCollection", features: [] };
 
   // Fetch top riders server-side
-  const topRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/bio/top`, { cache: "no-store" });
-  const top = topRes.ok ? await topRes.json() : [];
+  const topRes = apiBase ? await fetch(`${apiBase}/bio/top`, { cache: "no-store" }) : null;
+  const top = topRes?.ok ? await topRes.json() : [];
 
   return (
     <main 
