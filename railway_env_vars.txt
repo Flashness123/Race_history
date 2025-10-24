@@ -1,0 +1,9 @@
+# Railway Environment Variables
+# Copy these to your Railway project dashboard
+
+DATABASE_URL=postgresql+psycopg://postgres:Ichmagbrot12und12@db.lhifiqposrdbmyyczqno.supabase.co:5432/postgres
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production-make-it-long-and-random
+JWT_ALG=HS256
+CORS_ORIGINS=https://your-frontend-domain.vercel.app,http://localhost:3000
+
+# Note: Replace "your-frontend-domain.vercel.app" with your actual Vercel domain after deployment
