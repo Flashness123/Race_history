@@ -34,7 +34,7 @@ class SubmissionIn(BaseModel):
     location: str | None = None
     lat: float | None = None
     lng: float | None = None
-    category: str = Field(pattern=r"^(SPOT|WDSC|EURO|FREERIDE|IDF)$")
+    category: str = Field(pattern=r"^(SPOT|WDSC|EURO|FREERIDE|IDF|OUTLAW|NATIONAL|RACE)$")
     links: list[LinkData] = Field(default_factory=list)
     top_riders_open: list[RiderData] = Field(default_factory=list)
     top_riders_luge: list[RiderData] = Field(default_factory=list)
@@ -407,7 +407,7 @@ def delete_submission(submission_id: int, db: Session = Depends(get_db)):
 
 @router.post("/batch", status_code=201)
 def batch_submit(file: UploadFile = File(...), db: Session = Depends(get_db), claims: dict = Depends(get_current_user_claims)):
-    """Process batch upload of races from Excel/ODS file"""
+    """Process batch upload of races from Excel/ODS file with new column structure"""
     try:
         user_id = int(claims["sub"])
         user = db.get(User, user_id)
@@ -464,6 +464,21 @@ def batch_submit(file: UploadFile = File(...), db: Session = Depends(get_db), cl
                     else:
                         print(f"Warning: Could not geocode location '{location}' for event '{row['event_name']}'")
 
+                # Process categories (can be multiple, comma-separated)
+                categories = str(row.get('link_event_category', 'WDSC')).strip()
+                if not categories or categories == 'nan':
+                    categories = 'WDSC'
+                
+                # Split categories and map to valid values
+                category_list = [cat.strip().upper() for cat in categories.split(',')]
+                primary_category = map_category_to_value(category_list[0]) if category_list else 'WDSC'
+
+                # Process organizers (can be multiple, comma-separated)
+                organizers = str(row.get('organizer', '')).strip()
+                organizer_list = []
+                if organizers and organizers != 'nan':
+                    organizer_list = [org.strip() for org in organizers.split(',') if org.strip()]
+
                 # Prepare submission data
                 submission_data = {
                     "name": str(row['event_name']),
@@ -472,7 +487,7 @@ def batch_submit(file: UploadFile = File(...), db: Session = Depends(get_db), cl
                     "location": location,
                     "lat": lat,
                     "lng": lng,
-                    "category": map_category_to_value(str(row.get('category', 'WDSC'))),
+                    "category": primary_category,
                     "links": [{"name": "Event Page", "url": str(row.get('link_event_page', ''))}] if pd.notna(row.get('link_event_page')) else [],
                     "top_riders_open": [],
                     "top_riders_luge": [],
@@ -481,10 +496,14 @@ def batch_submit(file: UploadFile = File(...), db: Session = Depends(get_db), cl
                     "track_record_open": None,
                     "track_record_luge": None,
                     "track_record_woman": None,
-                    "organizer_name": str(row.get('organizer_name', '')).strip() if pd.notna(row.get('organizer_name')) else None,
+                    "organizer_name": organizer_list[0] if organizer_list else None,
+                    # Store additional data for future use
+                    "_all_categories": category_list,
+                    "_all_organizers": organizer_list,
+                    "_event_description": str(row.get('event_description', '')).strip() if pd.notna(row.get('event_description')) else None,
                 }
 
-                # Add riders if they exist
+                # Add riders if they exist (new column structure)
                 for i in range(1, 4):
                     if pd.notna(row.get(f'standup_top_{i}')):
                         submission_data["top_riders_open"].append({
@@ -512,21 +531,27 @@ def batch_submit(file: UploadFile = File(...), db: Session = Depends(get_db), cl
                         })
                         qualifier_position += 1
 
-                # Add track records if they exist
-                if pd.notna(row.get('track_record_open')) and pd.notna(row.get('track_record_open_time')):
+                # Add track records if they exist (new column structure)
+                track_records = []
+                for i in range(1, 7):  # track_record_1 to track_record_6
+                    if pd.notna(row.get(f'track_record_{i}')):
+                        track_records.append(str(row[f'track_record_{i}']))
+                
+                # Assign track records to categories if available
+                if len(track_records) >= 1:
                     submission_data["track_record_open"] = {
-                        "name": str(row['track_record_open']),
-                        "time": str(row['track_record_open_time'])
+                        "name": track_records[0],
+                        "time": ""  # No time column in new structure
                     }
-                if pd.notna(row.get('track_record_luge')) and pd.notna(row.get('track_record_luge_time')):
+                if len(track_records) >= 2:
                     submission_data["track_record_luge"] = {
-                        "name": str(row['track_record_luge']),
-                        "time": str(row['track_record_luge_time'])
+                        "name": track_records[1],
+                        "time": ""
                     }
-                if pd.notna(row.get('track_record_women')) and pd.notna(row.get('track_record_women_time')):
+                if len(track_records) >= 3:
                     submission_data["track_record_woman"] = {
-                        "name": str(row['track_record_women']),
-                        "time": str(row['track_record_women_time'])
+                        "name": track_records[2],
+                        "time": ""
                     }
 
                 # Create submission
@@ -599,5 +624,11 @@ def map_category_to_value(category: str) -> str:
         return 'EURO'
     elif category_upper == 'FREERIDE':
         return 'FREERIDE'
+    elif category_upper == 'OUTLAW':
+        return 'OUTLAW'
+    elif category_upper == 'NATIONAL':
+        return 'NATIONAL'
+    elif category_upper == 'RACE':
+        return 'RACE'
     else:
         return 'WDSC'  # Default fallback

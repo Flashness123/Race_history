@@ -5,4 +5,6 @@ in media page write and publish news
 
 
 Important:
+picture to topic - idf to idf media to media etc
+more top rider categories
 !!! Different type of passwording, sending out email and waiting for confirmation - also option to forget password !!!

@@ -733,25 +733,23 @@ function SubmitContent() {
                   )}
           </div>
 
-                       {/* Instructions */}
-                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                         <h3 className="font-medium text-blue-900 mb-2">Required Columns:</h3>
-                         <div className="text-sm text-blue-800 space-y-1">
-                           <p><strong>event_name</strong> - Race Name (required)</p>
-                           <p><strong>date_start</strong> - Start Date (required)</p>
-                           <p><strong>date_end</strong> - End Date (optional)</p>
-                           <p><strong>location</strong> - Location (optional, will be automatically geocoded to coordinates)</p>
-                           <p><strong>category</strong> - WDSC, IDF, EURO, or FREERIDE</p>
-                           <p><strong>standup_top_1, standup_top_2, standup_top_3</strong> - Top 3 Open riders</p>
-                           <p><strong>luge_top_1, luge_top_2, luge_top_3</strong> - Top 3 Luge riders</p>
-                           <p><strong>women_top_1, women_top_2, women_top_3</strong> - Top 3 Women riders</p>
-                           <p><strong>qualifier_1, qualifier_2, qualifier_3, ... qualifier_64</strong> - Top Qualifiers (up to 64)</p>
-                           <p><strong>track_record_open, track_record_open_time</strong> - Open track record</p>
-                           <p><strong>track_record_luge, track_record_luge_time</strong> - Luge track record</p>
-                           <p><strong>track_record_women, track_record_women_time</strong> - Women track record</p>
-                           <p><strong>organizer_name</strong> - Event organizer name (optional)</p>
-                           <p><strong>link_event_page</strong> - Event page URL</p>
-                         </div>
+                         {/* Instructions */}
+                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                           <h3 className="font-medium text-blue-900 mb-2">Required Columns:</h3>
+                           <div className="text-sm text-blue-800 space-y-1">
+                             <p><strong>event_name</strong> - Race Name (required)</p>
+                             <p><strong>date_start</strong> - Start Date (required)</p>
+                             <p><strong>date_end</strong> - End Date (optional)</p>
+                             <p><strong>location</strong> - Location (optional, will be automatically geocoded to coordinates)</p>
+                             <p><strong>link_event_category</strong> - Categories: WDSC, IDF, EURO, FREERIDE, OUTLAW, NATIONAL, RACE (comma-separated for multiple)</p>
+                             <p><strong>standup_top_1, standup_top_2, standup_top_3</strong> - Top 3 Open riders</p>
+                             <p><strong>luge_top_1, luge_top_2, luge_top_3</strong> - Top 3 Luge riders</p>
+                             <p><strong>women_top_1, women_top_2, women_top_3</strong> - Top 3 Women riders</p>
+                             <p><strong>track_record_1, track_record_2, track_record_3, track_record_4, track_record_5, track_record_6</strong> - Track records (up to 6)</p>
+                             <p><strong>organizer</strong> - Event organizer name(s) (comma-separated for multiple)</p>
+                             <p><strong>event_description</strong> - Event description (optional)</p>
+                             <p><strong>link_event_page</strong> - Event page URL</p>
+                           </div>
                          <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded">
                            <p className="text-sm text-green-800">
                              <strong>📍 Automatic Geocoding:</strong> Locations will be automatically converted to map coordinates. 
