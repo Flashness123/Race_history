@@ -10,6 +10,7 @@ from app.models.models import Submission, RaceEvent, Result, Person, User
 from app.core.norm import norm
 import pandas as pd
 import io
+import json
 import requests
 import time
 
@@ -177,6 +178,9 @@ def approve(submission_id: int, db: Session = Depends(get_db)):
         ev.track_record_woman_name = p.get("track_record_woman", {}).get("name") if p.get("track_record_woman") else None
         ev.track_record_woman_time = p.get("track_record_woman", {}).get("time") if p.get("track_record_woman") else None
         ev.organizer_name = p.get("organizer_name")
+        # Update all categories and organizers
+        ev.all_categories = p.get("all_categories")
+        ev.all_organizers = p.get("all_organizers")
         
         db.add(ev); db.flush()
         db.commit()  # Commit the updated event first
@@ -206,6 +210,9 @@ def approve(submission_id: int, db: Session = Depends(get_db)):
             track_record_woman_name=p.get("track_record_woman", {}).get("name") if p.get("track_record_woman") else None,
             track_record_woman_time=p.get("track_record_woman", {}).get("time") if p.get("track_record_woman") else None,
             organizer_name=p.get("organizer_name"),
+            # Store all categories and organizers
+            all_categories=p.get("all_categories"),
+            all_organizers=p.get("all_organizers"),
         )
         db.add(ev); db.flush()
         db.commit()  # Commit the event first
@@ -516,9 +523,9 @@ def batch_submit(file: UploadFile = File(...), db: Session = Depends(get_db), cl
                     "track_record_luge": None,
                     "track_record_woman": None,
                     "organizer_name": organizer_list[0] if organizer_list else None,
-                    # Store additional data for future use
-                    "_all_categories": category_list,
-                    "_all_organizers": organizer_list,
+                    # Store all categories and organizers as JSON strings
+                    "all_categories": json.dumps(category_list) if category_list else None,
+                    "all_organizers": json.dumps(organizer_list) if organizer_list else None,
                     "_event_description": str(row.get('event_description', '')).strip() if pd.notna(row.get('event_description')) else None,
                 }
 
