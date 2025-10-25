@@ -256,26 +256,55 @@ export default function ClientSelected({ geojson }: { geojson: any }) {
                         <span className="text-gray-400">•</span>
                         <span className="text-sm">📅 {detail.year}</span>
                       </div>
-                      {detail.category && (
-                        <div className="mt-2">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            detail.category === 'WDSC' ? 'bg-orange-100 text-orange-800' :
-                            detail.category === 'EURO' ? 'bg-blue-100 text-blue-800' :
-                            detail.category === 'FREERIDE' ? 'bg-green-100 text-green-800' :
-                            detail.category === 'IDF' ? 'bg-purple-100 text-purple-800' :
-                            detail.category === 'OUTLAW' ? 'bg-red-100 text-red-800' :
-                            detail.category === 'NATIONAL' ? 'bg-yellow-100 text-yellow-800' :
-                            detail.category === 'RACE' ? 'bg-teal-100 text-teal-800' :
-                            'bg-gray-100 text-gray-800'
-                          }`}>
-                            {detail.category === 'WDSC' ? 'WDSC Event' :
-                             detail.category === 'EURO' ? 'Euro Tour' :
-                             detail.category === 'FREERIDE' ? 'Freeride Event' :
-                             detail.category === 'IDF' ? 'IDF Event' :
-                             detail.category === 'OUTLAW' ? 'Outlaw Event' :
-                             detail.category === 'NATIONAL' ? 'National Championship' :
-                             detail.category === 'RACE' ? 'Race Event' : 'Spot'}
-                          </span>
+                      {(detail.category || detail.all_categories) && (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {(() => {
+                            // Parse all categories if available, otherwise use single category
+                            let categories = [];
+                            if (detail.all_categories) {
+                              try {
+                                categories = JSON.parse(detail.all_categories);
+                              } catch (e) {
+                                categories = [detail.category];
+                              }
+                            } else if (detail.category) {
+                              categories = [detail.category];
+                            }
+                            
+                            return categories.map((cat: string, index: number) => {
+                              const getCategoryStyle = (category: string) => {
+                                switch (category) {
+                                  case 'WDSC': return 'bg-orange-100 text-orange-800';
+                                  case 'EURO': return 'bg-blue-100 text-blue-800';
+                                  case 'FREERIDE': return 'bg-green-100 text-green-800';
+                                  case 'IDF': return 'bg-purple-100 text-purple-800';
+                                  case 'OUTLAW': return 'bg-red-100 text-red-800';
+                                  case 'NATIONAL': return 'bg-yellow-100 text-yellow-800';
+                                  case 'RACE': return 'bg-teal-100 text-teal-800';
+                                  default: return 'bg-gray-100 text-gray-800';
+                                }
+                              };
+                              
+                              const getCategoryLabel = (category: string) => {
+                                switch (category) {
+                                  case 'WDSC': return 'WDSC Event';
+                                  case 'EURO': return 'Euro Tour';
+                                  case 'FREERIDE': return 'Freeride Event';
+                                  case 'IDF': return 'IDF Event';
+                                  case 'OUTLAW': return 'Outlaw Event';
+                                  case 'NATIONAL': return 'National Championship';
+                                  case 'RACE': return 'Race Event';
+                                  default: return 'Spot';
+                                }
+                              };
+                              
+                              return (
+                                <span key={index} className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryStyle(cat)}`}>
+                                  {getCategoryLabel(cat)}
+                                </span>
+                              );
+                            });
+                          })()}
                         </div>
                       )}
                     </div>
@@ -338,18 +367,38 @@ export default function ClientSelected({ geojson }: { geojson: any }) {
                   )}
 
                   {/* Organizer */}
-                  {detail.organizer_name && (
+                  {(detail.organizer_name || detail.all_organizers) && (
                     <div className="bg-gray-50 rounded-xl p-4">
                       <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                         <span className="text-lg">👤</span>
-                        Organizer
+                        Organizer{detail.all_organizers ? 's' : ''}
                       </h4>
-                      <div className="flex justify-between items-center p-2 bg-white rounded-lg border border-gray-200">
-                        <span className="text-sm font-medium text-gray-700">Event Organizer:</span>
-                        <ClickableRiderName 
-                          name={detail.organizer_name} 
-                          className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
-                        />
+                      <div className="space-y-2">
+                        {(() => {
+                          // Parse all organizers if available, otherwise use single organizer
+                          let organizers = [];
+                          if (detail.all_organizers) {
+                            try {
+                              organizers = JSON.parse(detail.all_organizers);
+                            } catch (e) {
+                              organizers = [detail.organizer_name];
+                            }
+                          } else if (detail.organizer_name) {
+                            organizers = [detail.organizer_name];
+                          }
+                          
+                          return organizers.map((organizer: string, index: number) => (
+                            <div key={index} className="flex justify-between items-center p-2 bg-white rounded-lg border border-gray-200">
+                              <span className="text-sm font-medium text-gray-700">
+                                {organizers.length > 1 ? `Organizer ${index + 1}:` : 'Event Organizer:'}
+                              </span>
+                              <ClickableRiderName 
+                                name={organizer} 
+                                className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
+                              />
+                            </div>
+                          ));
+                        })()}
                       </div>
                     </div>
                   )}

@@ -35,6 +35,9 @@ class RaceEvent(Base):
     source_url: Mapped[str | None]
     image_url: Mapped[str | None] = mapped_column(String(400))
     category: Mapped[str | None] = mapped_column(String(20))  # SPOT | WDSC | EURO | FREERIDE
+    # Multiple categories and organizers
+    all_categories: Mapped[str | None] = mapped_column(Text)  # JSON string of all categories
+    all_organizers: Mapped[str | None] = mapped_column(Text)  # JSON string of all organizers
     # Track record fields
     track_record_open_name: Mapped[str | None] = mapped_column(String(200))
     track_record_open_time: Mapped[str | None] = mapped_column(String(50))

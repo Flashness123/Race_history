@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Map from "@/components/Map";
 import YearBar from "@/components/YearBar";
 import { fetchRaces } from "@/lib/api";
@@ -8,10 +9,17 @@ import ClientEventsList from "./events-list";
 import ClickableRiderName from "@/components/ClickableRiderName";
 
 export default function Home() {
+  const searchParams = useSearchParams();
   const [geojson, setGeojson] = useState({ type: "FeatureCollection", features: [] });
   const [top, setTop] = useState([]);
-  const [year, setYear] = useState(new Date().getFullYear());
+  const [year, setYear] = useState(Number(searchParams.get("year") ?? new Date().getFullYear()));
   const [loading, setLoading] = useState(true);
+
+  // Watch for URL parameter changes
+  useEffect(() => {
+    const urlYear = Number(searchParams.get("year") ?? new Date().getFullYear());
+    setYear(urlYear);
+  }, [searchParams]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -59,7 +67,7 @@ export default function Home() {
       
       {/* Content with relative positioning to appear above overlay */}
       <div className="relative z-10 flex flex-col">
-        <YearBar current={year} onYearChange={setYear} />
+        <YearBar />
         
         {/* Hero Section */}
         <section className="px-6 py-8 text-white">
