@@ -557,8 +557,11 @@ function SubmitContent() {
                 >
                   <option value="WDSC">🏁 WDSC Event</option>
                   <option value="EURO">🌍 Euro Tour Event</option>
-                        <option value="FREERIDE">🏄 Freeride Event</option>
-                        <option value="IDF">🏆 IDF Event</option>
+                  <option value="FREERIDE">🏄 Freeride Event</option>
+                  <option value="IDF">🏆 IDF Event</option>
+                  <option value="OUTLAW">⚡ Outlaw Event</option>
+                  <option value="NATIONAL">🏆 National Championship</option>
+                  <option value="RACE">🏁 Race Event</option>
                   <option value="SPOT">📍 Spot (not an event)</option>
                 </select>
               </div>
@@ -765,8 +768,8 @@ function SubmitContent() {
                                <p className="text-sm text-blue-800">Download our sample file to see the correct column format</p>
                              </div>
                              <a
-                               href="/batch_submission_template.ods"
-                               download="batch_submission_template.ods"
+                               href="/batch_submission_template_custom.ods"
+                               download="batch_submission_template_custom.ods"
                                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
                              >
                                <span>📥</span>

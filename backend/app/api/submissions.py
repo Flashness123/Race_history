@@ -443,7 +443,7 @@ def batch_submit(file: UploadFile = File(...), db: Session = Depends(get_db), cl
                 existing_race = db.scalar(
                     select(RaceEvent).where(
                         RaceEvent.name == str(row['event_name']),
-                        RaceEvent.year == pd.to_datetime(row['date_start']).year
+                        RaceEvent.year == pd.to_datetime(row['date_start'], dayfirst=True).year
                     )
                 )
                 
@@ -482,8 +482,8 @@ def batch_submit(file: UploadFile = File(...), db: Session = Depends(get_db), cl
                 # Prepare submission data
                 submission_data = {
                     "name": str(row['event_name']),
-                    "date_from": pd.to_datetime(row['date_start']).date().isoformat(),
-                    "date_to": pd.to_datetime(row.get('date_end')).date().isoformat() if pd.notna(row.get('date_end')) else None,
+                    "date_from": pd.to_datetime(row['date_start'], dayfirst=True).date().isoformat(),
+                    "date_to": pd.to_datetime(row.get('date_end'), dayfirst=True).date().isoformat() if pd.notna(row.get('date_end')) else None,
                     "location": location,
                     "lat": lat,
                     "lng": lng,
