@@ -10,7 +10,7 @@ export default function ClientSelected({ geojson }: { geojson: any }) {
   const [detail, setDetail] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const [filters, setFilters] = useState<{SPOT:boolean;WDSC:boolean;EURO:boolean;FREERIDE:boolean;IDF:boolean}>({ SPOT: true, WDSC: true, EURO: true, FREERIDE: true, IDF: true });
+  const [filters, setFilters] = useState<{SPOT:boolean;WDSC:boolean;EURO:boolean;FREERIDE:boolean;IDF:boolean;OUTLAW:boolean;NATIONAL:boolean;RACE:boolean}>({ SPOT: true, WDSC: true, EURO: true, FREERIDE: true, IDF: true, OUTLAW: true, NATIONAL: true, RACE: true });
 
   // Function to detect missing information
   const getMissingInfo = (event: any) => {
@@ -156,6 +156,60 @@ export default function ClientSelected({ geojson }: { geojson: any }) {
             />
             <span className="text-sm font-medium text-gray-600 transition-colors duration-200">Spots</span>
           </label>
+          <label className="flex items-center gap-2 cursor-pointer group">
+            <input 
+              type="checkbox" 
+              checked={filters.OUTLAW} 
+              onChange={e=>setFilters(f=>({...f, OUTLAW:e.target.checked}))}
+              className="w-4 h-4 text-red-600 bg-gray-100 border-red-300 rounded focus:ring-red-500 focus:ring-2 checked:bg-red-600 checked:border-red-600 focus:outline-none appearance-none relative"
+              style={{
+                accentColor: 'transparent',
+                WebkitAppearance: 'none',
+                MozAppearance: 'none',
+                backgroundImage: filters.OUTLAW ? 'url("data:image/svg+xml,%3csvg viewBox=\'0 0 16 16\' fill=\'white\' xmlns=\'http://www.w3.org/2000/svg\'%3e%3cpath d=\'m13.854 3.646-7.5 7.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6 10.293l7.146-7.147a.5.5 0 0 1 .708.708z\'/%3e%3c/svg%3e")' : 'none',
+                backgroundSize: '12px 12px',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat'
+              }}
+            />
+            <span className="text-sm font-medium text-red-600 transition-colors duration-200">Outlaw Events</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer group">
+            <input 
+              type="checkbox" 
+              checked={filters.NATIONAL} 
+              onChange={e=>setFilters(f=>({...f, NATIONAL:e.target.checked}))}
+              className="w-4 h-4 text-yellow-600 bg-gray-100 border-yellow-300 rounded focus:ring-yellow-500 focus:ring-2 checked:bg-yellow-600 checked:border-yellow-600 focus:outline-none appearance-none relative"
+              style={{
+                accentColor: 'transparent',
+                WebkitAppearance: 'none',
+                MozAppearance: 'none',
+                backgroundImage: filters.NATIONAL ? 'url("data:image/svg+xml,%3csvg viewBox=\'0 0 16 16\' fill=\'white\' xmlns=\'http://www.w3.org/2000/svg\'%3e%3cpath d=\'m13.854 3.646-7.5 7.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6 10.293l7.146-7.147a.5.5 0 0 1 .708.708z\'/%3e%3c/svg%3e")' : 'none',
+                backgroundSize: '12px 12px',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat'
+              }}
+            />
+            <span className="text-sm font-medium text-yellow-600 transition-colors duration-200">National Championships</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer group">
+            <input 
+              type="checkbox" 
+              checked={filters.RACE} 
+              onChange={e=>setFilters(f=>({...f, RACE:e.target.checked}))}
+              className="w-4 h-4 text-teal-600 bg-gray-100 border-teal-300 rounded focus:ring-teal-500 focus:ring-2 checked:bg-teal-600 checked:border-teal-600 focus:outline-none appearance-none relative"
+              style={{
+                accentColor: 'transparent',
+                WebkitAppearance: 'none',
+                MozAppearance: 'none',
+                backgroundImage: filters.RACE ? 'url("data:image/svg+xml,%3csvg viewBox=\'0 0 16 16\' fill=\'white\' xmlns=\'http://www.w3.org/2000/svg\'%3e%3cpath d=\'m13.854 3.646-7.5 7.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6 10.293l7.146-7.147a.5.5 0 0 1 .708.708z\'/%3e%3c/svg%3e")' : 'none',
+                backgroundSize: '12px 12px',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat'
+              }}
+            />
+            <span className="text-sm font-medium text-teal-600 transition-colors duration-200">Race Events</span>
+          </label>
         </div>
       </div>
 
@@ -208,11 +262,19 @@ export default function ClientSelected({ geojson }: { geojson: any }) {
                             detail.category === 'WDSC' ? 'bg-orange-100 text-orange-800' :
                             detail.category === 'EURO' ? 'bg-blue-100 text-blue-800' :
                             detail.category === 'FREERIDE' ? 'bg-green-100 text-green-800' :
+                            detail.category === 'IDF' ? 'bg-purple-100 text-purple-800' :
+                            detail.category === 'OUTLAW' ? 'bg-red-100 text-red-800' :
+                            detail.category === 'NATIONAL' ? 'bg-yellow-100 text-yellow-800' :
+                            detail.category === 'RACE' ? 'bg-teal-100 text-teal-800' :
                             'bg-gray-100 text-gray-800'
                           }`}>
                             {detail.category === 'WDSC' ? 'WDSC Event' :
                              detail.category === 'EURO' ? 'Euro Tour' :
-                             detail.category === 'FREERIDE' ? 'Freeride Event' : 'Spot'}
+                             detail.category === 'FREERIDE' ? 'Freeride Event' :
+                             detail.category === 'IDF' ? 'IDF Event' :
+                             detail.category === 'OUTLAW' ? 'Outlaw Event' :
+                             detail.category === 'NATIONAL' ? 'National Championship' :
+                             detail.category === 'RACE' ? 'Race Event' : 'Spot'}
                           </span>
                         </div>
                       )}

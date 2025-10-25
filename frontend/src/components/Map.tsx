@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
-export default function Map({ geojson, onSelect, filters }: { geojson: any, onSelect?: (id: number | null) => void, filters?: { SPOT: boolean; WDSC: boolean; EURO: boolean; FREERIDE: boolean; IDF: boolean } }) {
+export default function Map({ geojson, onSelect, filters }: { geojson: any, onSelect?: (id: number | null) => void, filters?: { SPOT: boolean; WDSC: boolean; EURO: boolean; FREERIDE: boolean; IDF: boolean; OUTLAW: boolean; NATIONAL: boolean; RACE: boolean } }) {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
 
@@ -45,7 +45,7 @@ export default function Map({ geojson, onSelect, filters }: { geojson: any, onSe
         source: "races",
         paint: {
           "circle-radius": 6,
-          // Color by category: WDSC=orange, EURO=blue, FREERIDE=green, SPOT=gray
+          // Color by category: WDSC=orange, EURO=blue, FREERIDE=green, IDF=purple, OUTLAW=red, NATIONAL=gold, RACE=teal, SPOT=gray
           "circle-color": [
             "case",
             ["==", ["get", "future"], true],
@@ -58,6 +58,14 @@ export default function Map({ geojson, onSelect, filters }: { geojson: any, onSe
               "#2563eb", // Blue for EURO
               ["==", ["get", "category"], "FREERIDE"],
               "#16a34a", // Green for FREERIDE
+              ["==", ["get", "category"], "IDF"],
+              "#7c3aed", // Purple for IDF
+              ["==", ["get", "category"], "OUTLAW"],
+              "#dc2626", // Red for OUTLAW
+              ["==", ["get", "category"], "NATIONAL"],
+              "#f59e0b", // Gold for NATIONAL
+              ["==", ["get", "category"], "RACE"],
+              "#0d9488", // Teal for RACE
               "#6b7280"  // Gray for SPOT
             ]
           ],
