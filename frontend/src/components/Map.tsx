@@ -8,6 +8,35 @@ export default function Map({ geojson, onSelect, filters }: { geojson: any, onSe
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
 
+  // Helper function to check if any of the event's categories are selected and get display category
+  const processEvent = (feature: any) => {
+    if (!filters) return { visible: true, displayCategory: feature.properties?.category || "WDSC" };
+    
+    // Get all categories for this event
+    let categories: string[] = [];
+    
+    // Try to parse all_categories first
+    if (feature.properties?.all_categories) {
+      try {
+        categories = JSON.parse(feature.properties.all_categories);
+      } catch (e) {
+        // Fallback to single category
+        categories = [feature.properties?.category || "WDSC"];
+      }
+    } else {
+      // Fallback to single category
+      categories = [feature.properties?.category || "WDSC"];
+    }
+    
+    // Check if any of the event's categories are still selected
+    const visible = categories.some(cat => Boolean((filters as any)[cat]));
+    
+    // Get the first selected category for display color
+    const displayCategory = categories.find(cat => Boolean((filters as any)[cat])) || categories[0];
+    
+    return { visible, displayCategory };
+  };
+
   useEffect(() => {
     if (!mapContainer.current || mapRef.current) return;
 
@@ -24,14 +53,24 @@ export default function Map({ geojson, onSelect, filters }: { geojson: any, onSe
     map.addControl(new maplibregl.NavigationControl(), "top-right");
 
     map.on("load", () => {
-      // Optionally filter features by category
+      // Optionally filter features by category and add display category
       const filtered = {
         ...geojson,
-        features: geojson.features.filter((f: any) => {
-          const cat = f.properties?.category || "WDSC";
-          if (!filters) return true;
-          return Boolean((filters as any)[cat]);
-        })
+        features: geojson.features
+          .map((f: any) => {
+            const { visible, displayCategory } = processEvent(f);
+            if (visible) {
+              return {
+                ...f,
+                properties: {
+                  ...f.properties,
+                  display_category: displayCategory
+                }
+              };
+            }
+            return null;
+          })
+          .filter((f: any) => f !== null)
       };
 
       map.addSource("races", {
@@ -52,19 +91,19 @@ export default function Map({ geojson, onSelect, filters }: { geojson: any, onSe
             "#dc2626", // Future events in red
             [
               "case",
-              ["==", ["get", "category"], "WDSC"],
+              ["==", ["get", "display_category"], "WDSC"],
               "#ea580c", // Orange for WDSC
-              ["==", ["get", "category"], "EURO"],
+              ["==", ["get", "display_category"], "EURO"],
               "#2563eb", // Blue for EURO
-              ["==", ["get", "category"], "FREERIDE"],
+              ["==", ["get", "display_category"], "FREERIDE"],
               "#16a34a", // Green for FREERIDE
-              ["==", ["get", "category"], "IDF"],
+              ["==", ["get", "display_category"], "IDF"],
               "#7c3aed", // Purple for IDF
-              ["==", ["get", "category"], "OUTLAW"],
+              ["==", ["get", "display_category"], "OUTLAW"],
               "#dc2626", // Red for OUTLAW
-              ["==", ["get", "category"], "NATIONAL"],
+              ["==", ["get", "display_category"], "NATIONAL"],
               "#f59e0b", // Gold for NATIONAL
-              ["==", ["get", "category"], "RACE"],
+              ["==", ["get", "display_category"], "RACE"],
               "#0d9488", // Teal for RACE
               "#6b7280"  // Gray for SPOT
             ]
@@ -110,11 +149,21 @@ export default function Map({ geojson, onSelect, filters }: { geojson: any, onSe
     if (m && m.isStyleLoaded() && m.getSource("races")) {
       const filtered = {
         ...geojson,
-        features: geojson.features.filter((f: any) => {
-          const cat = f.properties?.category || "WDSC";
-          if (!filters) return true;
-          return Boolean((filters as any)[cat]);
-        })
+        features: geojson.features
+          .map((f: any) => {
+            const { visible, displayCategory } = processEvent(f);
+            if (visible) {
+              return {
+                ...f,
+                properties: {
+                  ...f.properties,
+                  display_category: displayCategory
+                }
+              };
+            }
+            return null;
+          })
+          .filter((f: any) => f !== null)
       };
       (m.getSource("races") as maplibregl.GeoJSONSource).setData(filtered);
     }
