@@ -8,34 +8,6 @@ export default function Map({ geojson, onSelect, filters }: { geojson: any, onSe
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
 
-  // Helper function to check if any of the event's categories are selected and get display category
-  const processEvent = (feature: any) => {
-    if (!filters) return { visible: true, displayCategory: feature.properties?.category || "WDSC" };
-    
-    // Get all categories for this event
-    let categories: string[] = [];
-    
-    // Try to parse all_categories first
-    if (feature.properties?.all_categories) {
-      try {
-        categories = JSON.parse(feature.properties.all_categories);
-      } catch (e) {
-        // Fallback to single category
-        categories = [feature.properties?.category || "WDSC"];
-      }
-    } else {
-      // Fallback to single category
-      categories = [feature.properties?.category || "WDSC"];
-    }
-    
-    // Check if any of the event's categories are still selected
-    const visible = categories.some(cat => Boolean((filters as any)[cat]));
-    
-    // Get the first selected category for display color
-    const displayCategory = categories.find(cat => Boolean((filters as any)[cat])) || categories[0];
-    
-    return { visible, displayCategory };
-  };
 
   useEffect(() => {
     if (!mapContainer.current || mapRef.current) return;
@@ -58,8 +30,39 @@ export default function Map({ geojson, onSelect, filters }: { geojson: any, onSe
         ...geojson,
         features: geojson.features
           .map((f: any) => {
-            const { visible, displayCategory } = processEvent(f);
+            if (!filters) {
+              return {
+                ...f,
+                properties: {
+                  ...f.properties,
+                  display_category: f.properties?.category || "WDSC"
+                }
+              };
+            }
+            
+            // Get all categories for this event
+            let categories: string[] = [];
+            
+            // Try to parse all_categories first
+            if (f.properties?.all_categories) {
+              try {
+                categories = JSON.parse(f.properties.all_categories);
+              } catch (e) {
+                // Fallback to single category
+                categories = [f.properties?.category || "WDSC"];
+              }
+            } else {
+              // Fallback to single category
+              categories = [f.properties?.category || "WDSC"];
+            }
+            
+            // Check if any of the event's categories are still selected
+            const visible = categories.some(cat => Boolean((filters as any)[cat]));
+            
             if (visible) {
+              // Get the first selected category for display color
+              const displayCategory = categories.find(cat => Boolean((filters as any)[cat])) || categories[0];
+              
               return {
                 ...f,
                 properties: {
@@ -151,8 +154,39 @@ export default function Map({ geojson, onSelect, filters }: { geojson: any, onSe
         ...geojson,
         features: geojson.features
           .map((f: any) => {
-            const { visible, displayCategory } = processEvent(f);
+            if (!filters) {
+              return {
+                ...f,
+                properties: {
+                  ...f.properties,
+                  display_category: f.properties?.category || "WDSC"
+                }
+              };
+            }
+            
+            // Get all categories for this event
+            let categories: string[] = [];
+            
+            // Try to parse all_categories first
+            if (f.properties?.all_categories) {
+              try {
+                categories = JSON.parse(f.properties.all_categories);
+              } catch (e) {
+                // Fallback to single category
+                categories = [f.properties?.category || "WDSC"];
+              }
+            } else {
+              // Fallback to single category
+              categories = [f.properties?.category || "WDSC"];
+            }
+            
+            // Check if any of the event's categories are still selected
+            const visible = categories.some(cat => Boolean((filters as any)[cat]));
+            
             if (visible) {
+              // Get the first selected category for display color
+              const displayCategory = categories.find(cat => Boolean((filters as any)[cat])) || categories[0];
+              
               return {
                 ...f,
                 properties: {
