@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Map from "@/components/Map";
 import YearBar from "@/components/YearBar";
@@ -8,7 +8,7 @@ import ClientSelected from "./selected";
 import ClientEventsList from "./events-list";
 import ClickableRiderName from "@/components/ClickableRiderName";
 
-export default function Home() {
+function HomeContent() {
   const searchParams = useSearchParams();
   const [geojson, setGeojson] = useState({ type: "FeatureCollection", features: [] });
   const [top, setTop] = useState([]);
@@ -162,5 +162,17 @@ export default function Home() {
         </section>
       </div>
     </main>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={
+      <main className="flex flex-col min-h-screen items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </main>
+    }>
+      <HomeContent />
+    </Suspense>
   );
 }
