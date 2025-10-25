@@ -455,7 +455,8 @@ def batch_submit(file: UploadFile = File(...), db: Session = Depends(get_db), cl
                 location = str(row.get('location', '')).strip()
                 lat, lng = 0.0, 0.0
                 
-                if location and location != "":
+                # Skip geocoding if location is empty, nan, or invalid
+                if location and location != "" and location.lower() != 'nan' and location != 'None':
                     coords = geocode_location(location)
                     if coords:
                         lat, lng = coords
@@ -463,15 +464,25 @@ def batch_submit(file: UploadFile = File(...), db: Session = Depends(get_db), cl
                         time.sleep(1)
                     else:
                         print(f"Warning: Could not geocode location '{location}' for event '{row['event_name']}'")
+                        location = ""  # Clear invalid location
 
                 # Process categories (can be multiple, comma-separated)
-                categories = str(row.get('link_event_category', 'WDSC')).strip()
-                if not categories or categories == 'nan':
+                # Try different possible column names for categories
+                categories = None
+                for col_name in ['link_event_category', 'category', 'event_category']:
+                    if col_name in row and pd.notna(row[col_name]):
+                        categories = str(row[col_name]).strip()
+                        break
+                
+                if not categories or categories == 'nan' or categories == '':
                     categories = 'WDSC'
                 
                 # Split categories and map to valid values
                 category_list = [cat.strip().upper() for cat in categories.split(',')]
                 primary_category = map_category_to_value(category_list[0]) if category_list else 'WDSC'
+                
+                # Debug logging
+                print(f"Event: {row['event_name']}, Raw categories: '{categories}', Parsed: {category_list}, Final: {primary_category}")
 
                 # Process organizers (can be multiple, comma-separated)
                 organizers = str(row.get('organizer', '')).strip()

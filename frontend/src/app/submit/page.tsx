@@ -744,7 +744,7 @@ function SubmitContent() {
                              <p><strong>date_start</strong> - Start Date (required)</p>
                              <p><strong>date_end</strong> - End Date (optional)</p>
                              <p><strong>location</strong> - Location (optional, will be automatically geocoded to coordinates)</p>
-                             <p><strong>link_event_category</strong> - Categories: WDSC, IDF, EURO, FREERIDE, OUTLAW, NATIONAL, RACE (comma-separated for multiple)</p>
+                             <p><strong>category</strong> or <strong>link_event_category</strong> - Categories: WDSC, IDF, EURO, FREERIDE, OUTLAW, NATIONAL, RACE (comma-separated for multiple)</p>
                              <p><strong>standup_top_1, standup_top_2, standup_top_3</strong> - Top 3 Open riders</p>
                              <p><strong>luge_top_1, luge_top_2, luge_top_3</strong> - Top 3 Luge riders</p>
                              <p><strong>women_top_1, women_top_2, women_top_3</strong> - Top 3 Women riders</p>
