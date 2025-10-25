@@ -14,14 +14,14 @@ def list_races(year: int = Query(..., ge=1900, le=2100), db: Session = Depends(g
         select(
             RaceEvent.id, RaceEvent.name, RaceEvent.year,
             RaceEvent.location, RaceEvent.lat, RaceEvent.lng, RaceEvent.source_url,
-            RaceEvent.date_from, RaceEvent.category
+            RaceEvent.date_from, RaceEvent.category, RaceEvent.all_categories
         ).where(RaceEvent.year == year)
         .where(RaceEvent.lat != 0.0)
         .where(RaceEvent.lng != 0.0)
     ).all()
 
     features = []
-    for (id_, name, yr, loc, lat, lng, src, dfrom, category) in rows:
+    for (id_, name, yr, loc, lat, lng, src, dfrom, category, all_categories) in rows:
         # Determine future by date_from if available; fallback to year comparison
         # Spots and freerides are never "future" regardless of date
         is_future = False
@@ -45,6 +45,7 @@ def list_races(year: int = Query(..., ge=1900, le=2100), db: Session = Depends(g
                 "source_url": src,
                 "future": is_future,
                 "category": category or "WDSC",
+                "all_categories": all_categories,
             },
         })
     return {"type": "FeatureCollection", "features": features}
