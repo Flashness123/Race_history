@@ -66,7 +66,7 @@ export default function Home() {
           <div className="max-w-7xl mx-auto">
             <div className="text-center">
               <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
-                Downhill Longboard Race History
+                Downhill Radar
               </h1>
               <p className="text-xl text-blue-100 mb-6">
                 Discover races, track results, and connect with the community

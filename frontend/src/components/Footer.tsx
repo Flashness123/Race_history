@@ -11,7 +11,7 @@ export default function Footer() {
                 <span className="text-white font-bold text-sm">D</span>
               </div>
               <h3 className="font-bold text-lg bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-                Downhill Race History
+                Downhill Radar
               </h3>
             </div>
             <p className="text-gray-600 leading-relaxed max-w-md">
@@ -72,7 +72,7 @@ export default function Footer() {
         <div className="border-t border-gray-200 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-500 text-sm">
-              &copy; 2024 Downhill Race History. All rights reserved.
+              &copy; 2024 Downhill Radar. All rights reserved.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <Link href="/privacy" className="text-gray-500 hover:text-gray-700 text-sm transition-colors duration-200">
