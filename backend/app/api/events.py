@@ -14,10 +14,12 @@ def events_by_year(year: int, db: Session = Depends(get_db)):
             RaceEvent.name, 
             RaceEvent.image_url, 
             RaceEvent.category,
+            RaceEvent.all_categories,
             RaceEvent.location,
             RaceEvent.date_from,
             RaceEvent.date_to,
-            RaceEvent.organizer_name
+            RaceEvent.organizer_name,
+            RaceEvent.all_organizers
         ).where(RaceEvent.year == year).order_by(RaceEvent.name.asc())
     ).all()
     return [
@@ -26,10 +28,12 @@ def events_by_year(year: int, db: Session = Depends(get_db)):
             "name": r[1], 
             "image_url": r[2] or "/static/uploads/events/default_event.jpg",
             "category": r[3] or "WDSC",
-            "location": r[4] or "Unknown Location",
-            "date_from": r[5].isoformat() if r[5] else None,
-            "date_to": r[6].isoformat() if r[6] else None,
-            "organizer_name": r[7],
+            "all_categories": r[4],
+            "location": r[5] or "Unknown Location",
+            "date_from": r[6].isoformat() if r[6] else None,
+            "date_to": r[7].isoformat() if r[7] else None,
+            "organizer_name": r[8],
+            "all_organizers": r[9],
             "year": year
         } 
         for r in rows
@@ -92,6 +96,7 @@ def event_detail(event_id: int, db: Session = Depends(get_db)):
         "source_url": ev.source_url,
         "image_url": ev.image_url or "/static/uploads/events/default_event.jpg",
         "category": ev.category,
+        "all_categories": ev.all_categories,
         "date_from": ev.date_from.isoformat() if ev.date_from else None,
         "date_to": ev.date_to.isoformat() if ev.date_to else None,
         "top3": top3,
@@ -102,6 +107,7 @@ def event_detail(event_id: int, db: Session = Depends(get_db)):
         "qualifier_results": qualifier_results,
         "organizer_results": organizer_results,
         "organizer_name": ev.organizer_name,
+        "all_organizers": ev.all_organizers,
         "track_record_open_name": ev.track_record_open_name,
         "track_record_open_time": ev.track_record_open_time,
         "track_record_luge_name": ev.track_record_luge_name,
