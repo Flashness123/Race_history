@@ -439,11 +439,19 @@ def batch_submit(file: UploadFile = File(...), db: Session = Depends(get_db), cl
 
         for index, row in df.iterrows():
             try:
+                # Skip empty rows - check if essential fields are empty
+                event_name = str(row.get('event_name', '')).strip()
+                date_start = row.get('date_start')
+                
+                if not event_name or event_name == 'nan' or event_name == '' or pd.isna(date_start):
+                    print(f"Skipping empty row {index + 1}")
+                    continue
+                
                 # Check if race already exists
                 existing_race = db.scalar(
                     select(RaceEvent).where(
-                        RaceEvent.name == str(row['event_name']),
-                        RaceEvent.year == pd.to_datetime(row['date_start'], dayfirst=True).year
+                        RaceEvent.name == event_name,
+                        RaceEvent.year == pd.to_datetime(date_start, dayfirst=True).year
                     )
                 )
                 

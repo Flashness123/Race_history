@@ -28,7 +28,7 @@ export default function Header() {
             <span className="text-white font-bold text-sm">D</span>
           </div>
           <span className="font-bold text-xl bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent group-hover:from-blue-600 group-hover:to-purple-600 transition-all duration-300">
-            Downhill Race History
+            Downhill Radar
           </span>
         </Link>
         

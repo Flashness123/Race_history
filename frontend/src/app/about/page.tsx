@@ -10,7 +10,7 @@ export default function About() {
             <span className="text-white font-bold text-3xl">D</span>
           </div>
           <h1 className="text-5xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent mb-4">
-            About Downhill Race History
+            About Downhill Radar
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             A comprehensive platform for tracking and discovering downhill longboard races around the world. 
@@ -99,7 +99,7 @@ export default function About() {
                   <h3 className="text-lg font-semibold text-yellow-800 mb-2">Copyright Notice</h3>
                   <p className="text-yellow-700 leading-relaxed">
                     <strong>Important:</strong> All images, videos, and media content displayed on this platform are 
-                    user-submitted and belong to their respective owners. Downhill Race History does not claim 
+                    user-submitted and belong to their respective owners. Downhill Radar does not claim 
                     ownership or copyright over any of the visual content, race photos, videos, or other media 
                     materials featured on this website.
                   </p>

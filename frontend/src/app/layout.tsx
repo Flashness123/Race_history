@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = { title: "Downhill Race History" };
+export const metadata: Metadata = { title: "Downhill Radar" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
