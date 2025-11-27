@@ -24,7 +24,9 @@ app.add_middleware(
 )
 
 @app.get("/health")
-def health(): return {"status": "ok"}
+def health(): 
+    # Health check endpoint for Railway
+    return {"status": "ok"}
 
 app.include_router(auth_router)
 app.include_router(subs_router)
