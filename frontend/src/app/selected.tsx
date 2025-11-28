@@ -4,13 +4,20 @@ import Map from "@/components/Map";
 import { useRouter } from "next/navigation";
 import ClickableRiderName from "@/components/ClickableRiderName";
 
-export default function ClientSelected({ geojson }: { geojson: any }) {
+type Filters = {SPOT:boolean;WDSC:boolean;EURO:boolean;FREERIDE:boolean;IDF:boolean;OUTLAW:boolean;NATIONAL:boolean;RACE:boolean};
+
+interface ClientSelectedProps {
+  geojson: any;
+  onFiltersChange?: (filters: Filters) => void;
+}
+
+export default function ClientSelected({ geojson, onFiltersChange }: ClientSelectedProps) {
   const router = useRouter();
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [detail, setDetail] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const [filters, setFilters] = useState<{SPOT:boolean;WDSC:boolean;EURO:boolean;FREERIDE:boolean;IDF:boolean;OUTLAW:boolean;NATIONAL:boolean;RACE:boolean}>({ SPOT: true, WDSC: true, EURO: true, FREERIDE: true, IDF: true, OUTLAW: true, NATIONAL: true, RACE: true });
+  const [filters, setFilters] = useState<Filters>({ SPOT: true, WDSC: true, EURO: true, FREERIDE: true, IDF: true, OUTLAW: true, NATIONAL: true, RACE: true });
 
   // Function to detect missing information
   const getMissingInfo = (event: any) => {
@@ -43,6 +50,11 @@ export default function ClientSelected({ geojson }: { geojson: any }) {
   const onSelect = useCallback((id: number | null) => {
     setSelectedId(id);
   }, []);
+
+  // Notify parent when filters change
+  useEffect(() => {
+    onFiltersChange?.(filters);
+  }, [filters, onFiltersChange]);
 
   useEffect(() => {
     let alive = true;
