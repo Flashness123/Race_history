@@ -7,6 +7,9 @@ import { fetchRaces } from "@/lib/api";
 import ClientSelected from "./selected";
 import ClientEventsList from "./events-list";
 import ClickableRiderName from "@/components/ClickableRiderName";
+import DynamicBackground from "@/components/DynamicBackground";
+
+type Filters = {SPOT:boolean;WDSC:boolean;EURO:boolean;FREERIDE:boolean;IDF:boolean;OUTLAW:boolean;NATIONAL:boolean;RACE:boolean};
 
 function HomeContent() {
   const searchParams = useSearchParams();
@@ -14,6 +17,7 @@ function HomeContent() {
   const [top, setTop] = useState([]);
   const [year, setYear] = useState(Number(searchParams.get("year") ?? new Date().getFullYear()));
   const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState<Filters>({ SPOT: true, WDSC: true, EURO: true, FREERIDE: true, IDF: true, OUTLAW: true, NATIONAL: true, RACE: true });
 
   // Watch for URL parameter changes
   useEffect(() => {
@@ -52,18 +56,9 @@ function HomeContent() {
   }
 
   return (
-    <main 
-      className="flex flex-col min-h-screen relative"
-      style={{
-        backgroundImage: 'url(/images/backgrounds/mainpage_background.jpeg)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed'
-      }}
-    >
-      {/* Full page overlay for better content readability */}
-      <div className="absolute inset-0 bg-black/30"></div>
+    <main className="flex flex-col min-h-screen relative">
+      {/* Dynamic Background Component */}
+      <DynamicBackground filters={filters} />
       
       {/* Content with relative positioning to appear above overlay */}
       <div className="relative z-10 flex flex-col">
@@ -92,7 +87,7 @@ function HomeContent() {
         {/* Map Section */}
         <section className="px-6 py-6">
           <div className="max-w-7xl mx-auto">
-            <ClientSelected geojson={geojson} />
+            <ClientSelected geojson={geojson} onFiltersChange={setFilters} />
           </div>
         </section>
 
