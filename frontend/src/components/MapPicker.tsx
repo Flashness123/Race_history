@@ -23,9 +23,23 @@ export default function MapPicker({
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const onPickRef = useRef(onPick);
   const mapReadyRef = useRef(false);
+  const skipNextCenterSyncRef = useRef(false);
+  const initialCoordinatesRef = useRef(DEFAULT_MAP_CENTER);
+  const capturedInitialCoordinatesRef = useRef(false);
   const [mounted, setMounted] = useState(false);
   const [mapReady, setMapReady] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
+
+  const resolvedLat = Number.isFinite(lat) ? lat : DEFAULT_MAP_CENTER.lat;
+  const resolvedLng = Number.isFinite(lng) ? lng : DEFAULT_MAP_CENTER.lng;
+
+  if (mounted && !capturedInitialCoordinatesRef.current) {
+    initialCoordinatesRef.current = {
+      lat: resolvedLat,
+      lng: resolvedLng,
+    };
+    capturedInitialCoordinatesRef.current = true;
+  }
 
   useEffect(() => {
     onPickRef.current = onPick;
@@ -41,7 +55,10 @@ export default function MapPicker({
     const map = new maplibregl.Map({
       container: mapContainer.current,
       style: MAP_STYLE_URL,
-      center: [lng || DEFAULT_MAP_CENTER.lng, lat || DEFAULT_MAP_CENTER.lat],
+      center: [
+        initialCoordinatesRef.current.lng,
+        initialCoordinatesRef.current.lat,
+      ],
       zoom: PICKER_MAP_ZOOM,
     });
 
@@ -52,16 +69,21 @@ export default function MapPicker({
     map.addControl(new maplibregl.NavigationControl(), "top-right");
 
     const marker = new maplibregl.Marker({ draggable: true })
-      .setLngLat([lng, lat])
+      .setLngLat([
+        initialCoordinatesRef.current.lng,
+        initialCoordinatesRef.current.lat,
+      ])
       .addTo(map);
 
     marker.on("dragend", () => {
       const { lng, lat } = marker.getLngLat();
+      skipNextCenterSyncRef.current = true;
       onPickRef.current(lat, lng);
     });
 
     map.on("click", (e) => {
       marker.setLngLat(e.lngLat);
+      skipNextCenterSyncRef.current = true;
       onPickRef.current(e.lngLat.lat, e.lngLat.lng);
     });
 
@@ -96,18 +118,34 @@ export default function MapPicker({
       mapRef.current = null;
       markerRef.current = null;
     };
-  }, [lat, lng, mounted]);
+  }, [mounted]);
 
   // Update marker if props change
   useEffect(() => {
     if (markerRef.current) {
-      markerRef.current.setLngLat([lng, lat]);
+      markerRef.current.setLngLat([resolvedLng, resolvedLat]);
     }
 
     if (mapRef.current && mapReadyRef.current) {
-      mapRef.current.setCenter([lng, lat]);
+      if (skipNextCenterSyncRef.current) {
+        skipNextCenterSyncRef.current = false;
+        return;
+      }
+
+      const center = mapRef.current.getCenter();
+      const sameCenter =
+        Math.abs(center.lat - resolvedLat) < 0.000001 &&
+        Math.abs(center.lng - resolvedLng) < 0.000001;
+
+      if (!sameCenter) {
+        mapRef.current.easeTo({
+          center: [resolvedLng, resolvedLat],
+          duration: 500,
+          essential: true,
+        });
+      }
     }
-  }, [lat, lng]);
+  }, [resolvedLat, resolvedLng]);
 
   async function searchLocation() {
     const q = searchInputRef.current?.value.trim() || "";
@@ -126,6 +164,7 @@ export default function MapPicker({
     if (mapRef.current && markerRef.current) {
       mapRef.current.flyTo({ center: [nextLng, nextLat], zoom: 10 });
       markerRef.current.setLngLat([nextLng, nextLat]);
+      skipNextCenterSyncRef.current = true;
       onPickRef.current(nextLat, nextLng);
     }
   }

@@ -134,9 +134,7 @@ export default function DynamicBackground({ filters }: DynamicBackgroundProps) {
   return (
     <div className="fixed inset-0 -z-10 overflow-hidden">
       <div
-        className={`absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-[900ms] ease-in-out ${
-          overlayImage && overlayVisible ? "opacity-0" : "opacity-100"
-        }`}
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${baseImage})` }}
       />
       {overlayImage && (
