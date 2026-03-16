@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import ClickableRiderName from "@/components/ClickableRiderName";
+import { getEventYearLabel } from "@/lib/event-completeness";
 
 type Top3 = { name: string; country?: string; instagram?: string; position: number };
 
@@ -19,6 +20,7 @@ type PendingItem = {
     category: string;
     date_from?: string;
     date_to?: string;
+    event_description?: string;
     source_url?: string; 
     top_riders_open?: Top3[];
     top_riders_luge?: Top3[];
@@ -30,6 +32,8 @@ type PendingItem = {
     organizer_name?: string;
     links?: { name: string; url: string }[];
     spot_notes?: string;
+    is_edit?: boolean;
+    editing_event_id?: number;
   };
 };
 
@@ -41,7 +45,23 @@ type User = {
 
 type Race = {
   id: number; name: string; year: number;
-  location: string; lat: number; lng: number; source_url?: string; image_url?: string | null;
+  location: string;
+  lat: number;
+  lng: number;
+  source_url?: string;
+  image_url?: string | null;
+  category?: string | null;
+  date_from?: string | null;
+  date_to?: string | null;
+  organizer_name?: string | null;
+  track_record_open_name?: string | null;
+  track_record_open_time?: string | null;
+  track_record_luge_name?: string | null;
+  track_record_luge_time?: string | null;
+  track_record_woman_name?: string | null;
+  track_record_woman_time?: string | null;
+  description?: string | null;
+  spot_notes?: string | null;
 };
 
 export default function AdminPage() {
@@ -297,7 +317,18 @@ export default function AdminPage() {
                               lat: r.lat?.toString() || '',
                               lng: r.lng?.toString() || '',
                               category: r.category || 'WDSC',
+                              date_from: r.date_from || '',
+                              date_to: r.date_to || '',
                               source_url: r.source_url || '',
+                              event_description: r.description || '',
+                              track_record_open_name: r.track_record_open_name || '',
+                              track_record_open_time: r.track_record_open_time || '',
+                              track_record_luge_name: r.track_record_luge_name || '',
+                              track_record_luge_time: r.track_record_luge_time || '',
+                              track_record_woman_name: r.track_record_woman_name || '',
+                              track_record_woman_time: r.track_record_woman_time || '',
+                              organizer_name: r.organizer_name || '',
+                              spot_notes: r.spot_notes || '',
                             });
                             window.open(`/submit?${params.toString()}`, '_blank');
                           }}
@@ -357,14 +388,25 @@ export default function AdminPage() {
                 </div>
               ) : (
                 <div className="space-y-6">
-                  {items.map((s) => (
+                  {items.map((s) => {
+                    const submissionYear = getEventYearLabel(
+                      s.payload.date_from,
+                      s.payload.year
+                    );
+                    const sourceUrl =
+                      s.payload.links?.[0]?.url || s.payload.source_url || "";
+
+                    return (
                     <div key={s.id} className="p-6 bg-gray-50 rounded-xl border border-gray-200">
                       <div className="flex justify-between items-start gap-6">
                         <div className="flex-1 space-y-4">
                           {/* Event Header */}
                           <div>
                             <div className="font-semibold text-lg text-gray-900 mb-2">
-                              {s.payload.name} <span className="text-gray-500">({s.payload.year})</span>
+                              {s.payload.name}{" "}
+                              {submissionYear && (
+                                <span className="text-gray-500">({submissionYear})</span>
+                              )}
                             </div>
                             <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
                               <span>📍 {s.payload.location}</span>
@@ -420,6 +462,15 @@ export default function AdminPage() {
                               <div className="text-sm font-medium text-gray-700 mb-2">Spot Information:</div>
                               <div className="text-sm text-gray-600 bg-white p-3 rounded-lg border">
                                 {s.payload.spot_notes}
+                              </div>
+                            </div>
+                          )}
+
+                          {s.payload.event_description && (
+                            <div>
+                              <div className="text-sm font-medium text-gray-700 mb-2">Event Description:</div>
+                              <div className="text-sm text-gray-600 bg-white p-3 rounded-lg border whitespace-pre-wrap">
+                                {s.payload.event_description}
                               </div>
                             </div>
                           )}
@@ -604,7 +655,8 @@ export default function AdminPage() {
                                 category: s.payload.category || 'WDSC',
                                 date_from: s.payload.date_from || '',
                                 date_to: s.payload.date_to || '',
-                                source_url: s.payload.source_url || '',
+                                source_url: sourceUrl,
+                                event_description: s.payload.event_description || '',
                                 track_record_open_name: s.payload.track_record_open?.name || '',
                                 track_record_open_time: s.payload.track_record_open?.time || '',
                                 track_record_luge_name: s.payload.track_record_luge?.name || '',
@@ -674,7 +726,7 @@ export default function AdminPage() {
                         </div>
                       </div>
                     </div>
-                  ))}
+                  )})}
                 </div>
               )}
                 </>

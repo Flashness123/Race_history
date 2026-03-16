@@ -23,6 +23,18 @@ def list_races(year: int | None = Query(None), db: Session = Depends(get_db)):
             "lng": r.lng,
             "source_url": r.source_url,
             "image_url": r.image_url,
+            "category": r.category,
+            "date_from": r.date_from.isoformat() if r.date_from else None,
+            "date_to": r.date_to.isoformat() if r.date_to else None,
+            "organizer_name": r.organizer_name,
+            "track_record_open_name": r.track_record_open_name,
+            "track_record_open_time": r.track_record_open_time,
+            "track_record_luge_name": r.track_record_luge_name,
+            "track_record_luge_time": r.track_record_luge_time,
+            "track_record_woman_name": r.track_record_woman_name,
+            "track_record_woman_time": r.track_record_woman_time,
+            "description": r.description,
+            "spot_notes": r.spot_notes,
         }
         for r in rows
     ]

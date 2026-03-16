@@ -238,7 +238,11 @@ CREATE TABLE public.race_events (
     track_record_luge_time character varying(50),
     track_record_woman_name character varying(200),
     track_record_woman_time character varying(50),
-    organizer_name character varying(200)
+    organizer_name character varying(200),
+    all_categories text,
+    all_organizers text,
+    description text,
+    spot_notes text
 );
 
 
@@ -772,4 +776,3 @@ ALTER TABLE ONLY public.videos
 --
 -- PostgreSQL database dump complete
 --
-

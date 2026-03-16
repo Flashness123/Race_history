@@ -45,6 +45,7 @@ class SubmissionIn(BaseModel):
     track_record_luge: TrackRecordData | None = None
     track_record_woman: TrackRecordData | None = None
     organizer_name: str | None = Field(None, max_length=200)
+    event_description: str | None = Field(None, max_length=4000)
     # Edit mode fields
     is_edit: bool = False
     editing_event_id: int | None = None
@@ -170,6 +171,8 @@ def approve(submission_id: int, db: Session = Depends(get_db)):
         ev.category = p.get("category")
         if image_url:  # Only update image if a new one was uploaded
             ev.image_url = image_url
+        ev.description = (p.get("event_description") or p.get("_event_description") or "").strip() or None
+        ev.spot_notes = (p.get("spot_notes") or "").strip() or None
         # Update track records
         ev.track_record_open_name = p.get("track_record_open", {}).get("name") if p.get("track_record_open") else None
         ev.track_record_open_time = p.get("track_record_open", {}).get("time") if p.get("track_record_open") else None
@@ -202,6 +205,8 @@ def approve(submission_id: int, db: Session = Depends(get_db)):
             date_to=p.get("date_to"),
             category=p.get("category"),
             image_url=image_url,
+            description=(p.get("event_description") or p.get("_event_description") or "").strip() or None,
+            spot_notes=(p.get("spot_notes") or "").strip() or None,
             # Track records
             track_record_open_name=p.get("track_record_open", {}).get("name") if p.get("track_record_open") else None,
             track_record_open_time=p.get("track_record_open", {}).get("time") if p.get("track_record_open") else None,
@@ -526,7 +531,7 @@ def batch_submit(file: UploadFile = File(...), db: Session = Depends(get_db), cl
                     # Store all categories and organizers as JSON strings
                     "all_categories": json.dumps(category_list) if category_list else None,
                     "all_organizers": json.dumps(organizer_list) if organizer_list else None,
-                    "_event_description": str(row.get('event_description', '')).strip() if pd.notna(row.get('event_description')) else None,
+                    "event_description": str(row.get('event_description', '')).strip() if pd.notna(row.get('event_description')) else None,
                 }
 
                 # Add riders if they exist (new column structure)

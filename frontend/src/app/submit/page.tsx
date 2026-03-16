@@ -25,6 +25,7 @@ function SubmitContent() {
     lng: 14.42076,
     category: "WDSC",
     links: [{ name: "Event Page", url: "" }] as Link[],
+    event_description: "",
   top_riders_open: [] as Rider[],
   top_riders_luge: [] as Rider[],
   top_riders_woman: [] as Rider[],
@@ -84,6 +85,9 @@ function SubmitContent() {
         setEditingSubmissionId(parseInt(submissionId));
       }
       
+      const editCategory = searchParams.get('category') || 'WDSC';
+      setSubmissionMode(editCategory === 'SPOT' ? 'spot' : 'race');
+      
       // Prefill form with URL parameters
       setForm(prev => ({
         ...prev,
@@ -91,12 +95,13 @@ function SubmitContent() {
         location: searchParams.get('location') || '',
         lat: parseFloat(searchParams.get('lat') || '50.08804'),
         lng: parseFloat(searchParams.get('lng') || '14.42076'),
-        category: searchParams.get('category') || 'WDSC',
+        category: editCategory,
         date_from: searchParams.get('date_from') ? new Date(searchParams.get('date_from')!).toISOString().slice(0,10) : new Date().toISOString().slice(0,10),
         date_to: searchParams.get('date_to') ? new Date(searchParams.get('date_to')!).toISOString().slice(0,10) : '',
         links: searchParams.get('source_url') ? 
           [{ name: "Event Page", url: searchParams.get('source_url') || '' }] : 
           [{ name: "Event Page", url: "" }],
+        event_description: searchParams.get('event_description') || '',
         track_record_open: searchParams.get('track_record_open_name') && searchParams.get('track_record_open_time') ? 
           { name: searchParams.get('track_record_open_name') || '', time: searchParams.get('track_record_open_time') || '' } : 
           null,
@@ -107,6 +112,7 @@ function SubmitContent() {
           { name: searchParams.get('track_record_woman_name') || '', time: searchParams.get('track_record_woman_time') || '' } : 
           null,
         organizer_name: searchParams.get('organizer_name') || '',
+        spot_notes: searchParams.get('spot_notes') || '',
       }));
       
       // Load rider data from URL parameters
@@ -281,6 +287,7 @@ function SubmitContent() {
         lng: form.lng || null,
         category: submissionMode === 'spot' ? 'SPOT' : form.category,
         links: filteredLinks,
+        event_description: submissionMode === 'race' ? form.event_description.trim() || null : null,
         top_riders_open: (submissionMode === 'spot' || isFutureEvent()) ? [] : filteredOpenRiders,
         top_riders_luge: (submissionMode === 'spot' || isFutureEvent()) ? [] : filteredLugeRiders,
         top_riders_woman: (submissionMode === 'spot' || isFutureEvent()) ? [] : filteredWomanRiders,
@@ -523,7 +530,7 @@ function SubmitContent() {
               </div>
 
                     {/* Start Date - Required */}
-                <div>
+              <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Start Date <span className="text-red-500">*</span>
                       </label>
@@ -546,6 +553,23 @@ function SubmitContent() {
                         onChange={(e) => setForm(prev => ({ ...prev, date_to: e.target.value }))}
                       />
               </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Event Description (Optional)
+                      </label>
+                      <textarea
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 min-h-[120px] resize-none"
+                        placeholder="Share context about the event, track, format, or anything useful for future riders."
+                        value={form.event_description}
+                        onChange={(e) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            event_description: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
 
               {/* Category */}
               <div>
@@ -1273,7 +1297,13 @@ function SubmitContent() {
               ) : (
                 <div className="flex items-center justify-center gap-2">
                   <span>🚀</span>
-                  <span>Submit Race</span>
+                  <span>
+                    {submissionMode === "batch"
+                      ? "Upload Batch"
+                      : submissionMode === "spot"
+                        ? "Submit Spot"
+                        : "Submit Race"}
+                  </span>
                 </div>
               )}
             </button>

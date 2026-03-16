@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import Map from "@/components/Map";
 import { useRouter } from "next/navigation";
 import ClickableRiderName from "@/components/ClickableRiderName";
+import { getMissingEventInfo } from "@/lib/event-completeness";
 
 type Filters = {SPOT:boolean;WDSC:boolean;EURO:boolean;FREERIDE:boolean;IDF:boolean;OUTLAW:boolean;NATIONAL:boolean;RACE:boolean};
 
@@ -18,34 +19,6 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [filters, setFilters] = useState<Filters>({ SPOT: true, WDSC: true, EURO: true, FREERIDE: true, IDF: true, OUTLAW: true, NATIONAL: true, RACE: true });
-
-  // Function to detect missing information
-  const getMissingInfo = (event: any) => {
-    const missing: string[] = [];
-    
-    if (!event.date_from) missing.push("Start Date");
-    if (!event.date_to) missing.push("End Date");
-    
-    // Check track records - if any are missing, show "Track record incomplete"
-    const hasAnyTrackRecord = (event.track_record_open_name && event.track_record_open_time) ||
-                             (event.track_record_luge_name && event.track_record_luge_time) ||
-                             (event.track_record_woman_name && event.track_record_woman_time);
-    if (!hasAnyTrackRecord) missing.push("Track record incomplete");
-    
-    // Check rider results - if any are missing, show "Top riders incomplete"
-    const hasAnyRiderResults = (event.open_results && event.open_results.length > 0) ||
-                              (event.luge_results && event.luge_results.length > 0) ||
-                              (event.woman_results && event.woman_results.length > 0);
-    if (!hasAnyRiderResults) missing.push("Top riders incomplete");
-    
-    // Check qualifiers separately
-    if (!event.qualifier_results || event.qualifier_results.length === 0) missing.push("Qualifier Results");
-    
-    // Check organizer
-    if (!event.organizer_name) missing.push("Organizer");
-    
-    return missing;
-  };
 
   const onSelect = useCallback((id: number | null) => {
     setSelectedId(id);
@@ -349,6 +322,30 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                   </div>
 
                   {/* Track Records */}
+                  {detail.description && (
+                    <div className="bg-gray-50 rounded-xl p-4">
+                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                        <span className="text-lg">📝</span>
+                        Event Description
+                      </h4>
+                      <div className="bg-white rounded-lg p-3 border border-gray-200 whitespace-pre-wrap text-sm text-gray-700">
+                        {detail.description}
+                      </div>
+                    </div>
+                  )}
+
+                  {detail.spot_notes && (
+                    <div className="bg-gray-50 rounded-xl p-4">
+                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                        <span className="text-lg">📍</span>
+                        Spot Notes
+                      </h4>
+                      <div className="bg-white rounded-lg p-3 border border-gray-200 whitespace-pre-wrap text-sm text-gray-700">
+                        {detail.spot_notes}
+                      </div>
+                    </div>
+                  )}
+
                   {(detail.track_record_open_name || detail.track_record_luge_name || detail.track_record_woman_name) && (
                     <div className="bg-gray-50 rounded-xl p-4">
                       <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
@@ -518,7 +515,7 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                           {detail.qualifier_results.map((p: any) => (
                             <div key={p.position} className="flex items-center gap-3 p-2 bg-white rounded-lg border border-gray-200">
                               <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white bg-gradient-to-br from-green-500 to-teal-600">
-                                Q{p.position - 100}
+                                Q{p.position}
                               </div>
                               <div className="flex-1">
                                 <ClickableRiderName name={p.name} className="font-medium text-gray-900 text-sm hover:text-blue-600 transition-colors duration-200" />
@@ -550,7 +547,7 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
 
                   {/* Missing Information */}
                   {(() => {
-                    const missingInfo = getMissingInfo(detail);
+                    const missingInfo = getMissingEventInfo(detail);
                     if (missingInfo.length > 0) {
                       return (
                         <div className="pt-4 border-t border-gray-200">
@@ -580,6 +577,7 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                                       date_from: detail.date_from || '',
                                       date_to: detail.date_to || '',
                                       source_url: detail.source_url || '',
+                                      event_description: detail.description || '',
                                       track_record_open_name: detail.track_record_open_name || '',
                                       track_record_open_time: detail.track_record_open_time || '',
                                       track_record_luge_name: detail.track_record_luge_name || '',
@@ -587,6 +585,7 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                                       track_record_woman_name: detail.track_record_woman_name || '',
                                       track_record_woman_time: detail.track_record_woman_time || '',
                                       organizer_name: detail.organizer_name || '',
+                                      spot_notes: detail.spot_notes || '',
                                     });
                                     
                                     // Add rider data
@@ -655,5 +654,4 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
     </div>
   );
 }
-
 

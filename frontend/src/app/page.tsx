@@ -10,11 +10,17 @@ import ClickableRiderName from "@/components/ClickableRiderName";
 import DynamicBackground from "@/components/DynamicBackground";
 
 type Filters = {SPOT:boolean;WDSC:boolean;EURO:boolean;FREERIDE:boolean;IDF:boolean;OUTLAW:boolean;NATIONAL:boolean;RACE:boolean};
+type GeoJsonData = Awaited<ReturnType<typeof fetchRaces>>;
+type TopRider = {
+  name: string;
+  profile_image_url: string;
+  achievements_count: number;
+};
 
 function HomeContent() {
   const searchParams = useSearchParams();
-  const [geojson, setGeojson] = useState({ type: "FeatureCollection", features: [] });
-  const [top, setTop] = useState([]);
+  const [geojson, setGeojson] = useState<GeoJsonData>({ type: "FeatureCollection", features: [] });
+  const [top, setTop] = useState<TopRider[]>([]);
   const [year, setYear] = useState(Number(searchParams.get("year") ?? new Date().getFullYear()));
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<Filters>({ SPOT: true, WDSC: true, EURO: true, FREERIDE: true, IDF: true, OUTLAW: true, NATIONAL: true, RACE: true });
@@ -108,7 +114,7 @@ function HomeContent() {
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-6">
-                {top.map((r: any, i: number) => (
+                {top.map((r, i: number) => (
                   <div 
                     key={i} 
                     className="group flex flex-col items-center p-4 bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 hover:shadow-xl hover:bg-white hover:border-blue-200 transition-all duration-300 hover-lift"
