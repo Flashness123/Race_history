@@ -25,6 +25,9 @@ def register(data: RegisterIn, db: Session = Depends(get_db)):
     exists = db.scalar(select(User).where(User.email == data.email))
     if exists:
         raise HTTPException(400, "Email already registered")
+    existing_name = db.scalar(select(User).where(User.display_name_norm == norm(data.name)))
+    if existing_name:
+        raise HTTPException(400, "That rider name is already claimed. Please choose a different name.")
     user = User(
         email=data.email,
         name=data.name,

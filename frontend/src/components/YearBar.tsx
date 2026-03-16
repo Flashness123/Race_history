@@ -1,32 +1,29 @@
 "use client";
 import Link from "next/link";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 
-export default function YearBar() {
+export default function YearBar({ selectedYear }: { selectedYear?: number }) {
   const searchParams = useSearchParams();
-  const router = useRouter();
-  const selected = Number(searchParams.get("year") ?? new Date().getFullYear());
-  const now = new Date().getFullYear();
+  const fallbackYear = selectedYear ?? new Date().getFullYear();
+  const searchYear = Number(searchParams.get("year"));
+  const selected = Number.isFinite(searchYear) ? searchYear : fallbackYear;
   
   // State for the current year range offset
   const [yearOffset, setYearOffset] = useState(0);
   
   // Calculate visible years based on offset
   const visible = [
-    now - 2 + yearOffset,
-    now - 1 + yearOffset, 
-    now + yearOffset,
-    now + 1 + yearOffset
+    selected - 2 + yearOffset,
+    selected - 1 + yearOffset, 
+    selected + yearOffset,
+    selected + 1 + yearOffset
   ];
 
-  // Initialize offset to center the current year when component mounts
+  // Re-center the window whenever the selected year changes
   useEffect(() => {
-    // Only set initial offset if no year is selected (use current year)
-    if (!searchParams.get("year")) {
-      setYearOffset(0);
-    }
-  }, [searchParams]);
+    setYearOffset(0);
+  }, [selected]);
 
   const handlePreviousYears = () => {
     setYearOffset(prev => prev - 1);

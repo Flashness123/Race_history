@@ -1,5 +1,9 @@
 # app/api/bio.py
-from fastapi import APIRouter, Depends, HTTPException
+from difflib import SequenceMatcher
+import re
+import unicodedata
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select, func
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -12,6 +16,89 @@ from app.models.models import User, Person, Result, RaceEvent, Bio
 router = APIRouter(prefix="/bio", tags=["bio"])
 
 DEFAULT_AVATAR = "/static/uploads/profiles/default_avatar.jpg"
+
+
+def _fuzzy_name_key(value: str | None) -> str:
+    if not value:
+        return ""
+
+    normalized = unicodedata.normalize("NFKD", value)
+    without_marks = "".join(ch for ch in normalized if not unicodedata.combining(ch))
+    return re.sub(r"[^a-z0-9]+", " ", without_marks.lower()).strip()
+
+
+def _name_tokens(value: str | None) -> list[str]:
+    return [token for token in _fuzzy_name_key(value).split() if token]
+
+
+def _rider_name_score(query: str, candidate: str) -> float:
+    query_key = _fuzzy_name_key(query)
+    candidate_key = _fuzzy_name_key(candidate)
+    if len(query_key.replace(" ", "")) < 2 or not candidate_key:
+        return 0.0
+
+    query_dense = query_key.replace(" ", "")
+    candidate_dense = candidate_key.replace(" ", "")
+    score = SequenceMatcher(None, query_dense, candidate_dense).ratio() * 100
+
+    if query_dense == candidate_dense:
+        score += 150
+
+    if query_dense in candidate_dense:
+        score += 35
+    if candidate_dense in query_dense:
+        score += 20
+
+    query_tokens = _name_tokens(query)
+    candidate_tokens = _name_tokens(candidate)
+    if not query_tokens or not candidate_tokens:
+        return score
+
+    query_set = set(query_tokens)
+    candidate_set = set(candidate_tokens)
+    overlap = query_set & candidate_set
+    score += len(overlap) * 18
+
+    query_first = query_tokens[0]
+    query_last = query_tokens[-1]
+    candidate_first = candidate_tokens[0]
+    candidate_last = candidate_tokens[-1]
+    first_matches = (
+        query_first == candidate_first
+        or candidate_first.startswith(query_first)
+        or query_first.startswith(candidate_first)
+    )
+    last_matches = (
+        query_last == candidate_last
+        or candidate_last.startswith(query_last)
+        or query_last.startswith(candidate_last)
+    )
+
+    if len(query_tokens) >= 2 and len(candidate_tokens) >= 2:
+        subset_match = query_set.issubset(candidate_set) or candidate_set.issubset(query_set)
+        dense_match = query_dense in candidate_dense or candidate_dense in query_dense
+        if not ((first_matches and last_matches) or subset_match or dense_match):
+            return 0.0
+
+    if query_first == candidate_first:
+        score += 25
+    elif first_matches:
+        score += 12
+
+    if query_last == candidate_last:
+        score += 35
+    elif last_matches:
+        score += 18
+
+    if query_set.issubset(candidate_set):
+        score += 25
+
+    if candidate_tokens[1:-1]:
+        middle_initials = {token[0] for token in candidate_tokens[1:-1] if token}
+        if overlap and any(token[0] in middle_initials for token in query_tokens if token):
+            score += 5
+
+    return score
 
 class BioOut(BaseModel):
     name: str | None
@@ -264,6 +351,12 @@ class TopRiderOut(BaseModel):
     achievements_count: int
     profile_image_url: str | None = None
 
+
+class RiderSearchSuggestionOut(BaseModel):
+    name: str
+    country: str | None
+    achievements_count: int
+
 @router.get("/top", response_model=list[TopRiderOut])
 def top_riders(db: Session = Depends(get_db)):
     # Aggregate by Person (race results), then try to map to Users via normalized name
@@ -286,17 +379,57 @@ def top_riders(db: Session = Depends(get_db)):
         ))
     return out
 
-# Simple rider name autocomplete searching Persons table (public)
-@router.get("/riders/search")
-def rider_search(q: str, db: Session = Depends(get_db)):
-    qn = f"%{norm(q)}%"
-    rows = db.execute(
-        select(Person.full_name, Person.country)
-        .where(Person.full_name_norm.ilike(qn))
-        .order_by(Person.full_name.asc())
-        .limit(10)
+# Smart rider name suggestions based on achievement names that are not yet claimed
+@router.get("/riders/search", response_model=list[RiderSearchSuggestionOut])
+def rider_search(
+    q: str,
+    limit: int = Query(3, ge=1, le=10),
+    db: Session = Depends(get_db),
+):
+    query = (q or "").strip()
+    if len(_fuzzy_name_key(query).replace(" ", "")) < 2:
+        return []
+
+    people = db.execute(
+        select(
+            Person.full_name,
+            Person.full_name_norm,
+            Person.country,
+            func.count(Result.id).label("achievements_count"),
+        )
+        .join(Result, Result.person_id == Person.id)
+        .group_by(Person.id, Person.full_name, Person.full_name_norm, Person.country)
     ).all()
-    return [{"name": r[0], "country": r[1]} for r in rows]
+
+    claimed_norms = {
+        value
+        for value in db.execute(
+            select(User.display_name_norm).where(User.display_name_norm.is_not(None))
+        ).scalars()
+        if value
+    }
+
+    suggestions: list[tuple[float, int, str, str | None]] = []
+    for full_name, full_name_norm, country, achievements_count in people:
+        if full_name_norm in claimed_norms:
+            continue
+
+        score = _rider_name_score(query, full_name)
+        if score < 60:
+            continue
+
+        suggestions.append((score, achievements_count, full_name, country))
+
+    suggestions.sort(key=lambda item: (-item[0], -item[1], item[2].lower()))
+
+    return [
+        {
+            "name": full_name,
+            "country": country,
+            "achievements_count": achievements_count,
+        }
+        for _, achievements_count, full_name, country in suggestions[:limit]
+    ]
 
 
 # Public rider detail page

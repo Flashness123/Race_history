@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
-import Map from "@/components/Map";
+import { useSearchParams, useRouter } from "next/navigation";
 import YearBar from "@/components/YearBar";
 import { fetchRaces } from "@/lib/api";
 import ClientSelected from "./selected";
@@ -19,39 +18,82 @@ type TopRider = {
 
 function HomeContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [geojson, setGeojson] = useState<GeoJsonData>({ type: "FeatureCollection", features: [] });
   const [top, setTop] = useState<TopRider[]>([]);
-  const [year, setYear] = useState(Number(searchParams.get("year") ?? new Date().getFullYear()));
+  const [year, setYear] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<Filters>({ SPOT: true, WDSC: true, EURO: true, FREERIDE: true, IDF: true, OUTLAW: true, NATIONAL: true, RACE: true });
 
-  // Watch for URL parameter changes
   useEffect(() => {
-    const urlYear = Number(searchParams.get("year") ?? new Date().getFullYear());
-    setYear(urlYear);
-  }, [searchParams]);
+    let alive = true;
 
-  useEffect(() => {
+    const findLatestYearWithRaces = async (startYear: number) => {
+      const minYear = Math.max(1900, startYear - 25);
+
+      for (let candidate = startYear; candidate >= minYear; candidate -= 1) {
+        try {
+          const data = await fetchRaces(candidate);
+          if (data.features.length > 0) {
+            return { year: candidate, data };
+          }
+        } catch (error) {
+          console.error(`Error loading races for ${candidate}:`, error);
+        }
+      }
+
+      return {
+        year: startYear,
+        data: { type: "FeatureCollection", features: [] } as GeoJsonData,
+      };
+    };
+
     const loadData = async () => {
       try {
         setLoading(true);
-        const [racesData, topData] = await Promise.all([
-          fetchRaces(year),
-          fetch("/api/bio/top", { cache: "no-store" }).then(res => res.ok ? res.json() : [])
-        ]);
-        setGeojson(racesData);
+        const topPromise = fetch("/api/bio/top", { cache: "no-store" }).then((res) =>
+          res.ok ? res.json() : []
+        );
+
+        const yearParam = searchParams.get("year");
+        const parsedYear = yearParam ? Number(yearParam) : NaN;
+        const hasExplicitYear = Number.isFinite(parsedYear);
+        const currentYear = new Date().getFullYear();
+
+        const resolved = hasExplicitYear
+          ? { year: parsedYear, data: await fetchRaces(parsedYear) }
+          : await findLatestYearWithRaces(currentYear);
+
+        const topData = await topPromise;
+
+        if (!alive) return;
+
+        setYear(resolved.year);
+        setGeojson(resolved.data);
         setTop(topData);
+
+        if (!hasExplicitYear) {
+          router.replace(`/?year=${resolved.year}`, { scroll: false });
+        }
       } catch (error) {
         console.error('Error loading data:', error);
+        if (!alive) return;
+        setYear(Number(searchParams.get("year") ?? new Date().getFullYear()));
         setGeojson({ type: "FeatureCollection", features: [] });
         setTop([]);
       } finally {
-        setLoading(false);
+        if (alive) {
+          setLoading(false);
+        }
       }
     };
 
     loadData();
-  }, [year]);
+
+    return () => {
+      alive = false;
+    };
+  }, [router, searchParams]);
 
   if (loading) {
     return (
@@ -68,7 +110,7 @@ function HomeContent() {
       
       {/* Content with relative positioning to appear above overlay */}
       <div className="relative z-10 flex flex-col">
-        <YearBar />
+        <YearBar selectedYear={year ?? new Date().getFullYear()} />
         
         {/* Hero Section */}
         <section className="px-6 py-8 text-white">
@@ -83,7 +125,7 @@ function HomeContent() {
               <div className="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full border border-white/30">
                 <span className="text-sm font-medium">Showing races for</span>
                 <span className="ml-2 px-3 py-1 bg-white/30 rounded-full text-sm font-bold">
-                  {year}
+                  {year ?? new Date().getFullYear()}
                 </span>
               </div>
             </div>
@@ -152,13 +194,13 @@ function HomeContent() {
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold text-white mb-4 drop-shadow-lg">
-                All Events in {year}
+                All Events in {year ?? new Date().getFullYear()}
               </h2>
               <p className="text-blue-100 drop-shadow-md">
                 Browse and search through all events from this year
               </p>
             </div>
-            <ClientEventsList year={year} />
+            <ClientEventsList year={year ?? new Date().getFullYear()} />
           </div>
         </section>
       </div>
