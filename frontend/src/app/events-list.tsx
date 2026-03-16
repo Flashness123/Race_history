@@ -61,11 +61,11 @@ function EventMissingInfo({ eventId }: EventMissingInfoProps) {
   }
 
   return (
-    <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+    <div className="mt-3 rounded-lg border border-[rgba(143,115,87,0.18)] bg-[rgba(248,242,234,0.72)] p-2">
       <div className="flex items-start gap-2">
-        <span className="text-yellow-600 text-sm">⚠️</span>
+        <span className="eyebrow text-[10px] text-[var(--accent-warm)]">Note</span>
         <div className="flex-1">
-          <div className="text-xs text-yellow-800 font-medium mb-1">
+          <div className="mb-1 text-xs font-medium text-[var(--ink)]">
             Missing: {missingInfo.join(", ")}
           </div>
           <button
@@ -207,7 +207,7 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
   if (loading) {
     return (
       <div className="flex justify-center items-center py-12">
-        <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[rgba(129,100,75,0.15)] border-t-[var(--accent-warm)]"></div>
       </div>
     );
   }
@@ -223,10 +223,10 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
               placeholder="Search events by name or location..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-3 pl-10 pr-4 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500"
+              className="w-full rounded-[1.25rem] border border-[var(--border)] bg-[rgba(248,242,234,0.88)] px-4 py-3 pl-10 pr-4 text-[var(--ink)] placeholder:text-[var(--muted)] focus:border-[var(--border-strong)] focus:ring-2 focus:ring-[rgba(129,100,75,0.18)] transition-all duration-200"
             />
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <span className="text-gray-400">🔍</span>
+              <span className="eyebrow text-[10px] text-[var(--muted)]">Find</span>
             </div>
           </div>
         </div>
@@ -238,7 +238,7 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
           <div
             key={event.id}
             onClick={() => handleEventClick(event)}
-            className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200/50 overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer group"
+            className="surface-card cursor-pointer overflow-hidden rounded-[1.5rem] transition-all duration-300 group hover:-translate-y-1 hover:border-[var(--border-strong)]"
           >
             <div className="aspect-w-16 aspect-h-9">
               <img
@@ -248,20 +248,20 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
               />
             </div>
             <div className="p-4">
-              <h3 className="font-bold text-gray-900 text-lg mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors duration-200">
+              <h3 className="mb-2 line-clamp-2 text-lg font-semibold text-[var(--ink)] transition-colors duration-200 group-hover:text-[var(--accent-warm)]">
                 {event.name}
               </h3>
-              <div className="space-y-1 text-sm text-gray-600">
+              <div className="space-y-1 text-sm text-[var(--ink-soft)]">
                 <div className="flex items-center gap-2">
-                  <span>📍</span>
+                  <span className="eyebrow text-[10px]">Location</span>
                   <span className="truncate">{event.location}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span>📅</span>
+                  <span className="eyebrow text-[10px]">Year</span>
                   <span>{event.year}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span>🏷️</span>
+                  <span className="eyebrow text-[10px]">Type</span>
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                     event.category === 'WDSC' ? 'bg-orange-100 text-orange-800' :
                     event.category === 'EURO' ? 'bg-blue-100 text-blue-800' :
@@ -284,27 +284,26 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
 
       {filteredEvents.length === 0 && (
         <div className="text-center py-12">
-          <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-2xl">🔍</span>
-          </div>
-          <h3 className="text-xl font-semibold text-white mb-2">No events found</h3>
-          <p className="text-blue-100">
+          <div className="surface-card mx-auto max-w-xl rounded-[1.5rem] px-6 py-10">
+          <h3 className="mb-2 text-xl font-semibold text-[var(--ink)]">No events found</h3>
+          <p className="text-[var(--ink-soft)]">
             {searchTerm ? "Try adjusting your search terms" : "No events available for this year"}
           </p>
+          </div>
         </div>
       )}
 
       {/* Event Details Modal */}
       {selectedEvent && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-900">Event Details</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(24,19,15,0.52)] p-4 backdrop-blur-sm">
+          <div className="surface-card-strong max-h-[90vh] w-full max-w-4xl overflow-hidden rounded-[1.75rem]">
+            <div className="flex items-center justify-between border-b border-[var(--border)] p-6">
+              <h2 className="text-2xl font-semibold text-[var(--ink)]">Event Details</h2>
               <button
                 onClick={closeModal}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                className="button-soft h-10 w-10 p-0 text-[var(--ink-soft)]"
               >
-                <span className="text-xl">✕</span>
+                <span className="text-lg">×</span>
               </button>
             </div>
             
@@ -326,16 +325,16 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
                       <h3 className="text-3xl font-bold text-gray-900 mb-2">{eventDetails.name}</h3>
                       <div className="space-y-2 text-gray-600">
                         <div className="flex items-center gap-2">
-                          <span>📍</span>
+                          <span className="eyebrow text-[10px]">Location</span>
                           <span>{eventDetails.location}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span>📅</span>
+                          <span className="eyebrow text-[10px]">Year</span>
                           <span>{eventDetails.year}</span>
                         </div>
                         {eventDetails.date_from && (
                           <div className="flex items-center gap-2">
-                            <span>🗓️</span>
+                            <span className="eyebrow text-[10px]">Dates</span>
                             <span>{new Date(eventDetails.date_from).toLocaleDateString()}</span>
                             {eventDetails.date_to && (
                               <span> - {new Date(eventDetails.date_to).toLocaleDateString()}</span>
@@ -366,24 +365,18 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
                   <EventMissingInfo eventId={selectedEvent.id} />
 
                   {eventDetails.description && (
-                    <div className="bg-gray-50 rounded-xl p-6">
-                      <h4 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                        <span>📝</span>
-                        Event Description
-                      </h4>
-                      <div className="bg-white rounded-lg p-4 border border-gray-200 whitespace-pre-wrap text-gray-700">
+                    <div className="rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.42)] p-6">
+                      <h4 className="eyebrow mb-4">Event Description</h4>
+                      <div className="rounded-lg border border-[var(--border)] bg-[rgba(255,255,255,0.72)] p-4 whitespace-pre-wrap text-[var(--ink-soft)]">
                         {eventDetails.description}
                       </div>
                     </div>
                   )}
 
                   {eventDetails.spot_notes && (
-                    <div className="bg-gray-50 rounded-xl p-6">
-                      <h4 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                        <span>📍</span>
-                        Spot Notes
-                      </h4>
-                      <div className="bg-white rounded-lg p-4 border border-gray-200 whitespace-pre-wrap text-gray-700">
+                    <div className="rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.42)] p-6">
+                      <h4 className="eyebrow mb-4">Spot Notes</h4>
+                      <div className="rounded-lg border border-[var(--border)] bg-[rgba(255,255,255,0.72)] p-4 whitespace-pre-wrap text-[var(--ink-soft)]">
                         {eventDetails.spot_notes}
                       </div>
                     </div>
@@ -424,16 +417,13 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
 
                   {/* Organizer */}
                   {eventDetails.organizer_name && (
-                    <div className="bg-gray-50 rounded-xl p-6">
-                      <h4 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                        <span>👤</span>
-                        Organizer
-                      </h4>
+                    <div className="rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.42)] p-6">
+                      <h4 className="eyebrow mb-4">Organizer</h4>
                       <div className="bg-white rounded-lg p-4 border border-gray-200">
                         <h5 className="font-medium text-gray-700 mb-2">Event Organizer</h5>
                         <ClickableRiderName 
                           name={eventDetails.organizer_name} 
-                          className="text-lg font-bold text-blue-600 hover:text-blue-700 hover:underline"
+                          className="text-lg font-bold text-[var(--accent-warm)] hover:text-[var(--ink)] hover:underline"
                         />
                       </div>
                     </div>
@@ -443,11 +433,8 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
                   <div className="space-y-6">
                     {/* Open Results */}
                     {Array.isArray(eventDetails.open_results) && eventDetails.open_results.length > 0 && (
-                      <div className="bg-gray-50 rounded-xl p-6">
-                        <h4 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                          <span>🏆</span>
-                          Open Results ({eventDetails.open_results.length})
-                        </h4>
+                      <div className="rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.42)] p-6">
+                        <h4 className="eyebrow mb-4">Open Results ({eventDetails.open_results.length})</h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-60 overflow-y-auto">
                           {eventDetails.open_results.map((result: any) => (
                             <div key={result.position} className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
@@ -460,7 +447,7 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
                                 {result.position}
                               </div>
                               <div className="flex-1">
-                                <ClickableRiderName name={result.name} className="font-medium text-gray-900 hover:text-blue-600 transition-colors duration-200" />
+                                <ClickableRiderName name={result.name} className="font-medium text-gray-900 transition-colors duration-200 hover:text-[var(--accent-warm)]" />
                                 {result.country && (
                                   <div className="text-xs text-gray-500">{result.country}</div>
                                 )}
@@ -473,11 +460,8 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
 
                     {/* Luge Results */}
                     {Array.isArray(eventDetails.luge_results) && eventDetails.luge_results.length > 0 && (
-                      <div className="bg-gray-50 rounded-xl p-6">
-                        <h4 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                          <span>🛷</span>
-                          Luge Results ({eventDetails.luge_results.length})
-                        </h4>
+                      <div className="rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.42)] p-6">
+                        <h4 className="eyebrow mb-4">Luge Results ({eventDetails.luge_results.length})</h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-60 overflow-y-auto">
                           {eventDetails.luge_results.map((result: any) => (
                             <div key={result.position} className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
@@ -490,7 +474,7 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
                                 {result.position}
                               </div>
                               <div className="flex-1">
-                                <ClickableRiderName name={result.name} className="font-medium text-gray-900 hover:text-blue-600 transition-colors duration-200" />
+                                <ClickableRiderName name={result.name} className="font-medium text-gray-900 transition-colors duration-200 hover:text-[var(--accent-warm)]" />
                                 {result.country && (
                                   <div className="text-xs text-gray-500">{result.country}</div>
                                 )}
@@ -503,11 +487,8 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
 
                     {/* Women Results */}
                     {Array.isArray(eventDetails.woman_results) && eventDetails.woman_results.length > 0 && (
-                      <div className="bg-gray-50 rounded-xl p-6">
-                        <h4 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                          <span>👩</span>
-                          Women Results ({eventDetails.woman_results.length})
-                        </h4>
+                      <div className="rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.42)] p-6">
+                        <h4 className="eyebrow mb-4">Women Results ({eventDetails.woman_results.length})</h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-60 overflow-y-auto">
                           {eventDetails.woman_results.map((result: any) => (
                             <div key={result.position} className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
@@ -520,7 +501,7 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
                                 {result.position}
                               </div>
                               <div className="flex-1">
-                                <ClickableRiderName name={result.name} className="font-medium text-gray-900 hover:text-blue-600 transition-colors duration-200" />
+                                <ClickableRiderName name={result.name} className="font-medium text-gray-900 transition-colors duration-200 hover:text-[var(--accent-warm)]" />
                                 {result.country && (
                                   <div className="text-xs text-gray-500">{result.country}</div>
                                 )}
@@ -533,11 +514,8 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
 
                     {/* Qualifier Results */}
                     {Array.isArray(eventDetails.qualifier_results) && eventDetails.qualifier_results.length > 0 && (
-                      <div className="bg-gray-50 rounded-xl p-6">
-                        <h4 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                          <span>🎯</span>
-                          Qualifiers ({eventDetails.qualifier_results.length})
-                        </h4>
+                      <div className="rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.42)] p-6">
+                        <h4 className="eyebrow mb-4">Qualifiers ({eventDetails.qualifier_results.length})</h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-60 overflow-y-auto">
                           {eventDetails.qualifier_results.map((result: any) => (
                             <div key={result.position} className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
@@ -545,7 +523,7 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
                                 Q{result.position}
                               </div>
                               <div className="flex-1">
-                                <ClickableRiderName name={result.name} className="font-medium text-gray-900 hover:text-blue-600 transition-colors duration-200" />
+                                <ClickableRiderName name={result.name} className="font-medium text-gray-900 transition-colors duration-200 hover:text-[var(--accent-warm)]" />
                                 {result.country && (
                                   <div className="text-xs text-gray-500">{result.country}</div>
                                 )}
@@ -564,9 +542,8 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
                         href={eventDetails.source_url} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium"
+                        className="button-ink px-6 py-3 font-medium"
                       >
-                        <span>🔗</span>
                         View Event Source
                       </a>
                     </div>

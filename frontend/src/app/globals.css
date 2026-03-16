@@ -1,29 +1,59 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-/* Custom CSS variables for Tailwind */
-:root {
+  --background: #ece1d3;
+  --foreground: #18130f;
+  --paper: rgba(248, 242, 234, 0.84);
+  --paper-strong: #f8f2ea;
+  --paper-muted: #efe4d5;
+  --border: rgba(92, 71, 50, 0.18);
+  --border-strong: rgba(48, 35, 24, 0.28);
+  --ink: #18130f;
+  --ink-soft: #5b4e42;
+  --muted: #7b6e61;
+  --muted-soft: #9a8c7c;
+  --accent: #1f1813;
+  --accent-soft: #ddd0bf;
+  --accent-warm: #81644b;
+  --success: #5d7256;
+  --danger: #8f594d;
+  --shadow-soft: 0 24px 70px rgba(24, 19, 15, 0.08);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: var(--font-manrope);
+  --font-mono: var(--font-plex-mono);
 }
 
 body {
-  background: var(--background);
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.58), transparent 35%),
+    linear-gradient(180deg, #f5ede4 0%, #ede1d3 45%, #e6d8c8 100%);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  font-family: var(--font-manrope), system-ui, -apple-system, sans-serif;
+  letter-spacing: -0.015em;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--ink);
+  letter-spacing: -0.04em;
+}
+
+a,
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+::selection {
+  background: rgba(129, 100, 75, 0.2);
+  color: var(--ink);
 }
 
 /* Custom scrollbar */
@@ -47,20 +77,13 @@ body {
 
 /* Smooth transitions for all interactive elements */
 * {
-  transition: all 0.2s ease-in-out;
+  box-sizing: border-box;
 }
 
 /* Custom focus styles */
 *:focus {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid rgba(129, 100, 75, 0.45);
   outline-offset: 2px;
-}
-
-/* Glass morphism effect */
-.glass {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 /* Hover lift effect */
@@ -79,4 +102,84 @@ body {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.page-shell {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.45), transparent 32%),
+    linear-gradient(180deg, rgba(247, 241, 233, 0.92) 0%, rgba(237, 225, 211, 0.88) 100%);
+}
+
+.surface-card {
+  background: var(--paper);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(16px);
+}
+
+.surface-card-strong {
+  background: rgba(248, 242, 234, 0.94);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(18px);
+}
+
+.eyebrow {
+  font-family: var(--font-plex-mono), monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.button-ink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  border-radius: 9999px;
+  background: var(--accent);
+  color: var(--paper-strong);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 18px 32px rgba(24, 19, 15, 0.12);
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.button-ink:hover {
+  background: #2b2119;
+  box-shadow: 0 22px 38px rgba(24, 19, 15, 0.16);
+}
+
+.button-soft {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.52);
+  color: var(--ink);
+  border: 1px solid var(--border);
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.button-soft:hover {
+  background: rgba(255, 255, 255, 0.72);
+  border-color: var(--border-strong);
+}
+
+.pill-muted {
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.44);
+  color: var(--ink-soft);
+}
+
+.text-link-accent {
+  color: var(--accent-warm);
+  transition: color 0.2s ease;
+}
+
+.text-link-accent:hover {
+  color: var(--ink);
 }
