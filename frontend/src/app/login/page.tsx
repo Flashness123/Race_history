@@ -14,14 +14,14 @@ export default function Login() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 flex items-center justify-center px-6">
+    <main className="min-h-screen bg-gradient-to-br from-[#faf6f1] via-white to-[#f4ece3] flex items-center justify-center px-6">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-gradient-to-br from-[var(--warm-accent)] to-[var(--warm-accent-dark)] rounded-2xl flex items-center justify-center mx-auto mb-4">
             <span className="text-white font-bold text-2xl">D</span>
           </div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent mb-2">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-[var(--warm-accent)] to-[var(--warm-accent-dark)] bg-clip-text text-transparent mb-2">
             Welcome Back
           </h1>
           <p className="text-gray-600">Sign in to your account to continue</p>
@@ -58,7 +58,7 @@ export default function Login() {
               <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
                 <div className="flex items-center gap-3">
                   <div className="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center">
-                    <span className="text-red-600 text-sm">⚠</span>
+                    <span className="text-red-600 text-sm font-semibold">!</span>
                   </div>
                   <p className="text-red-800 text-sm font-medium">{err}</p>
                 </div>
@@ -66,20 +66,17 @@ export default function Login() {
             )}
             
             <button 
-              className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 hover-lift"
+              className="warm-button w-full px-6 py-3 font-semibold hover-lift"
               type="submit"
             >
-              <div className="flex items-center justify-center gap-2">
-                <span>🔐</span>
-                <span>Sign In</span>
-              </div>
+              Sign In
             </button>
           </form>
           
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
               Don't have an account?{" "}
-              <a href="/register" className="text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200">
+              <a href="/register" className="warm-link font-medium transition-colors duration-200">
                 Sign up here
               </a>
             </p>
