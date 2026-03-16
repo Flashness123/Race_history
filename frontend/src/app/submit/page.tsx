@@ -398,9 +398,9 @@ function SubmitContent() {
   // Show loading state while checking authentication
   if (isAuthenticated === null) {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-[#faf6f1] via-white to-[#f4ece3] flex items-center justify-center">
+      <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-[#eadccf] border-t-[var(--warm-accent)] rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Loading...</p>
         </div>
       </main>
@@ -408,11 +408,11 @@ function SubmitContent() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[#faf6f1] via-white to-[#f4ece3]">
+    <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
       <div className="max-w-4xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-[var(--warm-accent)] to-[var(--warm-accent-dark)] bg-clip-text text-transparent mb-6">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-6">
             {isEditMode ? (editingSubmissionId ? 'Edit Pending Submission' : 'Edit Event Details') : 'Submit a Race'}
           </h1>
           {isEditMode && (
@@ -427,10 +427,10 @@ function SubmitContent() {
           
           {/* Registration Prompt for Unauthenticated Users */}
           {isAuthenticated === false && (
-            <div className="mb-8 p-6 bg-gradient-to-r from-[#f7efe5] to-[#f2e6d8] border border-[var(--warm-border)] rounded-xl">
+            <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl">
               <div className="text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-[var(--warm-accent)] to-[var(--warm-accent-dark)] rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-white text-xs font-semibold">Join</span>
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-white text-2xl">👥</span>
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-3">
                   Join Our Community!
@@ -443,15 +443,15 @@ function SubmitContent() {
                 <div className="flex justify-center gap-4">
                   <button
                     onClick={() => router.push('/register')}
-                    className="warm-button px-8 py-3 font-semibold"
+                    className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
                   >
-                    Register Now
+                    🚀 Register Now
                   </button>
                   <button
                     onClick={() => router.push('/login')}
-                    className="warm-button-secondary px-8 py-3 font-semibold"
+                    className="px-8 py-3 bg-white text-gray-700 font-semibold rounded-lg border border-gray-300 hover:bg-gray-50 transition-all duration-200"
                   >
-                    Sign In
+                    🔑 Sign In
                   </button>
                 </div>
                 <p className="text-sm text-gray-500 mt-4">
@@ -468,33 +468,33 @@ function SubmitContent() {
               onClick={() => setSubmissionMode('race')}
               className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
                 submissionMode === 'race'
-                  ? 'bg-[var(--warm-accent-dark)] text-white shadow-lg'
-                  : 'bg-white text-gray-700 border border-[var(--warm-border)] hover:bg-[#faf4ee]'
+                  ? 'bg-blue-600 text-white shadow-lg'
+                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
               }`}
             >
-              Submit Race
+              🏁 Submit Race
             </button>
             <button
               type="button"
               onClick={() => setSubmissionMode('spot')}
               className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
                 submissionMode === 'spot'
-                  ? 'bg-[var(--warm-accent-dark)] text-white shadow-lg'
-                  : 'bg-white text-gray-700 border border-[var(--warm-border)] hover:bg-[#faf4ee]'
+                  ? 'bg-blue-600 text-white shadow-lg'
+                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
               }`}
             >
-              Submit Spot
+              📍 Submit Spot
             </button>
             <button
               type="button"
               onClick={() => setSubmissionMode('batch')}
               className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
                 submissionMode === 'batch'
-                  ? 'bg-[var(--warm-accent-dark)] text-white shadow-lg'
-                  : 'bg-white text-gray-700 border border-[var(--warm-border)] hover:bg-[#faf4ee]'
+                  ? 'bg-blue-600 text-white shadow-lg'
+                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
               }`}
             >
-              Batch Submit
+              📊 Batch Submit
             </button>
           </div>
           
@@ -579,14 +579,14 @@ function SubmitContent() {
                   value={form.category}
                   onChange={(e) => setForm(prev => ({ ...prev, category: e.target.value }))}
                 >
-                  <option value="WDSC">WDSC Event</option>
-                  <option value="EURO">Euro Tour Event</option>
-                  <option value="FREERIDE">Freeride Event</option>
-                  <option value="IDF">IDF Event</option>
-                  <option value="OUTLAW">Outlaw Event</option>
-                  <option value="NATIONAL">National Championship</option>
-                  <option value="RACE">Race Event</option>
-                  <option value="SPOT">Spot (not an event)</option>
+                  <option value="WDSC">🏁 WDSC Event</option>
+                  <option value="EURO">🌍 Euro Tour Event</option>
+                  <option value="FREERIDE">🏄 Freeride Event</option>
+                  <option value="IDF">🏆 IDF Event</option>
+                  <option value="OUTLAW">⚡ Outlaw Event</option>
+                  <option value="NATIONAL">🏆 National Championship</option>
+                  <option value="RACE">🏁 Race Event</option>
+                  <option value="SPOT">📍 Spot (not an event)</option>
                 </select>
               </div>
             </div>
@@ -615,7 +615,7 @@ function SubmitContent() {
                       <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
                         <div className="space-y-3">
                           <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
-                            <span className="text-xs font-semibold text-[var(--warm-accent-dark)]">Image</span>
+                            <span className="text-xl">📷</span>
                           </div>
               <div>
                             <h3 className="text-sm font-medium text-gray-900 mb-1">Upload Image</h3>
@@ -629,8 +629,9 @@ function SubmitContent() {
                             />
                             <label
                               htmlFor="event-image-upload"
-                              className="warm-button px-3 py-1.5 cursor-pointer text-sm"
+                              className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 cursor-pointer text-sm"
                             >
+                              <span>📁</span>
                               <span>Choose</span>
                             </label>
                           </div>
@@ -728,7 +729,7 @@ function SubmitContent() {
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
                     <div className="space-y-4">
                       <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
-                        <span className="text-sm font-semibold text-[var(--warm-accent-dark)]">Batch</span>
+                        <span className="text-3xl">📊</span>
                       </div>
                       <div>
                         <h3 className="text-lg font-medium text-gray-900 mb-2">Upload Excel/ODS File</h3>
@@ -742,8 +743,9 @@ function SubmitContent() {
                         />
                         <label
                           htmlFor="batch-file-upload"
-                          className="warm-button px-6 py-3 cursor-pointer"
+                          className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 cursor-pointer"
                         >
+                          <span>📁</span>
                           <span>Choose File</span>
                         </label>
                       </div>
@@ -777,7 +779,7 @@ function SubmitContent() {
                            </div>
                          <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded">
                            <p className="text-sm text-green-800">
-                             <strong>Automatic Geocoding:</strong> Locations will be automatically converted to map coordinates. 
+                             <strong>📍 Automatic Geocoding:</strong> Locations will be automatically converted to map coordinates. 
                              Processing may take a few seconds per location.
                            </p>
                          </div>
@@ -792,8 +794,9 @@ function SubmitContent() {
                              <a
                                href="/batch_submission_template_custom.ods"
                                download="batch_submission_template_custom.ods"
-                               className="warm-button px-4 py-2 text-sm font-medium"
+                               className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
                              >
+                               <span>📥</span>
                                <span>Download Template</span>
                              </a>
                            </div>
@@ -867,7 +870,7 @@ function SubmitContent() {
                 <button
                   type="button"
                   onClick={addLink}
-                  className="warm-button px-3 py-2 text-sm font-medium"
+                  className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
                 >
                   <span>+</span>
                   <span>Add Link</span>
@@ -914,12 +917,13 @@ function SubmitContent() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <span className="text-xl">🏆</span>
                     Top Riders Open
               </h2>
                   <button
                     type="button"
                     onClick={() => addRider('top_riders_open')}
-                    className="warm-button px-3 py-2 text-sm font-medium"
+                    className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
                   >
                     <span>+</span>
                     <span>Add Rider</span>
@@ -955,12 +959,13 @@ function SubmitContent() {
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                    <span className="text-xl">🛷</span>
                     Top Riders Luge
                   </h2>
                   <button
                     type="button"
                     onClick={() => addRider('top_riders_luge')}
-                    className="warm-button px-3 py-2 text-sm font-medium"
+                    className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
                   >
                     <span>+</span>
                     <span>Add Rider</span>
@@ -996,12 +1001,13 @@ function SubmitContent() {
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                    <span className="text-xl">👩</span>
                     Top Riders Woman
                   </h2>
                   <button
                     type="button"
                     onClick={() => addRider('top_riders_woman')}
-                    className="warm-button px-3 py-2 text-sm font-medium"
+                    className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
                   >
                     <span>+</span>
                     <span>Add Rider</span>
@@ -1037,12 +1043,13 @@ function SubmitContent() {
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                    <span className="text-xl">🏃</span>
                     Top Qualifiers
                   </h2>
                   <button
                     type="button"
                     onClick={() => addRider('top_qualifiers')}
-                    className="warm-button px-3 py-2 text-sm font-medium"
+                    className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
                   >
                     <span>+</span>
                     <span>Add Qualifier</span>
@@ -1078,19 +1085,19 @@ function SubmitContent() {
 
           {/* Future Event Message - Show when event is in the future */}
           {submissionMode === 'race' && form.category !== "SPOT" && form.category !== "FREERIDE" && isFutureEvent() && (
-            <div className="bg-[#f7efe5] border border-[var(--warm-border)] rounded-xl p-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 bg-[#efe1d2] rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-[var(--warm-accent-dark)] text-xs font-semibold">Info</span>
+                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-blue-600 text-lg">ℹ️</span>
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-[var(--warm-accent-dark)] mb-2">
+                  <h3 className="text-lg font-semibold text-blue-900 mb-2">
                     Future Event
                   </h3>
-                  <p className="text-[var(--warm-accent-dark)] mb-3">
+                  <p className="text-blue-800 mb-3">
                     This event is scheduled for the future. Top riders and qualifiers can only be added after the event has taken place.
                   </p>
-                  <p className="text-sm text-[var(--warm-muted)]">
+                  <p className="text-sm text-blue-700">
                     You can still submit the event details now and add results later by editing the event.
                   </p>
                 </div>
@@ -1105,6 +1112,7 @@ function SubmitContent() {
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                    <span className="text-xl">🏁</span>
                     Track Record Open
                   </h2>
                   {form.track_record_open && (
@@ -1142,7 +1150,7 @@ function SubmitContent() {
                   <button
                     type="button"
                     onClick={() => updateTrackRecord('track_record_open', 'name', '')}
-                    className="flex items-center gap-2 px-4 py-3 border-2 border-dashed border-[var(--warm-border)] rounded-lg text-[var(--warm-muted)] hover:border-[var(--warm-accent)] hover:text-[var(--warm-accent)] transition-colors duration-200 w-full justify-center"
+                    className="flex items-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-500 hover:text-blue-600 transition-colors duration-200 w-full justify-center"
                   >
                     <span>+</span>
                     <span>Add Track Record</span>
@@ -1154,6 +1162,7 @@ function SubmitContent() {
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                    <span className="text-xl">🛷</span>
                     Track Record Luge
                   </h2>
                   {form.track_record_luge && (
@@ -1191,7 +1200,7 @@ function SubmitContent() {
                   <button
                     type="button"
                     onClick={() => updateTrackRecord('track_record_luge', 'name', '')}
-                    className="flex items-center gap-2 px-4 py-3 border-2 border-dashed border-[var(--warm-border)] rounded-lg text-[var(--warm-muted)] hover:border-[var(--warm-accent)] hover:text-[var(--warm-accent)] transition-colors duration-200 w-full justify-center"
+                    className="flex items-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-500 hover:text-blue-600 transition-colors duration-200 w-full justify-center"
                   >
                     <span>+</span>
                     <span>Add Track Record</span>
@@ -1203,6 +1212,7 @@ function SubmitContent() {
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                    <span className="text-xl">👩</span>
                     Track Record Woman
                   </h2>
                   {form.track_record_woman && (
@@ -1240,7 +1250,7 @@ function SubmitContent() {
                   <button
                     type="button"
                     onClick={() => updateTrackRecord('track_record_woman', 'name', '')}
-                    className="flex items-center gap-2 px-4 py-3 border-2 border-dashed border-[var(--warm-border)] rounded-lg text-[var(--warm-muted)] hover:border-[var(--warm-accent)] hover:text-[var(--warm-accent)] transition-colors duration-200 w-full justify-center"
+                    className="flex items-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-500 hover:text-blue-600 transition-colors duration-200 w-full justify-center"
                   >
                     <span>+</span>
                     <span>Add Track Record</span>
@@ -1254,6 +1264,7 @@ function SubmitContent() {
           {submissionMode === 'race' && (
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <span>👤</span>
                 Organizer
               </h2>
               <div>
@@ -1275,7 +1286,7 @@ function SubmitContent() {
           {/* Submit Button */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <button
-              className="warm-button w-full px-8 py-4 font-semibold disabled:opacity-60 disabled:cursor-not-allowed hover-lift"
+              className="w-full px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200 hover-lift"
               disabled={busy || isAuthenticated === false}
             >
               {busy ? (
@@ -1285,6 +1296,7 @@ function SubmitContent() {
                 </div>
               ) : (
                 <div className="flex items-center justify-center gap-2">
+                  <span>🚀</span>
                   <span>
                     {submissionMode === "batch"
                       ? "Upload Batch"
@@ -1314,7 +1326,7 @@ function SubmitContent() {
           <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
             <div className="flex items-center gap-3">
               <div className="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center">
-                <span className="text-red-600 text-sm font-semibold">!</span>
+                <span className="text-red-600 text-sm">⚠</span>
               </div>
               <p className="text-red-800 font-medium">{err}</p>
             </div>

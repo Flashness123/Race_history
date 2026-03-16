@@ -74,10 +74,10 @@ function HomeContent() {
         <section className="px-6 py-8 text-white">
           <div className="max-w-7xl mx-auto">
             <div className="text-center">
-              <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-white to-[#efe2d4] bg-clip-text text-transparent">
+              <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
                 Downhill Radar
               </h1>
-              <p className="text-xl text-[#efe3d7] mb-6">
+              <p className="text-xl text-blue-100 mb-6">
                 Discover races, track results, and connect with the community
               </p>
               <div className="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full border border-white/30">
@@ -108,7 +108,7 @@ function HomeContent() {
             {top.length === 0 ? (
               <div className="text-center py-12">
                 <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-sm font-semibold tracking-wide text-white">TOP</span>
+                  <span className="text-2xl">🏆</span>
                 </div>
                 <p className="text-white/90 drop-shadow-md">No riders yet. Be the first to submit a race!</p>
               </div>
@@ -117,12 +117,12 @@ function HomeContent() {
                 {top.map((r, i: number) => (
                   <div 
                     key={i} 
-                    className="group flex flex-col items-center p-4 bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 hover:shadow-xl hover:bg-white hover:border-[var(--warm-border)] transition-all duration-300 hover-lift"
+                    className="group flex flex-col items-center p-4 bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 hover:shadow-xl hover:bg-white hover:border-blue-200 transition-all duration-300 hover-lift"
                   >
                     <div className="relative mb-3">
                       <img
                         src={`${process.env.NEXT_PUBLIC_API_BASE}${r.profile_image_url}`}
-                        className="w-16 h-16 rounded-full object-cover border-2 border-gray-200 group-hover:border-[#c8b09b] transition-colors duration-300"
+                        className="w-16 h-16 rounded-full object-cover border-2 border-gray-200 group-hover:border-blue-300 transition-colors duration-300"
                         alt={r.name}
                       />
                       {i < 3 && (
@@ -134,7 +134,7 @@ function HomeContent() {
                     <div className="text-center">
                       <ClickableRiderName 
                         name={r.name} 
-                        className="text-sm font-semibold text-gray-900 group-hover:text-[var(--warm-accent)] transition-colors duration-300"
+                        className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-300"
                       />
                       <div className="text-xs text-gray-500 mt-1">
                         {r.achievements_count} result{r.achievements_count !== 1 ? 's' : ''}

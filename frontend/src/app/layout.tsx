@@ -1,20 +1,17 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, Manrope } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import "./globals.css";
 
-const manrope = Manrope({
-  variable: "--font-manrope",
+const geistSans = Geist({
+  variable: "--font-geist-sans",
   subsets: ["latin"],
-  display: "swap",
 });
 
-const plexMono = IBM_Plex_Mono({
-  variable: "--font-plex-mono",
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  display: "swap",
 });
 
 export const metadata: Metadata = { title: "Downhill Radar" };
@@ -22,7 +19,7 @@ export const metadata: Metadata = { title: "Downhill Radar" };
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${manrope.variable} ${plexMono.variable} min-h-screen bg-[var(--background)] text-[var(--foreground)] flex flex-col`}>
+      <body className="min-h-screen text-gray-900 flex flex-col">
         <Header />
         <main className="flex-1">
           {children}

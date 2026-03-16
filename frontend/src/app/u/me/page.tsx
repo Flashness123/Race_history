@@ -32,7 +32,7 @@ export default function MyBio() {
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">{data.name || "My Bio"}</h1>
               <div className="flex items-center gap-4 text-sm text-gray-600">
-                <span>Rider Profile</span>
+                <span>🏁 Racer Profile</span>
                 <span>•</span>
                 <span>{data.achievements?.length || 0} achievements</span>
               </div>
@@ -40,8 +40,9 @@ export default function MyBio() {
           </div>
           <Link 
             href="/u/me/edit" 
-            className="warm-button px-4 py-2 font-medium"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200 shadow-md hover:shadow-lg"
           >
+            <span>✏️</span>
             <span>Edit Profile</span>
           </Link>
         </div>
@@ -50,7 +51,10 @@ export default function MyBio() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Personal Information */}
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Personal Information</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <span>👤</span>
+            Personal Information
+          </h2>
           <div className="space-y-3">
             <div className="flex justify-between">
               <span className="font-medium text-gray-700">Nationality:</span>
@@ -77,12 +81,18 @@ export default function MyBio() {
 
         {/* Social Media */}
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Social Media</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <span>🌐</span>
+            Social Media
+          </h2>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <span className="font-medium text-gray-700">Instagram:</span>
+              <span className="font-medium text-gray-700 flex items-center gap-2">
+                <span>📷</span>
+                Instagram:
+              </span>
               {data.instagram ? (
-                <a href={`https://instagram.com/${data.instagram}`} target="_blank" rel="noopener noreferrer" className="warm-link hover:underline">
+                <a href={`https://instagram.com/${data.instagram}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 hover:underline">
                   @{data.instagram}
                 </a>
               ) : (
@@ -90,9 +100,12 @@ export default function MyBio() {
               )}
             </div>
             <div className="flex justify-between items-center">
-              <span className="font-medium text-gray-700">Facebook:</span>
+              <span className="font-medium text-gray-700 flex items-center gap-2">
+                <span>📘</span>
+                Facebook:
+              </span>
               {data.facebook ? (
-                <a href={`https://facebook.com/${data.facebook}`} target="_blank" rel="noopener noreferrer" className="warm-link hover:underline">
+                <a href={`https://facebook.com/${data.facebook}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 hover:underline">
                   {data.facebook}
                 </a>
               ) : (
@@ -100,9 +113,12 @@ export default function MyBio() {
               )}
             </div>
             <div className="flex justify-between items-center">
-              <span className="font-medium text-gray-700">YouTube:</span>
+              <span className="font-medium text-gray-700 flex items-center gap-2">
+                <span>📺</span>
+                YouTube:
+              </span>
               {data.youtube ? (
-                <a href={`https://youtube.com/@${data.youtube}`} target="_blank" rel="noopener noreferrer" className="warm-link hover:underline">
+                <a href={`https://youtube.com/@${data.youtube}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 hover:underline">
                   {data.youtube}
                 </a>
               ) : (
@@ -110,9 +126,12 @@ export default function MyBio() {
               )}
             </div>
             <div className="flex justify-between items-center">
-              <span className="font-medium text-gray-700">TikTok:</span>
+              <span className="font-medium text-gray-700 flex items-center gap-2">
+                <span>🎵</span>
+                TikTok:
+              </span>
               {data.tiktok ? (
-                <a href={`https://tiktok.com/@${data.tiktok}`} target="_blank" rel="noopener noreferrer" className="warm-link hover:underline">
+                <a href={`https://tiktok.com/@${data.tiktok}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 hover:underline">
                   @{data.tiktok}
                 </a>
               ) : (
@@ -126,17 +145,24 @@ export default function MyBio() {
       {/* Message */}
       {data.message && (
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mt-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Message to Riders</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <span>💬</span>
+            Message to Riders
+          </h2>
           <p className="text-gray-700 leading-relaxed">{data.message}</p>
         </div>
       )}
 
       {/* Achievements */}
       <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mt-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Achievements</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <span>🏆</span>
+          Achievements
+        </h2>
         <div className="max-h-96 overflow-auto">
           {!data.achievements?.length ? (
             <div className="text-center py-8 text-gray-500">
+              <div className="text-4xl mb-2">🏁</div>
               <div>No results yet. Start racing to build your achievements!</div>
             </div>
           ) : (

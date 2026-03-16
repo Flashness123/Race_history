@@ -63,7 +63,7 @@ function EventMissingInfo({ eventId }: EventMissingInfoProps) {
   return (
     <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
       <div className="flex items-start gap-2">
-        <span className="text-yellow-700 text-xs font-semibold">Note</span>
+        <span className="text-yellow-600 text-sm">⚠️</span>
         <div className="flex-1">
           <div className="text-xs text-yellow-800 font-medium mb-1">
             Missing: {missingInfo.join(", ")}
@@ -129,7 +129,7 @@ function EventMissingInfo({ eventId }: EventMissingInfoProps) {
               
               router.push(`/submit?${params.toString()}`);
             }}
-            className="warm-button-secondary px-2 py-1 text-xs"
+            className="text-xs bg-yellow-600 text-white px-2 py-1 rounded hover:bg-yellow-700 transition-colors duration-200"
           >
             Submit Missing Details
           </button>
@@ -223,10 +223,10 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
               placeholder="Search events by name or location..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-3 pl-14 pr-4 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-xl transition-all duration-200 text-gray-900 placeholder-gray-500"
+              className="w-full px-4 py-3 pl-10 pr-4 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500"
             />
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <span className="text-xs font-semibold text-[var(--warm-muted)]">Find</span>
+              <span className="text-gray-400">🔍</span>
             </div>
           </div>
         </div>
@@ -248,20 +248,20 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
               />
             </div>
             <div className="p-4">
-              <h3 className="font-bold text-gray-900 text-lg mb-2 line-clamp-2 group-hover:text-[var(--warm-accent)] transition-colors duration-200">
+              <h3 className="font-bold text-gray-900 text-lg mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors duration-200">
                 {event.name}
               </h3>
               <div className="space-y-1 text-sm text-gray-600">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-[var(--warm-muted)]">Location</span>
+                  <span>📍</span>
                   <span className="truncate">{event.location}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-[var(--warm-muted)]">Year</span>
+                  <span>📅</span>
                   <span>{event.year}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-[var(--warm-muted)]">Type</span>
+                  <span>🏷️</span>
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                     event.category === 'WDSC' ? 'bg-orange-100 text-orange-800' :
                     event.category === 'EURO' ? 'bg-blue-100 text-blue-800' :
@@ -285,7 +285,7 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
       {filteredEvents.length === 0 && (
         <div className="text-center py-12">
           <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-sm font-semibold text-white">Find</span>
+            <span className="text-2xl">🔍</span>
           </div>
           <h3 className="text-xl font-semibold text-white mb-2">No events found</h3>
           <p className="text-blue-100">
@@ -311,7 +311,7 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
             <div className="overflow-y-auto max-h-[calc(90vh-80px)]">
               {loadingDetails ? (
                 <div className="flex items-center justify-center py-12">
-                  <div className="w-8 h-8 border-4 border-[#eadccf] border-t-[var(--warm-accent)] rounded-full animate-spin"></div>
+                  <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
                 </div>
               ) : eventDetails ? (
                 <div className="p-6 space-y-6">
@@ -326,16 +326,16 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
                       <h3 className="text-3xl font-bold text-gray-900 mb-2">{eventDetails.name}</h3>
                       <div className="space-y-2 text-gray-600">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-semibold text-[var(--warm-muted)]">Location</span>
+                          <span>📍</span>
                           <span>{eventDetails.location}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-semibold text-[var(--warm-muted)]">Year</span>
+                          <span>📅</span>
                           <span>{eventDetails.year}</span>
                         </div>
                         {eventDetails.date_from && (
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-semibold text-[var(--warm-muted)]">Dates</span>
+                            <span>🗓️</span>
                             <span>{new Date(eventDetails.date_from).toLocaleDateString()}</span>
                             {eventDetails.date_to && (
                               <span> - {new Date(eventDetails.date_to).toLocaleDateString()}</span>
@@ -367,7 +367,10 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
 
                   {eventDetails.description && (
                     <div className="bg-gray-50 rounded-xl p-6">
-                      <h4 className="text-xl font-semibold text-gray-900 mb-4">Event Description</h4>
+                      <h4 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <span>📝</span>
+                        Event Description
+                      </h4>
                       <div className="bg-white rounded-lg p-4 border border-gray-200 whitespace-pre-wrap text-gray-700">
                         {eventDetails.description}
                       </div>
@@ -376,7 +379,10 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
 
                   {eventDetails.spot_notes && (
                     <div className="bg-gray-50 rounded-xl p-6">
-                      <h4 className="text-xl font-semibold text-gray-900 mb-4">Spot Notes</h4>
+                      <h4 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <span>📍</span>
+                        Spot Notes
+                      </h4>
                       <div className="bg-white rounded-lg p-4 border border-gray-200 whitespace-pre-wrap text-gray-700">
                         {eventDetails.spot_notes}
                       </div>
@@ -419,12 +425,15 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
                   {/* Organizer */}
                   {eventDetails.organizer_name && (
                     <div className="bg-gray-50 rounded-xl p-6">
-                      <h4 className="text-xl font-semibold text-gray-900 mb-4">Organizer</h4>
+                      <h4 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <span>👤</span>
+                        Organizer
+                      </h4>
                       <div className="bg-white rounded-lg p-4 border border-gray-200">
                         <h5 className="font-medium text-gray-700 mb-2">Event Organizer</h5>
                         <ClickableRiderName 
                           name={eventDetails.organizer_name} 
-                          className="text-lg font-bold warm-link hover:underline"
+                          className="text-lg font-bold text-blue-600 hover:text-blue-700 hover:underline"
                         />
                       </div>
                     </div>
@@ -435,7 +444,10 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
                     {/* Open Results */}
                     {Array.isArray(eventDetails.open_results) && eventDetails.open_results.length > 0 && (
                       <div className="bg-gray-50 rounded-xl p-6">
-                        <h4 className="text-xl font-semibold text-gray-900 mb-4">Open Results ({eventDetails.open_results.length})</h4>
+                        <h4 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                          <span>🏆</span>
+                          Open Results ({eventDetails.open_results.length})
+                        </h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-60 overflow-y-auto">
                           {eventDetails.open_results.map((result: any) => (
                             <div key={result.position} className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
@@ -448,7 +460,7 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
                                 {result.position}
                               </div>
                               <div className="flex-1">
-                                <ClickableRiderName name={result.name} className="font-medium text-gray-900 hover:text-[var(--warm-accent)] transition-colors duration-200" />
+                                <ClickableRiderName name={result.name} className="font-medium text-gray-900 hover:text-blue-600 transition-colors duration-200" />
                                 {result.country && (
                                   <div className="text-xs text-gray-500">{result.country}</div>
                                 )}
@@ -462,7 +474,10 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
                     {/* Luge Results */}
                     {Array.isArray(eventDetails.luge_results) && eventDetails.luge_results.length > 0 && (
                       <div className="bg-gray-50 rounded-xl p-6">
-                        <h4 className="text-xl font-semibold text-gray-900 mb-4">Luge Results ({eventDetails.luge_results.length})</h4>
+                        <h4 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                          <span>🛷</span>
+                          Luge Results ({eventDetails.luge_results.length})
+                        </h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-60 overflow-y-auto">
                           {eventDetails.luge_results.map((result: any) => (
                             <div key={result.position} className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
@@ -475,7 +490,7 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
                                 {result.position}
                               </div>
                               <div className="flex-1">
-                                <ClickableRiderName name={result.name} className="font-medium text-gray-900 hover:text-[var(--warm-accent)] transition-colors duration-200" />
+                                <ClickableRiderName name={result.name} className="font-medium text-gray-900 hover:text-blue-600 transition-colors duration-200" />
                                 {result.country && (
                                   <div className="text-xs text-gray-500">{result.country}</div>
                                 )}
@@ -489,7 +504,10 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
                     {/* Women Results */}
                     {Array.isArray(eventDetails.woman_results) && eventDetails.woman_results.length > 0 && (
                       <div className="bg-gray-50 rounded-xl p-6">
-                        <h4 className="text-xl font-semibold text-gray-900 mb-4">Women Results ({eventDetails.woman_results.length})</h4>
+                        <h4 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                          <span>👩</span>
+                          Women Results ({eventDetails.woman_results.length})
+                        </h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-60 overflow-y-auto">
                           {eventDetails.woman_results.map((result: any) => (
                             <div key={result.position} className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
@@ -502,7 +520,7 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
                                 {result.position}
                               </div>
                               <div className="flex-1">
-                                <ClickableRiderName name={result.name} className="font-medium text-gray-900 hover:text-[var(--warm-accent)] transition-colors duration-200" />
+                                <ClickableRiderName name={result.name} className="font-medium text-gray-900 hover:text-blue-600 transition-colors duration-200" />
                                 {result.country && (
                                   <div className="text-xs text-gray-500">{result.country}</div>
                                 )}
@@ -516,7 +534,10 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
                     {/* Qualifier Results */}
                     {Array.isArray(eventDetails.qualifier_results) && eventDetails.qualifier_results.length > 0 && (
                       <div className="bg-gray-50 rounded-xl p-6">
-                        <h4 className="text-xl font-semibold text-gray-900 mb-4">Qualifiers ({eventDetails.qualifier_results.length})</h4>
+                        <h4 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                          <span>🎯</span>
+                          Qualifiers ({eventDetails.qualifier_results.length})
+                        </h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-60 overflow-y-auto">
                           {eventDetails.qualifier_results.map((result: any) => (
                             <div key={result.position} className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
@@ -524,7 +545,7 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
                                 Q{result.position}
                               </div>
                               <div className="flex-1">
-                                <ClickableRiderName name={result.name} className="font-medium text-gray-900 hover:text-[var(--warm-accent)] transition-colors duration-200" />
+                                <ClickableRiderName name={result.name} className="font-medium text-gray-900 hover:text-blue-600 transition-colors duration-200" />
                                 {result.country && (
                                   <div className="text-xs text-gray-500">{result.country}</div>
                                 )}
@@ -543,8 +564,9 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
                         href={eventDetails.source_url} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="warm-button px-6 py-3 font-medium"
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium"
                       >
+                        <span>🔗</span>
                         View Event Source
                       </a>
                     </div>

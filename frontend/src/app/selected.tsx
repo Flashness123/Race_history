@@ -219,7 +219,7 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
               {err && (
                 <div className="p-6 text-center">
                   <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <span className="text-red-600 text-sm font-semibold">!</span>
+                    <span className="text-red-600 text-xl">⚠️</span>
                   </div>
                   <p className="text-red-600 text-sm">{err}</p>
                 </div>
@@ -237,9 +237,9 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                     <div className="flex-1">
                       <h3 className="text-xl font-bold text-gray-900 mb-1">{detail.name}</h3>
                       <div className="flex items-center gap-2 text-gray-600">
-                        <span className="text-sm">Location: {detail.location}</span>
+                        <span className="text-sm">📍 {detail.location}</span>
                         <span className="text-gray-400">•</span>
-                        <span className="text-sm">Year: {detail.year}</span>
+                        <span className="text-sm">📅 {detail.year}</span>
                       </div>
                       {(detail.category || detail.all_categories) && (
                         <div className="mt-2 flex flex-wrap gap-1">
@@ -297,7 +297,10 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
 
                   {/* Event Details */}
                   <div className="bg-gray-50 rounded-xl p-4">
-                    <h4 className="font-semibold text-gray-900 mb-3">Event Details</h4>
+                    <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                      <span className="text-lg">📅</span>
+                      Event Details
+                    </h4>
                     <div className="space-y-2 text-sm">
                       {detail.date_from && (
                         <div className="flex justify-between">
@@ -321,7 +324,10 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                   {/* Track Records */}
                   {detail.description && (
                     <div className="bg-gray-50 rounded-xl p-4">
-                      <h4 className="font-semibold text-gray-900 mb-3">Event Description</h4>
+                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                        <span className="text-lg">📝</span>
+                        Event Description
+                      </h4>
                       <div className="bg-white rounded-lg p-3 border border-gray-200 whitespace-pre-wrap text-sm text-gray-700">
                         {detail.description}
                       </div>
@@ -330,7 +336,10 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
 
                   {detail.spot_notes && (
                     <div className="bg-gray-50 rounded-xl p-4">
-                      <h4 className="font-semibold text-gray-900 mb-3">Spot Notes</h4>
+                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                        <span className="text-lg">📍</span>
+                        Spot Notes
+                      </h4>
                       <div className="bg-white rounded-lg p-3 border border-gray-200 whitespace-pre-wrap text-sm text-gray-700">
                         {detail.spot_notes}
                       </div>
@@ -369,7 +378,10 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                   {/* Organizer */}
                   {(detail.organizer_name || detail.all_organizers) && (
                     <div className="bg-gray-50 rounded-xl p-4">
-                      <h4 className="font-semibold text-gray-900 mb-3">Organizer{detail.all_organizers ? 's' : ''}</h4>
+                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                        <span className="text-lg">👤</span>
+                        Organizer{detail.all_organizers ? 's' : ''}
+                      </h4>
                       <div className="space-y-2">
                         {(() => {
                           // Parse all organizers if available, otherwise use single organizer
@@ -391,7 +403,7 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                               </span>
                               <ClickableRiderName 
                                 name={organizer} 
-                                className="text-sm warm-link hover:underline"
+                                className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
                               />
                             </div>
                           ));
@@ -405,7 +417,10 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                     {/* Open Results */}
                     {Array.isArray(detail.open_results) && detail.open_results.length > 0 && (
                       <div className="bg-gray-50 rounded-xl p-4">
-                        <h4 className="font-semibold text-gray-900 mb-3">Open Results ({detail.open_results.length})</h4>
+                        <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                          <span className="text-lg">🏆</span>
+                          Open Results ({detail.open_results.length})
+                        </h4>
                         <div className="space-y-1 max-h-40 overflow-y-auto">
                           {detail.open_results.map((p: any) => (
                             <div key={p.position} className="flex items-center gap-3 p-2 bg-white rounded-lg border border-gray-200">
@@ -418,7 +433,7 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                                 {p.position}
                               </div>
                               <div className="flex-1">
-                                <ClickableRiderName name={p.name} className="font-medium text-gray-900 text-sm hover:text-[var(--warm-accent)] transition-colors duration-200" />
+                                <ClickableRiderName name={p.name} className="font-medium text-gray-900 text-sm hover:text-blue-600 transition-colors duration-200" />
                                 {p.country && (
                                   <div className="text-xs text-gray-500">{p.country}</div>
                                 )}
@@ -432,7 +447,10 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                     {/* Luge Results */}
                     {Array.isArray(detail.luge_results) && detail.luge_results.length > 0 && (
                       <div className="bg-gray-50 rounded-xl p-4">
-                        <h4 className="font-semibold text-gray-900 mb-3">Luge Results ({detail.luge_results.length})</h4>
+                        <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                          <span className="text-lg">🛷</span>
+                          Luge Results ({detail.luge_results.length})
+                        </h4>
                         <div className="space-y-1 max-h-40 overflow-y-auto">
                           {detail.luge_results.map((p: any) => (
                             <div key={p.position} className="flex items-center gap-3 p-2 bg-white rounded-lg border border-gray-200">
@@ -445,7 +463,7 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                                 {p.position}
                               </div>
                               <div className="flex-1">
-                                <ClickableRiderName name={p.name} className="font-medium text-gray-900 text-sm hover:text-[var(--warm-accent)] transition-colors duration-200" />
+                                <ClickableRiderName name={p.name} className="font-medium text-gray-900 text-sm hover:text-blue-600 transition-colors duration-200" />
                                 {p.country && (
                                   <div className="text-xs text-gray-500">{p.country}</div>
                                 )}
@@ -459,7 +477,10 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                     {/* Women Results */}
                     {Array.isArray(detail.woman_results) && detail.woman_results.length > 0 && (
                       <div className="bg-gray-50 rounded-xl p-4">
-                        <h4 className="font-semibold text-gray-900 mb-3">Women Results ({detail.woman_results.length})</h4>
+                        <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                          <span className="text-lg">👩</span>
+                          Women Results ({detail.woman_results.length})
+                        </h4>
                         <div className="space-y-1 max-h-40 overflow-y-auto">
                           {detail.woman_results.map((p: any) => (
                             <div key={p.position} className="flex items-center gap-3 p-2 bg-white rounded-lg border border-gray-200">
@@ -472,7 +493,7 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                                 {p.position}
                               </div>
                               <div className="flex-1">
-                                <ClickableRiderName name={p.name} className="font-medium text-gray-900 text-sm hover:text-[var(--warm-accent)] transition-colors duration-200" />
+                                <ClickableRiderName name={p.name} className="font-medium text-gray-900 text-sm hover:text-blue-600 transition-colors duration-200" />
                                 {p.country && (
                                   <div className="text-xs text-gray-500">{p.country}</div>
                                 )}
@@ -486,7 +507,10 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                     {/* Qualifier Results */}
                     {Array.isArray(detail.qualifier_results) && detail.qualifier_results.length > 0 && (
                       <div className="bg-gray-50 rounded-xl p-4">
-                        <h4 className="font-semibold text-gray-900 mb-3">Qualifiers ({detail.qualifier_results.length})</h4>
+                        <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                          <span className="text-lg">🎯</span>
+                          Qualifiers ({detail.qualifier_results.length})
+                        </h4>
                         <div className="space-y-1 max-h-40 overflow-y-auto">
                           {detail.qualifier_results.map((p: any) => (
                             <div key={p.position} className="flex items-center gap-3 p-2 bg-white rounded-lg border border-gray-200">
@@ -494,7 +518,7 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                                 Q{p.position}
                               </div>
                               <div className="flex-1">
-                                <ClickableRiderName name={p.name} className="font-medium text-gray-900 text-sm hover:text-[var(--warm-accent)] transition-colors duration-200" />
+                                <ClickableRiderName name={p.name} className="font-medium text-gray-900 text-sm hover:text-blue-600 transition-colors duration-200" />
                                 {p.country && (
                                   <div className="text-xs text-gray-500">{p.country}</div>
                                 )}
@@ -513,8 +537,9 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                         href={detail.source_url} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="warm-button px-4 py-2 text-sm font-medium"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors duration-200 text-sm font-medium"
                       >
+                        <span>🔗</span>
                         View Source
                       </a>
                     </div>
@@ -529,7 +554,7 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                             <div className="flex items-start gap-3">
                               <div className="flex-shrink-0">
-                                <span className="text-yellow-700 text-xs font-semibold">Note</span>
+                                <span className="text-yellow-600 text-lg">⚠️</span>
                               </div>
                               <div className="flex-1">
                                 <h4 className="text-sm font-medium text-yellow-800 mb-2">
@@ -597,8 +622,9 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                                     }
                                     router.push(`/submit?${params.toString()}`);
                                   }}
-                                  className="warm-button-secondary px-3 py-2 text-xs font-medium"
+                                  className="inline-flex items-center gap-2 px-3 py-2 bg-yellow-600 text-white text-xs font-medium rounded-lg hover:bg-yellow-700 transition-colors duration-200"
                                 >
+                                  <span>✏️</span>
                                   Submit Missing Details
                                 </button>
                               </div>
@@ -614,7 +640,7 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                   <div className="pt-4 border-t border-gray-200">
                     <button 
                       onClick={() => setSelectedId(null)} 
-                      className="warm-button-secondary w-full px-4 py-2 font-medium"
+                      className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200 font-medium"
                     >
                       Close Details
                     </button>
@@ -628,3 +654,4 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
     </div>
   );
 }
+

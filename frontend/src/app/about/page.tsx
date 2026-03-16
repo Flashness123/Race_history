@@ -1,21 +1,12 @@
 import Link from "next/link";
 
 export default function About() {
-  const features = [
-    "Track Results",
-    "Map Locations",
-    "Rider Profiles",
-    "Race Submissions",
-    "Global Community",
-    "Analytics",
-  ];
-
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[#faf6f1] via-white to-[#f4ece3]">
+    <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
       <div className="max-w-6xl mx-auto px-6 py-12">
         {/* Hero Section */}
         <div className="text-center mb-16">
-          <div className="w-20 h-20 bg-gradient-to-br from-[var(--warm-accent)] to-[var(--warm-accent-dark)] rounded-2xl flex items-center justify-center mx-auto mb-6">
+          <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
             <span className="text-white font-bold text-3xl">D</span>
           </div>
           <h1 className="text-5xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent mb-4">
@@ -31,20 +22,18 @@ export default function About() {
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-8 mb-12">
           <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">What We Do</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((title, i) => (
+            {[
+              { icon: "🏁", title: "Track Results", desc: "Race results and podium finishes" },
+              { icon: "🗺️", title: "Map Locations", desc: "Race locations worldwide" },
+              { icon: "👤", title: "Rider Profiles", desc: "Showcase achievements and stats" },
+              { icon: "📝", title: "Race Submissions", desc: "Platform for community input" },
+              { icon: "🌍", title: "Global Community", desc: "Connect riders and organizers" },
+              { icon: "📊", title: "Analytics", desc: "Track progress and trends" }
+            ].map((item, i) => (
               <div key={i} className="text-center p-6 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors duration-200">
-                <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-[var(--warm-accent-soft)] text-[var(--warm-accent-dark)] flex items-center justify-center font-semibold">
-                  {i + 1}
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
-                <p className="text-gray-600">
-                  {title === "Track Results" && "Race results and podium finishes"}
-                  {title === "Map Locations" && "Race locations worldwide"}
-                  {title === "Rider Profiles" && "Showcase achievements and stats"}
-                  {title === "Race Submissions" && "Platform for community input"}
-                  {title === "Global Community" && "Connect riders and organizers"}
-                  {title === "Analytics" && "Track progress and trends"}
-                </p>
+                <div className="text-4xl mb-4">{item.icon}</div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">{item.title}</h3>
+                <p className="text-gray-600">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -55,22 +44,22 @@ export default function About() {
           <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">How It Works</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-[var(--warm-accent)] to-[var(--warm-accent-dark)] rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-white text-xl font-semibold">1</span>
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-white text-2xl">📝</span>
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">Submit Races</h3>
               <p className="text-gray-600">Registered users can submit race information including location, results, and media.</p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-[var(--warm-accent)] to-[var(--warm-accent-dark)] rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-white text-xl font-semibold">2</span>
+              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-white text-2xl">✅</span>
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">Admin Review</h3>
               <p className="text-gray-600">All submissions are reviewed by administrators to ensure accuracy and quality.</p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-[var(--warm-accent)] to-[var(--warm-accent-dark)] rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-white text-xl font-semibold">3</span>
+              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-white text-2xl">🌍</span>
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">Community Access</h3>
               <p className="text-gray-600">Once approved, races appear on the map and in search results for everyone to discover.</p>
@@ -79,7 +68,7 @@ export default function About() {
         </div>
 
         {/* Community Section */}
-        <div className="bg-gradient-to-r from-[var(--warm-accent)] to-[var(--warm-accent-dark)] rounded-2xl shadow-lg p-8 mb-12 text-white">
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl shadow-lg p-8 mb-12 text-white">
           <div className="text-center">
             <h2 className="text-3xl font-bold mb-4">Our Community</h2>
             <p className="text-xl text-blue-100 max-w-3xl mx-auto mb-8">
@@ -88,11 +77,11 @@ export default function About() {
               helps you discover races, track your progress, and connect with fellow riders.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <div className="px-4 py-2 bg-white/20 rounded-full text-sm font-medium">Racers</div>
-              <div className="px-4 py-2 bg-white/20 rounded-full text-sm font-medium">Organizers</div>
-              <div className="px-4 py-2 bg-white/20 rounded-full text-sm font-medium">Photographers</div>
-              <div className="px-4 py-2 bg-white/20 rounded-full text-sm font-medium">Videographers</div>
-              <div className="px-4 py-2 bg-white/20 rounded-full text-sm font-medium">Fans</div>
+              <div className="px-4 py-2 bg-white/20 rounded-full text-sm font-medium">🏁 Racers</div>
+              <div className="px-4 py-2 bg-white/20 rounded-full text-sm font-medium">🎯 Organizers</div>
+              <div className="px-4 py-2 bg-white/20 rounded-full text-sm font-medium">📸 Photographers</div>
+              <div className="px-4 py-2 bg-white/20 rounded-full text-sm font-medium">🎥 Videographers</div>
+              <div className="px-4 py-2 bg-white/20 rounded-full text-sm font-medium">👥 Fans</div>
             </div>
           </div>
         </div>
@@ -104,7 +93,7 @@ export default function About() {
             <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 mb-6">
               <div className="flex items-start gap-3">
                 <div className="flex-shrink-0">
-                  <span className="text-yellow-600 text-sm font-semibold">Note</span>
+                  <span className="text-yellow-600 text-2xl">⚠️</span>
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-yellow-800 mb-2">Copyright Notice</h3>
@@ -160,13 +149,13 @@ export default function About() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link 
               href="/contact" 
-              className="warm-button px-8 py-3 font-semibold hover-lift"
+              className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 hover-lift"
             >
               Get in Touch
             </Link>
             <Link 
               href="/submit" 
-              className="warm-button-secondary px-8 py-3 font-semibold hover-lift"
+              className="px-8 py-3 bg-white text-gray-700 font-semibold rounded-lg border border-gray-300 hover:bg-gray-50 transition-all duration-200 hover-lift"
             >
               Submit a Race
             </Link>

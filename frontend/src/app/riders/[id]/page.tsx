@@ -34,7 +34,7 @@ export default function RiderProfile() {
     <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 flex items-center justify-center">
       <div className="text-center">
         <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <span className="text-red-600 text-sm font-semibold">!</span>
+          <span className="text-red-600 text-2xl">⚠️</span>
         </div>
         <h1 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Profile</h1>
         <p className="text-gray-600">{err}</p>
@@ -71,19 +71,19 @@ export default function RiderProfile() {
               <div className="flex flex-wrap justify-center md:justify-start gap-4 text-sm text-gray-600">
                 {data.nationality && (
                   <div className="flex items-center gap-1">
-                    <span className="text-xs font-semibold text-[var(--warm-muted)]">Nation</span>
+                    <span>🌍</span>
                     <span>{data.nationality}</span>
                   </div>
                 )}
                 {data.place_of_birth && (
                   <div className="flex items-center gap-1">
-                    <span className="text-xs font-semibold text-[var(--warm-muted)]">Base</span>
+                    <span>📍</span>
                     <span>{data.place_of_birth}</span>
                   </div>
                 )}
                 {data.date_of_birth && (
                   <div className="flex items-center gap-1">
-                    <span className="text-xs font-semibold text-[var(--warm-muted)]">Born</span>
+                    <span>🎂</span>
                     <span>{data.date_of_birth}</span>
                   </div>
                 )}
@@ -102,7 +102,7 @@ export default function RiderProfile() {
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-8 mb-8">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
-              <span className="text-white text-sm font-semibold">Top</span>
+              <span className="text-white text-lg">🏆</span>
             </div>
             <h2 className="text-2xl font-bold text-gray-900">Achievements</h2>
             {data.achievements?.length > 0 && (
@@ -116,7 +116,7 @@ export default function RiderProfile() {
             {!data.achievements?.length ? (
               <div className="text-center py-12">
                 <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-sm font-semibold text-[var(--warm-accent-dark)]">Top</span>
+                  <span className="text-2xl">🏆</span>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">No Achievements Yet</h3>
                 <p className="text-gray-600">This rider hasn't participated in any races yet.</p>
@@ -132,8 +132,8 @@ export default function RiderProfile() {
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-gray-900 mb-1">{achievement.event_name}</h3>
                       <div className="flex items-center gap-4 text-sm text-gray-600">
-                        <span>Year {achievement.year}</span>
-                        <span>Location {achievement.location}</span>
+                        <span>📅 {achievement.year}</span>
+                        <span>📍 {achievement.location}</span>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                           achievement.category === 'OPEN' ? 'bg-blue-100 text-blue-800' :
                           achievement.category === 'LUGE' ? 'bg-green-100 text-green-800' :
@@ -156,7 +156,7 @@ export default function RiderProfile() {
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-8 mb-8">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-pink-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-sm font-semibold">Vid</span>
+              <span className="text-white text-lg">🎥</span>
             </div>
             <h2 className="text-2xl font-bold text-gray-900">Videos</h2>
             {videosData && (
@@ -165,7 +165,7 @@ export default function RiderProfile() {
                   {videosData.total_videos} video{videosData.total_videos !== 1 ? 's' : ''}
                 </span>
                 <span className="px-3 py-1 bg-red-100 text-red-600 rounded-full text-sm font-medium">
-                  {videosData.total_likes} like{videosData.total_likes !== 1 ? 's' : ''}
+                  ❤️ {videosData.total_likes} like{videosData.total_likes !== 1 ? 's' : ''}
                 </span>
               </div>
             )}
@@ -175,7 +175,7 @@ export default function RiderProfile() {
             {videosErr ? (
               <div className="text-center py-12">
                 <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-red-600 text-sm font-semibold">!</span>
+                  <span className="text-red-600 text-2xl">⚠️</span>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Videos</h3>
                 <p className="text-gray-600">{videosErr}</p>
@@ -189,7 +189,7 @@ export default function RiderProfile() {
             ) : !videosData.videos?.length ? (
               <div className="text-center py-12">
                 <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-sm font-semibold text-[var(--warm-accent-dark)]">Vid</span>
+                  <span className="text-2xl">🎥</span>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">No Videos Yet</h3>
                 <p className="text-gray-600">This rider hasn't uploaded any videos yet.</p>
@@ -212,8 +212,11 @@ export default function RiderProfile() {
                         <p className="text-sm text-gray-600 mb-2 line-clamp-2">{video.description}</p>
                       )}
                       <div className="flex items-center gap-4 text-sm text-gray-500">
-                        <span>{video.like_count} like{video.like_count !== 1 ? 's' : ''}</span>
-                        <span>{new Date(video.created_at).toLocaleDateString()}</span>
+                        <span className="flex items-center gap-1">
+                          <span>❤️</span>
+                          <span>{video.like_count} like{video.like_count !== 1 ? 's' : ''}</span>
+                        </span>
+                        <span>📅 {new Date(video.created_at).toLocaleDateString()}</span>
                       </div>
                     </div>
                     
@@ -222,8 +225,9 @@ export default function RiderProfile() {
                         href={video.youtube_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="warm-button px-4 py-2 text-sm font-medium"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 text-sm font-medium"
                       >
+                        <span>▶️</span>
                         <span>Watch</span>
                       </a>
                     </div>
