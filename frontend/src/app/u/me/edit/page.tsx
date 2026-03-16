@@ -70,10 +70,7 @@ export default function EditMyBio() {
     <main className="max-w-4xl mx-auto p-6">
       {/* Header */}
       <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8 mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-          <span>✏️</span>
-          Edit My Bio
-        </h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-6">Edit My Bio</h1>
         
         {/* Profile Image Section */}
         <div className="flex items-center gap-6 p-6 bg-gray-50 rounded-xl border border-gray-200">
@@ -85,8 +82,7 @@ export default function EditMyBio() {
           <div className="flex-1">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Profile Picture</h3>
             <p className="text-sm text-gray-600 mb-3">Upload a new profile picture to represent yourself</p>
-            <label className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200 cursor-pointer shadow-md hover:shadow-lg">
-              <span>📷</span>
+            <label className="warm-button px-4 py-2 font-medium cursor-pointer shadow-md hover:shadow-lg">
               <span>{uploadBusy ? "Uploading..." : "Change Profile Image"}</span>
               <input 
                 type="file" 
@@ -103,10 +99,7 @@ export default function EditMyBio() {
       <form onSubmit={save} className="space-y-6">
         {/* Personal Information */}
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-            <span>👤</span>
-            Personal Information
-          </h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">Personal Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <label className="space-y-2">
               <span className="text-sm font-medium text-gray-700">Nationality (ISO-2)</span>
@@ -161,16 +154,10 @@ export default function EditMyBio() {
 
         {/* Social Media */}
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-            <span>🌐</span>
-            Social Media
-          </h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">Social Media</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <label className="space-y-2">
-              <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                <span>📷</span>
-                Instagram
-              </span>
+              <span className="text-sm font-medium text-gray-700">Instagram</span>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">@</span>
                 <input 
@@ -182,10 +169,7 @@ export default function EditMyBio() {
               </div>
             </label>
             <label className="space-y-2">
-              <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                <span>📘</span>
-                Facebook
-              </span>
+              <span className="text-sm font-medium text-gray-700">Facebook</span>
               <input 
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
                 value={form.facebook} 
@@ -194,10 +178,7 @@ export default function EditMyBio() {
               />
             </label>
             <label className="space-y-2">
-              <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                <span>📺</span>
-                YouTube
-              </span>
+              <span className="text-sm font-medium text-gray-700">YouTube</span>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">@</span>
                 <input 
@@ -209,10 +190,7 @@ export default function EditMyBio() {
               </div>
             </label>
             <label className="space-y-2">
-              <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                <span>🎵</span>
-                TikTok
-              </span>
+              <span className="text-sm font-medium text-gray-700">TikTok</span>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">@</span>
                 <input 
@@ -228,10 +206,7 @@ export default function EditMyBio() {
 
         {/* Message */}
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-            <span>💬</span>
-            Message to Riders
-          </h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">Message to Riders</h2>
           <label className="space-y-2">
             <span className="text-sm font-medium text-gray-700">Share a message with the racing community</span>
             <textarea 
@@ -252,13 +227,13 @@ export default function EditMyBio() {
             <button 
               type="button"
               onClick={() => window.history.back()}
-              className="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200"
+              className="warm-button-secondary px-6 py-3 font-medium"
             >
               Cancel
             </button>
             <button 
               type="submit"
-              className="px-8 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200 shadow-md hover:shadow-lg"
+              className="warm-button px-8 py-3 font-medium shadow-md hover:shadow-lg"
             >
               Save Changes
             </button>
@@ -270,7 +245,7 @@ export default function EditMyBio() {
       {ok && (
         <div className="fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-6 py-3 rounded-lg shadow-lg z-50">
           <div className="flex items-center gap-2">
-            <span>✅</span>
+            <span className="text-sm font-semibold">OK</span>
             <span>{ok}</span>
           </div>
         </div>
@@ -278,7 +253,7 @@ export default function EditMyBio() {
       {err && (
         <div className="fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-6 py-3 rounded-lg shadow-lg z-50">
           <div className="flex items-center gap-2">
-            <span>❌</span>
+            <span className="text-sm font-semibold">!</span>
             <span>{err}</span>
           </div>
         </div>

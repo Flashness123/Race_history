@@ -146,7 +146,7 @@ export default function MediaPage() {
       </div>
       
       <div className="p-4">
-        <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors duration-200">
+        <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-[var(--warm-accent)] transition-colors duration-200">
           {video.title}
         </h3>
         {video.description && (
@@ -161,8 +161,8 @@ export default function MediaPage() {
           </div>
           
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <span className="eyebrow text-[10px]">Likes</span>
+            <div className="flex items-center gap-1 text-sm text-gray-600">
+              <span className="text-xs font-semibold text-[var(--warm-muted)]">Likes</span>
               <span>{video.like_count}</span>
             </div>
             
@@ -186,11 +186,11 @@ export default function MediaPage() {
 
   if (loading) {
     return (
-      <main className="page-shell">
+      <main className="min-h-screen bg-gradient-to-br from-[#faf6f1] via-white to-[#f4ece3]">
         <div className="max-w-7xl mx-auto px-6 py-8">
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
-              <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+              <div className="w-16 h-16 border-4 border-[#eadccf] border-t-[var(--warm-accent)] rounded-full animate-spin mx-auto mb-4"></div>
               <p className="text-gray-600">Loading media...</p>
             </div>
           </div>
@@ -200,29 +200,28 @@ export default function MediaPage() {
   }
 
   return (
-    <main className="page-shell">
+    <main className="min-h-screen bg-gradient-to-br from-[#faf6f1] via-white to-[#f4ece3]">
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="text-center mb-12">
-          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border border-[var(--border-strong)] bg-[var(--accent)]">
-            <span className="eyebrow text-[10px] text-[var(--paper-strong)]">Media</span>
+          <div className="w-20 h-20 bg-gradient-to-br from-[var(--warm-accent)] to-[var(--warm-accent-dark)] rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <span className="text-white font-bold text-xl">DR</span>
           </div>
-          <p className="eyebrow mb-3">Community footage</p>
-          <h1 className="mb-2 text-4xl font-semibold text-[var(--ink)]">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-[var(--warm-accent)] to-[var(--warm-accent-dark)] bg-clip-text text-transparent mb-2">
             Media Gallery
           </h1>
-          <p className="mb-6 text-[var(--ink-soft)]">Discover the best downhill longboard videos from the community.</p>
+          <p className="text-gray-600 mb-6">Discover the best downhill longboard videos from the community</p>
           
           {me.authenticated ? (
             <button
               onClick={() => setShowUploadForm(!showUploadForm)}
-              className="button-ink px-6 py-3 font-semibold"
+              className="warm-button px-6 py-3 font-semibold hover-lift"
             >
               {showUploadForm ? 'Cancel Upload' : 'Upload Video'}
             </button>
           ) : (
-            <div className="inline-flex items-center rounded-full border border-[var(--border)] bg-white/50 px-4 py-2">
-              <span className="text-sm text-[var(--ink-soft)]">
+            <div className="inline-flex items-center px-4 py-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <span className="text-yellow-800 text-sm">
                 Sign in to upload videos
               </span>
             </div>
@@ -231,7 +230,7 @@ export default function MediaPage() {
 
         {/* Upload Form */}
         {showUploadForm && me.authenticated && (
-          <div className="surface-card-strong mb-12 rounded-[1.75rem] p-8">
+          <div className="mb-12 bg-white rounded-2xl shadow-lg border border-gray-200/50 p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Upload Video</h2>
             
             <form onSubmit={handleUpload} className="space-y-6">
@@ -240,7 +239,7 @@ export default function MediaPage() {
                 <input
                   type="text"
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg transition-all duration-200"
                   placeholder="Enter video title"
                   value={uploadForm.title}
                   onChange={(e) => setUploadForm(prev => ({ ...prev, title: e.target.value }))}
@@ -250,7 +249,7 @@ export default function MediaPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Description (optional)</label>
                 <textarea
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg transition-all duration-200"
                   placeholder="Enter video description"
                   rows={3}
                   value={uploadForm.description}
@@ -263,7 +262,7 @@ export default function MediaPage() {
                 <input
                   type="url"
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg transition-all duration-200"
                   placeholder="https://youtube.com/watch?v=..."
                   value={uploadForm.youtube_url}
                   onChange={(e) => setUploadForm(prev => ({ ...prev, youtube_url: e.target.value }))}
@@ -274,7 +273,7 @@ export default function MediaPage() {
                 <button
                   type="submit"
                   disabled={uploading}
-                  className="button-ink px-6 py-3 font-semibold disabled:cursor-not-allowed disabled:opacity-60"
+                  className="warm-button px-6 py-3 font-semibold disabled:opacity-60 disabled:cursor-not-allowed hover-lift"
                 >
                   {uploading ? (
                     <div className="flex items-center gap-2">
@@ -298,10 +297,10 @@ export default function MediaPage() {
             
             {uploadError && (
               <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-6 w-6 items-center justify-center rounded-full border border-[rgba(143,89,77,0.18)] bg-[rgba(143,89,77,0.08)]">
-                    <span className="eyebrow text-[8px] text-[var(--danger)]">!</span>
-                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center">
+                      <span className="text-red-600 text-sm font-semibold">!</span>
+                    </div>
                   <p className="text-red-800 font-medium">{uploadError}</p>
                 </div>
               </div>
@@ -322,10 +321,10 @@ export default function MediaPage() {
 
         {error && (
           <div className="mb-8 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <div className="flex items-center gap-3">
-                  <div className="flex h-6 w-6 items-center justify-center rounded-full border border-[rgba(143,89,77,0.18)] bg-[rgba(143,89,77,0.08)]">
-                <span className="eyebrow text-[8px] text-[var(--danger)]">!</span>
-                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center">
+                      <span className="text-red-600 text-sm font-semibold">!</span>
+                    </div>
               <p className="text-red-800 font-medium">{error}</p>
             </div>
           </div>
@@ -335,7 +334,7 @@ export default function MediaPage() {
         {allVideos.length >= 3 && (
           <div className="mb-16">
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-semibold text-gray-900 mb-2">Top videos</h2>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">Top 3 Videos</h2>
               <p className="text-gray-600">The most liked videos from the community</p>
             </div>
             
@@ -360,7 +359,7 @@ export default function MediaPage() {
                   <div className="flex flex-col items-center">
                     <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl shadow-xl border-2 border-yellow-300 p-4 mb-2 w-72">
                       <div className="text-center">
-                        <div className="text-xl font-bold text-yellow-600 mb-2">🥇 1st Place</div>
+                        <div className="text-xl font-bold text-yellow-600 mb-2">1st Place</div>
                         <VideoCard video={allVideos[0]} isPodium={true} position={1} />
                         <div className="text-sm text-gray-500 mt-2">{allVideos[0].like_count} likes</div>
                       </div>
@@ -421,15 +420,15 @@ export default function MediaPage() {
         {/* Empty State */}
         {allVideos.length === 0 && !loading && (
           <div className="text-center py-12">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-[var(--border)] bg-white/55">
-              <span className="eyebrow text-[10px]">Media</span>
+            <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-sm font-semibold text-[var(--warm-accent-dark)]">Media</span>
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">No videos yet</h3>
             <p className="text-gray-600 mb-6">Be the first to share a video with the community!</p>
             {me.authenticated && (
               <button
                 onClick={() => setShowUploadForm(true)}
-                className="button-ink px-6 py-3 font-semibold"
+                className="warm-button px-6 py-3 font-semibold hover-lift"
               >
                 Upload First Video
               </button>

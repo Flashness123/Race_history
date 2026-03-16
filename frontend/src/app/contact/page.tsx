@@ -22,7 +22,7 @@ export default function Contact() {
 
   if (submitted) {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 flex items-center justify-center px-6">
+      <main className="min-h-screen bg-gradient-to-br from-[#faf6f1] via-white to-[#f4ece3] flex items-center justify-center px-6">
         <div className="w-full max-w-md text-center">
           <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-8">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -34,7 +34,7 @@ export default function Contact() {
             </p>
             <button 
               onClick={() => setSubmitted(false)}
-              className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 hover-lift"
+              className="warm-button w-full px-6 py-3 font-semibold hover-lift"
             >
               Send Another Message
             </button>
@@ -45,12 +45,12 @@ export default function Contact() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
+    <main className="min-h-screen bg-gradient-to-br from-[#faf6f1] via-white to-[#f4ece3]">
       <div className="max-w-4xl mx-auto px-6 py-12">
         {/* Header */}
         <div className="text-center mb-12">
-          <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <span className="text-white font-bold text-3xl">📧</span>
+          <div className="w-20 h-20 bg-gradient-to-br from-[var(--warm-accent)] to-[var(--warm-accent-dark)] rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <span className="text-white font-bold text-xl">DR</span>
           </div>
           <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent mb-4">
             Contact Us
@@ -69,7 +69,7 @@ export default function Contact() {
               <div className="space-y-6">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-blue-600 text-xl">💬</span>
+                    <span className="text-blue-600 text-xs font-semibold">Info</span>
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-1">General Inquiries</h3>
@@ -78,7 +78,7 @@ export default function Contact() {
                 </div>
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-green-600 text-xl">🏁</span>
+                    <span className="text-green-600 text-xs font-semibold">Race</span>
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-1">Race Submissions</h3>
@@ -87,7 +87,7 @@ export default function Contact() {
                 </div>
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-purple-600 text-xl">🔧</span>
+                    <span className="text-purple-600 text-xs font-semibold">Tech</span>
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-1">Technical Support</h3>
@@ -165,12 +165,9 @@ export default function Contact() {
                 
                 <button
                   type="submit"
-                  className="w-full px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 hover-lift"
+                  className="warm-button w-full px-8 py-4 font-semibold hover-lift"
                 >
-                  <div className="flex items-center justify-center gap-2">
-                    <span>📤</span>
-                    <span>Send Message</span>
-                  </div>
+                  Send Message
                 </button>
               </form>
             </div>

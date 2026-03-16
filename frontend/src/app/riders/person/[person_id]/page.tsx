@@ -44,7 +44,7 @@ export default function UnregisteredRiderProfile() {
     <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 flex items-center justify-center">
       <div className="text-center">
         <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <span className="text-red-600 text-2xl">⚠️</span>
+          <span className="text-red-600 text-sm font-semibold">!</span>
         </div>
         <h1 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Profile</h1>
         <p className="text-gray-600">{err}</p>
@@ -81,19 +81,19 @@ export default function UnregisteredRiderProfile() {
               <div className="flex flex-wrap justify-center md:justify-start gap-4 text-sm text-gray-600">
                 {data.nationality && (
                   <div className="flex items-center gap-1">
-                    <span>🌍</span>
+                    <span className="text-xs font-semibold text-[var(--warm-muted)]">Nation</span>
                     <span>{data.nationality}</span>
                   </div>
                 )}
                 {data.place_of_birth && (
                   <div className="flex items-center gap-1">
-                    <span>📍</span>
+                    <span className="text-xs font-semibold text-[var(--warm-muted)]">Base</span>
                     <span>{data.place_of_birth}</span>
                   </div>
                 )}
                 {data.date_of_birth && (
                   <div className="flex items-center gap-1">
-                    <span>🎂</span>
+                    <span className="text-xs font-semibold text-[var(--warm-muted)]">Born</span>
                     <span>{data.date_of_birth}</span>
                   </div>
                 )}
@@ -108,7 +108,7 @@ export default function UnregisteredRiderProfile() {
               {/* Unregistered Notice */}
               <div className="mt-4 p-4 bg-amber-50 rounded-lg border border-amber-200">
                 <div className="flex items-center gap-2">
-                  <span className="text-amber-600 text-lg">ℹ️</span>
+                  <span className="text-amber-700 text-xs font-semibold">Info</span>
                   <div>
                     <p className="text-amber-800 font-medium">Unregistered Rider</p>
                     <p className="text-amber-700 text-sm">
@@ -125,7 +125,7 @@ export default function UnregisteredRiderProfile() {
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-8 mb-8">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
-              <span className="text-white text-lg">🏆</span>
+              <span className="text-white text-sm font-semibold">Top</span>
             </div>
             <h2 className="text-2xl font-bold text-gray-900">Achievements</h2>
             {data.achievements?.length > 0 && (
@@ -139,7 +139,7 @@ export default function UnregisteredRiderProfile() {
             {!data.achievements?.length ? (
               <div className="text-center py-12">
                 <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl">🏆</span>
+                  <span className="text-sm font-semibold text-[var(--warm-accent-dark)]">Top</span>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">No Achievements Yet</h3>
                 <p className="text-gray-600">This rider hasn't participated in any races yet.</p>
@@ -155,8 +155,8 @@ export default function UnregisteredRiderProfile() {
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-gray-900 mb-1">{achievement.event_name}</h3>
                       <div className="flex items-center gap-4 text-sm text-gray-600">
-                        <span>📅 {achievement.year}</span>
-                        <span>📍 {achievement.location}</span>
+                        <span>Year {achievement.year}</span>
+                        <span>Location {achievement.location}</span>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                           achievement.category === 'OPEN' ? 'bg-blue-100 text-blue-800' :
                           achievement.category === 'LUGE' ? 'bg-green-100 text-green-800' :
@@ -179,7 +179,7 @@ export default function UnregisteredRiderProfile() {
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl p-6">
           <div className="text-center">
             <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-white text-2xl">👥</span>
+              <span className="text-white text-sm font-semibold">Join</span>
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-3">
               Know This Rider?
@@ -191,15 +191,15 @@ export default function UnregisteredRiderProfile() {
             <div className="flex justify-center gap-4">
               <a
                 href="/register"
-                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                className="warm-button px-6 py-3 font-semibold"
               >
-                🚀 Register Now
+                Register Now
               </a>
               <a
                 href="/login"
-                className="px-6 py-3 bg-white text-gray-700 font-semibold rounded-lg border border-gray-300 hover:bg-gray-50 transition-all duration-200"
+                className="warm-button-secondary px-6 py-3 font-semibold"
               >
-                🔑 Sign In
+                Sign In
               </a>
             </div>
           </div>

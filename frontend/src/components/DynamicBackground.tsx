@@ -144,10 +144,10 @@ export default function DynamicBackground({ filters }: DynamicBackgroundProps) {
       />
 
       {/* Overlay for better content readability */}
-      <div className="absolute inset-0 bg-[rgba(36,27,21,0.38)]"></div>
+      <div className="absolute inset-0 bg-black/40"></div>
       
       {/* Subtle gradient overlay for better text contrast */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(248,242,234,0.3),transparent_34%),linear-gradient(180deg,rgba(28,20,15,0.12)_0%,rgba(28,20,15,0.34)_100%)]"></div>
+      <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/30"></div>
       
       {/* Category indicator for multiple images */}
       {imagesToShow.length > 1 && (

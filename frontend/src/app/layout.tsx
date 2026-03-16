@@ -22,7 +22,7 @@ export const metadata: Metadata = { title: "Downhill Radar" };
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${manrope.variable} ${plexMono.variable} min-h-screen flex flex-col bg-[var(--background)] text-[var(--foreground)]`}>
+      <body className={`${manrope.variable} ${plexMono.variable} min-h-screen bg-[var(--background)] text-[var(--foreground)] flex flex-col`}>
         <Header />
         <main className="flex-1">
           {children}

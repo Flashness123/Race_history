@@ -36,16 +36,16 @@ export default function YearBar() {
   };
 
   return (
-    <nav className="sticky top-0 z-40 border-b border-[var(--border)] bg-[rgba(248,242,234,0.72)] backdrop-blur-xl">
+    <nav className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[var(--warm-border)] shadow-sm">
       <div className="max-w-7xl mx-auto px-6 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <span className="eyebrow">Season</span>
+            <span className="text-sm font-medium text-[var(--warm-muted)]">Year:</span>
             
             {/* Left Arrow */}
             <button
               onClick={handlePreviousYears}
-              className="button-soft h-10 w-10 p-0 text-[var(--ink-soft)]"
+              className="p-2 rounded-lg text-[var(--warm-muted)] hover:bg-[var(--warm-accent-soft)] hover:text-[var(--warm-accent-dark)] transition-all duration-200 hover-lift"
               title="Previous years"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -59,10 +59,10 @@ export default function YearBar() {
                 <Link
                   key={y}
                   href={`/?year=${y}`}
-                  className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ${
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover-lift ${
                     y === selected
-                      ? "bg-[var(--accent)] text-[var(--paper-strong)] shadow-[0_18px_30px_rgba(24,19,15,0.12)]"
-                      : "border border-[var(--border)] bg-white/50 text-[var(--ink-soft)] hover:bg-white/75 hover:text-[var(--ink)]"
+                      ? "bg-gradient-to-r from-[var(--warm-accent)] to-[var(--warm-accent-dark)] text-white shadow-md"
+                      : "bg-[#f7f0e8] text-[var(--warm-muted)] hover:bg-[var(--warm-accent-soft)] hover:text-[var(--foreground)]"
                   }`}
                   prefetch={false}
                 >
@@ -74,7 +74,7 @@ export default function YearBar() {
             {/* Right Arrow */}
             <button
               onClick={handleNextYears}
-              className="button-soft h-10 w-10 p-0 text-[var(--ink-soft)]"
+              className="p-2 rounded-lg text-[var(--warm-muted)] hover:bg-[var(--warm-accent-soft)] hover:text-[var(--warm-accent-dark)] transition-all duration-200 hover-lift"
               title="Next years"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -83,8 +83,8 @@ export default function YearBar() {
             </button>
           </div>
           
-          <div className="hidden items-center space-x-2 text-xs text-[var(--muted)] md:flex">
-            <span className="eyebrow text-[10px]">Navigate years</span>
+          <div className="flex items-center space-x-2 text-xs text-[var(--warm-muted)]">
+            <span>Navigate through years</span>
           </div>
         </div>
       </div>
