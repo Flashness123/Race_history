@@ -2,6 +2,11 @@
 import { useEffect, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+import {
+  DEFAULT_MAP_CENTER,
+  MAP_STYLE_URL,
+  PICKER_MAP_ZOOM,
+} from "@/lib/map-config";
 
 export default function MapPicker({
   lat,
@@ -15,7 +20,16 @@ export default function MapPicker({
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const markerRef = useRef<maplibregl.Marker | null>(null);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
+  const onPickRef = useRef(onPick);
+  const mapReadyRef = useRef(false);
   const [mounted, setMounted] = useState(false);
+  const [mapReady, setMapReady] = useState(false);
+  const [mapError, setMapError] = useState<string | null>(null);
+
+  useEffect(() => {
+    onPickRef.current = onPick;
+  }, [onPick]);
 
   useEffect(() => {
     setMounted(true);
@@ -26,10 +40,14 @@ export default function MapPicker({
 
     const map = new maplibregl.Map({
       container: mapContainer.current,
-      style: "https://tiles.stadiamaps.com/styles/alidade_smooth.json",
-      center: [lng, lat],
-      zoom: 6,
+      style: MAP_STYLE_URL,
+      center: [lng || DEFAULT_MAP_CENTER.lng, lat || DEFAULT_MAP_CENTER.lat],
+      zoom: PICKER_MAP_ZOOM,
     });
+
+    const handleResize = () => {
+      map.resize();
+    };
 
     map.addControl(new maplibregl.NavigationControl(), "top-right");
 
@@ -39,26 +57,78 @@ export default function MapPicker({
 
     marker.on("dragend", () => {
       const { lng, lat } = marker.getLngLat();
-      onPick(lat, lng);
+      onPickRef.current(lat, lng);
     });
 
     map.on("click", (e) => {
       marker.setLngLat(e.lngLat);
-      onPick(e.lngLat.lat, e.lngLat.lng);
+      onPickRef.current(e.lngLat.lat, e.lngLat.lng);
     });
+
+    map.on("load", () => {
+      mapReadyRef.current = true;
+      setMapReady(true);
+      setMapError(null);
+      requestAnimationFrame(handleResize);
+      window.setTimeout(handleResize, 150);
+    });
+
+    map.on("error", (event) => {
+      console.error("Map picker failed to load", event.error);
+      if (!mapReadyRef.current) {
+        setMapError(
+          "The basemap could not be loaded. You can still search or type coordinates, but the map tiles are unavailable right now."
+        );
+      }
+    });
+
+    window.addEventListener("resize", handleResize);
 
     mapRef.current = map;
     markerRef.current = marker;
 
-    return () => map.remove();
-  }, [mounted]);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      mapReadyRef.current = false;
+      setMapReady(false);
+      marker.remove();
+      map.remove();
+      mapRef.current = null;
+      markerRef.current = null;
+    };
+  }, [lat, lng, mounted]);
 
   // Update marker if props change
   useEffect(() => {
     if (markerRef.current) {
       markerRef.current.setLngLat([lng, lat]);
     }
+
+    if (mapRef.current && mapReadyRef.current) {
+      mapRef.current.setCenter([lng, lat]);
+    }
   }, [lat, lng]);
+
+  async function searchLocation() {
+    const q = searchInputRef.current?.value.trim() || "";
+    if (!q) return;
+
+    const resp = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}`
+    );
+    const items = await resp.json();
+    if (!Array.isArray(items) || items.length === 0) return;
+
+    const best = items[0];
+    const nextLat = Number(best.lat);
+    const nextLng = Number(best.lon);
+
+    if (mapRef.current && markerRef.current) {
+      mapRef.current.flyTo({ center: [nextLng, nextLat], zoom: 10 });
+      markerRef.current.setLngLat([nextLng, nextLat]);
+      onPickRef.current(nextLat, nextLng);
+    }
+  }
 
   if (!mounted) {
     return <div className="w-full h-[300px] rounded-lg shadow border bg-gray-100" />;
@@ -68,47 +138,40 @@ export default function MapPicker({
     <div className="grid gap-2">
       <div className="flex gap-2">
         <input
+          ref={searchInputRef}
           className="border rounded p-2 flex-1"
           placeholder="Search place (OpenStreetMap)"
           onKeyDown={async (e) => {
             // prevent submitting the outer form when pressing Enter
             if (e.key === "Enter") e.preventDefault();
             if (e.key !== "Enter") return;
-            const q = (e.target as HTMLInputElement).value.trim();
-            if (!q) return;
-            const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}`);
-            const items = await resp.json();
-            if (!Array.isArray(items) || items.length === 0) return;
-            const best = items[0];
-            const lat = Number(best.lat); const lng = Number(best.lon);
-            if (mapRef.current && markerRef.current) {
-              mapRef.current.flyTo({ center: [lng, lat], zoom: 10 });
-              markerRef.current.setLngLat([lng, lat]);
-              onPick(lat, lng);
-            }
+            await searchLocation();
           }}
         />
         <button
           type="button"
           className="px-3 py-2 border rounded"
-          onClick={async (e) => {
-            const input = (e.currentTarget.previousSibling as HTMLInputElement) as HTMLInputElement | null;
-            const q = input?.value?.trim() || "";
-            if (!q) return;
-            const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}`);
-            const items = await resp.json();
-            if (!Array.isArray(items) || items.length === 0) return;
-            const best = items[0];
-            const lat = Number(best.lat); const lng = Number(best.lon);
-            if (mapRef.current && markerRef.current) {
-              mapRef.current.flyTo({ center: [lng, lat], zoom: 10 });
-              markerRef.current.setLngLat([lng, lat]);
-              onPick(lat, lng);
-            }
-          }}
-        >Search</button>
+          onClick={searchLocation}
+        >
+          Search
+        </button>
       </div>
-      <div ref={mapContainer} className="w-full h-[300px] rounded-lg shadow border" />
+      {mapError && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          {mapError}
+        </div>
+      )}
+      <div className="relative">
+        <div
+          ref={mapContainer}
+          className="w-full h-[300px] rounded-lg shadow border bg-gray-100"
+        />
+        {!mapReady && !mapError && (
+          <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-white/70 text-sm font-medium text-gray-600 backdrop-blur-sm">
+            Loading map...
+          </div>
+        )}
+      </div>
     </div>
   );
 }

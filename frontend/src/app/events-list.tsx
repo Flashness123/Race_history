@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import ClickableRiderName from "@/components/ClickableRiderName";
+import { getMissingEventInfo } from "@/lib/event-completeness";
 
 interface Event {
   id: number;
@@ -20,11 +21,10 @@ interface ClientEventsListProps {
 
 interface EventMissingInfoProps {
   eventId: number;
-  eventName: string;
 }
 
 // Component to display missing information for each event
-function EventMissingInfo({ eventId, eventName }: EventMissingInfoProps) {
+function EventMissingInfo({ eventId }: EventMissingInfoProps) {
   const router = useRouter();
   const [eventDetails, setEventDetails] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -46,36 +46,6 @@ function EventMissingInfo({ eventId, eventName }: EventMissingInfoProps) {
     fetchDetails();
   }, [eventId]);
 
-  // Function to detect missing information
-  const getMissingInfo = (event: any) => {
-    if (!event) return [];
-    
-    const missing: string[] = [];
-    
-    if (!event.date_from) missing.push("Start Date");
-    if (!event.date_to) missing.push("End Date");
-    
-    // Check track records - if any are missing, show "Track record incomplete"
-    const hasAnyTrackRecord = (event.track_record_open_name && event.track_record_open_time) ||
-                             (event.track_record_luge_name && event.track_record_luge_time) ||
-                             (event.track_record_woman_name && event.track_record_woman_time);
-    if (!hasAnyTrackRecord) missing.push("Track record incomplete");
-    
-    // Check rider results - if any are missing, show "Top riders incomplete"
-    const hasAnyRiderResults = (event.open_results && event.open_results.length > 0) ||
-                              (event.luge_results && event.luge_results.length > 0) ||
-                              (event.woman_results && event.woman_results.length > 0);
-    if (!hasAnyRiderResults) missing.push("Top riders incomplete");
-    
-    // Check qualifiers separately
-    if (!event.qualifier_results || event.qualifier_results.length === 0) missing.push("Qualifier Results");
-    
-    // Check organizer
-    if (!event.organizer_name) missing.push("Organizer");
-    
-    return missing;
-  };
-
   if (loading) {
     return (
       <div className="mt-3 p-2 bg-gray-50 rounded-lg">
@@ -84,7 +54,7 @@ function EventMissingInfo({ eventId, eventName }: EventMissingInfoProps) {
     );
   }
 
-  const missingInfo = getMissingInfo(eventDetails);
+  const missingInfo = getMissingEventInfo(eventDetails);
   
   if (missingInfo.length === 0) {
     return null; // Don't show anything if no missing info
@@ -113,6 +83,7 @@ function EventMissingInfo({ eventId, eventName }: EventMissingInfoProps) {
                 date_from: eventDetails?.date_from || '',
                 date_to: eventDetails?.date_to || '',
                 source_url: eventDetails?.source_url || '',
+                event_description: eventDetails?.description || '',
                 track_record_open_name: eventDetails?.track_record_open_name || '',
                 track_record_open_time: eventDetails?.track_record_open_time || '',
                 track_record_luge_name: eventDetails?.track_record_luge_name || '',
@@ -120,6 +91,7 @@ function EventMissingInfo({ eventId, eventName }: EventMissingInfoProps) {
                 track_record_woman_name: eventDetails?.track_record_woman_name || '',
                 track_record_woman_time: eventDetails?.track_record_woman_time || '',
                 organizer_name: eventDetails?.organizer_name || '',
+                spot_notes: eventDetails?.spot_notes || '',
               });
               
               // Add rider data
@@ -176,34 +148,6 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
   const [eventDetails, setEventDetails] = useState<any>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [eventDetailsCache, setEventDetailsCache] = useState<{[key: number]: any}>({});
-
-  // Function to detect missing information
-  const getMissingInfo = (event: any) => {
-    const missing: string[] = [];
-    
-    if (!event.date_from) missing.push("Start Date");
-    if (!event.date_to) missing.push("End Date");
-    
-    // Check track records - if any are missing, show "Track record incomplete"
-    const hasAnyTrackRecord = (event.track_record_open_name && event.track_record_open_time) ||
-                             (event.track_record_luge_name && event.track_record_luge_time) ||
-                             (event.track_record_woman_name && event.track_record_woman_time);
-    if (!hasAnyTrackRecord) missing.push("Track record incomplete");
-    
-    // Check rider results - if any are missing, show "Top riders incomplete"
-    const hasAnyRiderResults = (event.open_results && event.open_results.length > 0) ||
-                              (event.luge_results && event.luge_results.length > 0) ||
-                              (event.woman_results && event.woman_results.length > 0);
-    if (!hasAnyRiderResults) missing.push("Top riders incomplete");
-    
-    // Check qualifiers separately
-    if (!event.qualifier_results || event.qualifier_results.length === 0) missing.push("Qualifier Results");
-    
-    // Check organizer
-    if (!event.organizer_name) missing.push("Organizer");
-    
-    return missing;
-  };
 
   useEffect(() => {
     async function fetchEvents() {
@@ -419,7 +363,31 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
                   </div>
 
                   {/* Missing Information Section */}
-                  <EventMissingInfo eventId={selectedEvent.id} eventName={selectedEvent.name} />
+                  <EventMissingInfo eventId={selectedEvent.id} />
+
+                  {eventDetails.description && (
+                    <div className="bg-gray-50 rounded-xl p-6">
+                      <h4 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <span>📝</span>
+                        Event Description
+                      </h4>
+                      <div className="bg-white rounded-lg p-4 border border-gray-200 whitespace-pre-wrap text-gray-700">
+                        {eventDetails.description}
+                      </div>
+                    </div>
+                  )}
+
+                  {eventDetails.spot_notes && (
+                    <div className="bg-gray-50 rounded-xl p-6">
+                      <h4 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <span>📍</span>
+                        Spot Notes
+                      </h4>
+                      <div className="bg-white rounded-lg p-4 border border-gray-200 whitespace-pre-wrap text-gray-700">
+                        {eventDetails.spot_notes}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Track Records */}
                   {(eventDetails.track_record_open_name || eventDetails.track_record_luge_name || eventDetails.track_record_woman_name) && (
@@ -574,7 +542,7 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
                           {eventDetails.qualifier_results.map((result: any) => (
                             <div key={result.position} className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
                               <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white bg-gradient-to-br from-green-500 to-teal-600">
-                                Q{result.position - 100}
+                                Q{result.position}
                               </div>
                               <div className="flex-1">
                                 <ClickableRiderName name={result.name} className="font-medium text-gray-900 hover:text-blue-600 transition-colors duration-200" />

@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+import { MAP_STYLE_URL } from "@/lib/map-config";
 
 export default function Map({ geojson, onSelect, filters }: { geojson: any, onSelect?: (id: number | null) => void, filters?: { SPOT: boolean; WDSC: boolean; EURO: boolean; FREERIDE: boolean; IDF: boolean; OUTLAW: boolean; NATIONAL: boolean; RACE: boolean } }) {
   const mapContainer = useRef<HTMLDivElement | null>(null);
@@ -14,7 +15,7 @@ export default function Map({ geojson, onSelect, filters }: { geojson: any, onSe
 
     const map = new maplibregl.Map({
       container: mapContainer.current!,
-      style: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json", // 🌍 Streets + labels
+      style: MAP_STYLE_URL,
       center: [14.42076, 50.08804], // default Prague
       zoom: 5,
     });

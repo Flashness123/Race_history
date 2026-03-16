@@ -38,6 +38,8 @@ class RaceEvent(Base):
     # Multiple categories and organizers
     all_categories: Mapped[str | None] = mapped_column(Text)  # JSON string of all categories
     all_organizers: Mapped[str | None] = mapped_column(Text)  # JSON string of all organizers
+    description: Mapped[str | None] = mapped_column(Text)
+    spot_notes: Mapped[str | None] = mapped_column(Text)
     # Track record fields
     track_record_open_name: Mapped[str | None] = mapped_column(String(200))
     track_record_open_time: Mapped[str | None] = mapped_column(String(50))

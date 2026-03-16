@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 // Mapping categories to background images
 const CATEGORY_IMAGES = {
@@ -13,14 +13,25 @@ const CATEGORY_IMAGES = {
   RACE: '/backgrounds/race.jpg' // General racing
 } as const;
 
-// Additional images that could be used for rotation or special events
-const ADDITIONAL_IMAGES = [
-  '/backgrounds/knk.jpg',
-  '/backgrounds/knk_redbull.jpg', 
-  '/backgrounds/luge.jpg'
-];
-
 const DEFAULT_IMAGE = '/backgrounds/race.jpg'; // Default fallback
+const TRANSITION_MS = 900;
+const loadedImages = new Set<string>();
+
+function preloadImage(src: string) {
+  if (typeof window === "undefined" || loadedImages.has(src)) {
+    return Promise.resolve();
+  }
+
+  return new Promise<void>((resolve) => {
+    const img = new window.Image();
+    img.onload = () => {
+      loadedImages.add(src);
+      resolve();
+    };
+    img.onerror = () => resolve();
+    img.src = src;
+  });
+}
 
 interface DynamicBackgroundProps {
   filters: {
@@ -37,16 +48,30 @@ interface DynamicBackgroundProps {
 
 export default function DynamicBackground({ filters }: DynamicBackgroundProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [baseImage, setBaseImage] = useState(DEFAULT_IMAGE);
+  const [overlayImage, setOverlayImage] = useState<string | null>(null);
+  const [overlayVisible, setOverlayVisible] = useState(false);
   
   // Get active categories and their corresponding images
-  const activeCategories = Object.entries(filters)
-    .filter(([_, isActive]) => isActive)
-    .map(([category]) => category as keyof typeof CATEGORY_IMAGES);
-  
-  const activeImages = activeCategories.map(category => CATEGORY_IMAGES[category]);
-  
+  const activeCategories = useMemo(
+    () =>
+      Object.entries(filters)
+        .filter(([, isActive]) => isActive)
+        .map(([category]) => category as keyof typeof CATEGORY_IMAGES),
+    [filters]
+  );
+
+  const activeImages = useMemo(
+    () => activeCategories.map((category) => CATEGORY_IMAGES[category]),
+    [activeCategories]
+  );
+
   // Use default image if no categories are active
-  const imagesToShow = activeImages.length > 0 ? activeImages : [DEFAULT_IMAGE];
+  const imagesToShow = useMemo(
+    () => (activeImages.length > 0 ? activeImages : [DEFAULT_IMAGE]),
+    [activeImages]
+  );
+  const imagesKey = useMemo(() => imagesToShow.join("|"), [imagesToShow]);
   
   // Auto-rotate images when multiple are active
   useEffect(() => {
@@ -60,21 +85,69 @@ export default function DynamicBackground({ filters }: DynamicBackgroundProps) {
     }, 4000); // Change every 4 seconds
     
     return () => clearInterval(interval);
-  }, [imagesToShow.length]);
-  
-  const currentImage = imagesToShow[currentImageIndex] || DEFAULT_IMAGE;
+  }, [imagesKey, imagesToShow.length]);
+
+  useEffect(() => {
+    if (currentImageIndex < imagesToShow.length) return;
+    setCurrentImageIndex(0);
+  }, [currentImageIndex, imagesToShow.length]);
+
+  useEffect(() => {
+    imagesToShow.forEach((image) => {
+      void preloadImage(image);
+    });
+  }, [imagesToShow]);
+
+  useEffect(() => {
+    const targetImage = imagesToShow[currentImageIndex] || DEFAULT_IMAGE;
+    if (targetImage === baseImage) return;
+
+    let cancelled = false;
+    let timeoutId: number | undefined;
+
+    void preloadImage(targetImage).then(() => {
+      if (cancelled) return;
+
+      setOverlayImage(targetImage);
+      requestAnimationFrame(() => {
+        if (!cancelled) {
+          setOverlayVisible(true);
+        }
+      });
+
+      timeoutId = window.setTimeout(() => {
+        if (cancelled) return;
+        setBaseImage(targetImage);
+        setOverlayImage(null);
+        setOverlayVisible(false);
+      }, TRANSITION_MS);
+    });
+
+    return () => {
+      cancelled = true;
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
+      }
+    };
+  }, [baseImage, currentImageIndex, imagesToShow]);
   
   return (
-    <div 
-      className="fixed inset-0 transition-all duration-1000 ease-in-out"
-      style={{
-        backgroundImage: `url(${currentImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        zIndex: -1
-      }}
-    >
+    <div className="fixed inset-0 -z-10 overflow-hidden">
+      <div
+        className={`absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-[900ms] ease-in-out ${
+          overlayImage && overlayVisible ? "opacity-0" : "opacity-100"
+        }`}
+        style={{ backgroundImage: `url(${baseImage})` }}
+      />
+      {overlayImage && (
+        <div
+          className={`absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-[900ms] ease-in-out ${
+            overlayVisible ? "opacity-100" : "opacity-0"
+          }`}
+          style={{ backgroundImage: `url(${overlayImage})` }}
+        />
+      )}
+
       {/* Overlay for better content readability */}
       <div className="absolute inset-0 bg-black/40"></div>
       

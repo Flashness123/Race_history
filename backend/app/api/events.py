@@ -19,7 +19,9 @@ def events_by_year(year: int, db: Session = Depends(get_db)):
             RaceEvent.date_from,
             RaceEvent.date_to,
             RaceEvent.organizer_name,
-            RaceEvent.all_organizers
+            RaceEvent.all_organizers,
+            RaceEvent.description,
+            RaceEvent.spot_notes,
         ).where(RaceEvent.year == year).order_by(RaceEvent.name.asc())
     ).all()
     return [
@@ -34,6 +36,8 @@ def events_by_year(year: int, db: Session = Depends(get_db)):
             "date_to": r[7].isoformat() if r[7] else None,
             "organizer_name": r[8],
             "all_organizers": r[9],
+            "description": r[10],
+            "spot_notes": r[11],
             "year": year
         } 
         for r in rows
@@ -108,6 +112,8 @@ def event_detail(event_id: int, db: Session = Depends(get_db)):
         "organizer_results": organizer_results,
         "organizer_name": ev.organizer_name,
         "all_organizers": ev.all_organizers,
+        "description": ev.description,
+        "spot_notes": ev.spot_notes,
         "track_record_open_name": ev.track_record_open_name,
         "track_record_open_time": ev.track_record_open_time,
         "track_record_luge_name": ev.track_record_luge_name,
