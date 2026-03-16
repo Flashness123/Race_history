@@ -4,11 +4,25 @@ import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { MAP_STYLE_URL } from "@/lib/map-config";
+import {
+  CategoryFilters,
+  DateFilterMode,
+  getFilteredGeojson,
+} from "@/lib/event-filters";
 
-export default function Map({ geojson, onSelect, filters }: { geojson: any, onSelect?: (id: number | null) => void, filters?: { SPOT: boolean; WDSC: boolean; EURO: boolean; FREERIDE: boolean; IDF: boolean; OUTLAW: boolean; NATIONAL: boolean; RACE: boolean } }) {
+export default function Map({
+  geojson,
+  onSelect,
+  filters,
+  dateFilter = "all",
+}: {
+  geojson: any;
+  onSelect?: (id: number | null) => void;
+  filters?: CategoryFilters;
+  dateFilter?: DateFilterMode;
+}) {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
-
 
   useEffect(() => {
     if (!mapContainer.current || mapRef.current) return;
@@ -26,56 +40,7 @@ export default function Map({ geojson, onSelect, filters }: { geojson: any, onSe
     map.addControl(new maplibregl.NavigationControl(), "top-right");
 
     map.on("load", () => {
-      // Optionally filter features by category and add display category
-      const filtered = {
-        ...geojson,
-        features: geojson.features
-          .map((f: any) => {
-            if (!filters) {
-              return {
-                ...f,
-                properties: {
-                  ...f.properties,
-                  display_category: f.properties?.category || "WDSC"
-                }
-              };
-            }
-            
-            // Get all categories for this event
-            let categories: string[] = [];
-            
-            // Try to parse all_categories first
-            if (f.properties?.all_categories) {
-              try {
-                categories = JSON.parse(f.properties.all_categories);
-              } catch (e) {
-                // Fallback to single category
-                categories = [f.properties?.category || "WDSC"];
-              }
-            } else {
-              // Fallback to single category
-              categories = [f.properties?.category || "WDSC"];
-            }
-            
-            // Check if any of the event's categories are still selected
-            const visible = categories.some(cat => Boolean((filters as any)[cat]));
-            
-            if (visible) {
-              // Get the first selected category for display color
-              const displayCategory = categories.find(cat => Boolean((filters as any)[cat])) || categories[0];
-              
-              return {
-                ...f,
-                properties: {
-                  ...f.properties,
-                  display_category: displayCategory
-                }
-              };
-            }
-            return null;
-          })
-          .filter((f: any) => f !== null)
-      };
+      const filtered = getFilteredGeojson(geojson, filters, dateFilter) as any;
 
       map.addSource("races", {
         type: "geojson",
@@ -151,58 +116,10 @@ export default function Map({ geojson, onSelect, filters }: { geojson: any, onSe
   useEffect(() => {
     const m = mapRef.current;
     if (m && m.isStyleLoaded() && m.getSource("races")) {
-      const filtered = {
-        ...geojson,
-        features: geojson.features
-          .map((f: any) => {
-            if (!filters) {
-              return {
-                ...f,
-                properties: {
-                  ...f.properties,
-                  display_category: f.properties?.category || "WDSC"
-                }
-              };
-            }
-            
-            // Get all categories for this event
-            let categories: string[] = [];
-            
-            // Try to parse all_categories first
-            if (f.properties?.all_categories) {
-              try {
-                categories = JSON.parse(f.properties.all_categories);
-              } catch (e) {
-                // Fallback to single category
-                categories = [f.properties?.category || "WDSC"];
-              }
-            } else {
-              // Fallback to single category
-              categories = [f.properties?.category || "WDSC"];
-            }
-            
-            // Check if any of the event's categories are still selected
-            const visible = categories.some(cat => Boolean((filters as any)[cat]));
-            
-            if (visible) {
-              // Get the first selected category for display color
-              const displayCategory = categories.find(cat => Boolean((filters as any)[cat])) || categories[0];
-              
-              return {
-                ...f,
-                properties: {
-                  ...f.properties,
-                  display_category: displayCategory
-                }
-              };
-            }
-            return null;
-          })
-          .filter((f: any) => f !== null)
-      };
+      const filtered = getFilteredGeojson(geojson, filters, dateFilter) as any;
       (m.getSource("races") as maplibregl.GeoJSONSource).setData(filtered);
     }
-  }, [geojson, filters]);
+  }, [geojson, filters, dateFilter]);
 
   return <div ref={mapContainer} className="w-full h-[70vh] rounded-lg shadow" />;
 }

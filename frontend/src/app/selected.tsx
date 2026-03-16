@@ -4,12 +4,15 @@ import Map from "@/components/Map";
 import { useRouter } from "next/navigation";
 import ClickableRiderName from "@/components/ClickableRiderName";
 import { getMissingEventInfo } from "@/lib/event-completeness";
-
-type Filters = {SPOT:boolean;WDSC:boolean;EURO:boolean;FREERIDE:boolean;IDF:boolean;OUTLAW:boolean;NATIONAL:boolean;RACE:boolean};
+import {
+  CategoryFilters,
+  DateFilterMode,
+  getFilteredFeature,
+} from "@/lib/event-filters";
 
 interface ClientSelectedProps {
   geojson: any;
-  onFiltersChange?: (filters: Filters) => void;
+  onFiltersChange?: (filters: CategoryFilters) => void;
 }
 
 export default function ClientSelected({ geojson, onFiltersChange }: ClientSelectedProps) {
@@ -18,7 +21,8 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
   const [detail, setDetail] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const [filters, setFilters] = useState<Filters>({ SPOT: true, WDSC: true, EURO: true, FREERIDE: true, IDF: true, OUTLAW: true, NATIONAL: true, RACE: true });
+  const [filters, setFilters] = useState<CategoryFilters>({ SPOT: true, WDSC: true, EURO: true, FREERIDE: true, IDF: true, OUTLAW: true, NATIONAL: true, RACE: true });
+  const [dateFilter, setDateFilter] = useState<DateFilterMode>("all");
 
   const onSelect = useCallback((id: number | null) => {
     setSelectedId(id);
@@ -28,6 +32,26 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
   useEffect(() => {
     onFiltersChange?.(filters);
   }, [filters, onFiltersChange]);
+
+  useEffect(() => {
+    if (!selectedId) return;
+
+    const selectedFeature = (geojson?.features ?? []).find(
+      (feature: any) => Number(feature.properties?.id) === selectedId
+    );
+
+    if (!selectedFeature) {
+      setSelectedId(null);
+      setDetail(null);
+      return;
+    }
+
+    if (!getFilteredFeature(selectedFeature, filters, dateFilter)) {
+      setSelectedId(null);
+      setDetail(null);
+      setErr(null);
+    }
+  }, [dateFilter, filters, geojson, selectedId]);
 
   useEffect(() => {
     let alive = true;
@@ -196,12 +220,27 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
             <span className="text-sm font-medium text-teal-600 transition-colors duration-200">Race Events</span>
           </label>
         </div>
+        <div className="flex items-center gap-2 sm:ml-auto">
+          <label htmlFor="date-filter" className="text-sm font-medium text-gray-700">
+            Start date:
+          </label>
+          <select
+            id="date-filter"
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value as DateFilterMode)}
+            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+          >
+            <option value="all">All</option>
+            <option value="future">Future</option>
+            <option value="past">Past</option>
+          </select>
+        </div>
       </div>
 
       {/* Map and Details Layout */}
       <div className={`grid gap-6 transition-[grid-template-columns] duration-300 ease-out`} style={{ gridTemplateColumns: selectedId ? "1fr 400px" : "1fr" }}>
         <div className="rounded-xl overflow-hidden shadow-lg border border-gray-200/50">
-          <Map geojson={geojson} onSelect={onSelect} filters={filters} />
+          <Map geojson={geojson} onSelect={onSelect} filters={filters} dateFilter={dateFilter} />
         </div>
         
         {selectedId && (
@@ -654,4 +693,3 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
     </div>
   );
 }
-
