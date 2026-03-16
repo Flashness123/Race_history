@@ -37,7 +37,7 @@ function HomeContent() {
         setLoading(true);
         const [racesData, topData] = await Promise.all([
           fetchRaces(year),
-          fetch(`${process.env.NEXT_PUBLIC_API_BASE}/bio/top`).then(res => res.ok ? res.json() : [])
+          fetch("/api/bio/top", { cache: "no-store" }).then(res => res.ok ? res.json() : [])
         ]);
         setGeojson(racesData);
         setTop(topData);

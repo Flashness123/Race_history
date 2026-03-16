@@ -1,11 +1,5 @@
 export async function fetchRaces(year: number) {
-  const base = process.env.NEXT_PUBLIC_API_BASE;
-  if (!base) {
-    console.error('NEXT_PUBLIC_API_BASE is not configured');
-    return { type: "FeatureCollection", features: [] };
-  }
-  
-  const res = await fetch(`${base}/races?year=${year}`, { cache: "no-store" });
+  const res = await fetch(`/api/races?year=${year}`, { cache: "no-store" });
   if (!res.ok) {
     const text = await res.text();
     let errorData: any;

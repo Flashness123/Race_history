@@ -11,14 +11,20 @@ export default function RegisterPage() {
     setErr(null);
     setOk(null);
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/auth/register`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
+    let res: Response;
+    try {
+      res = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+    } catch {
+      setErr("Registration service unavailable. Please try again.");
+      return;
+    }
 
     if (!res.ok) {
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       // Handle both string errors and validation error arrays
       if (typeof data.detail === 'string') {
         setErr(data.detail);
