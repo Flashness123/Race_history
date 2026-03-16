@@ -57,19 +57,19 @@ export function matchesDateFilter(
 
   const rawDate = properties?.date_from;
   if (!rawDate) {
-    return true;
+    return false;
   }
 
-  const startDate = new Date(rawDate);
-  if (Number.isNaN(startDate.getTime())) {
-    return true;
+  const match = String(rawDate).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!match) {
+    return false;
   }
 
-  startDate.setHours(0, 0, 0, 0);
+  const startDate = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const isFuture = startDate.getTime() > today.getTime();
+  const isFuture = startDate.getTime() >= today.getTime();
   return dateFilter === "future" ? isFuture : !isFuture;
 }
 

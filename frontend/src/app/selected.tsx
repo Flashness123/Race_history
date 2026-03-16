@@ -10,6 +10,28 @@ import {
   getFilteredFeature,
 } from "@/lib/event-filters";
 
+const CATEGORY_FILTER_OPTIONS: Array<{
+  key: keyof CategoryFilters;
+  label: string;
+  activeClassName: string;
+  dotClassName: string;
+}> = [
+  { key: "WDSC", label: "WDSC", activeClassName: "border-orange-300 bg-orange-50 text-orange-700", dotClassName: "bg-orange-500" },
+  { key: "EURO", label: "Euro", activeClassName: "border-blue-300 bg-blue-50 text-blue-700", dotClassName: "bg-blue-500" },
+  { key: "FREERIDE", label: "Freeride", activeClassName: "border-green-300 bg-green-50 text-green-700", dotClassName: "bg-green-500" },
+  { key: "IDF", label: "IDF", activeClassName: "border-purple-300 bg-purple-50 text-purple-700", dotClassName: "bg-purple-500" },
+  { key: "SPOT", label: "Spots", activeClassName: "border-gray-300 bg-gray-100 text-gray-700", dotClassName: "bg-gray-500" },
+  { key: "OUTLAW", label: "Outlaw", activeClassName: "border-red-300 bg-red-50 text-red-700", dotClassName: "bg-red-500" },
+  { key: "NATIONAL", label: "National", activeClassName: "border-amber-300 bg-amber-50 text-amber-700", dotClassName: "bg-amber-500" },
+  { key: "RACE", label: "Race", activeClassName: "border-teal-300 bg-teal-50 text-teal-700", dotClassName: "bg-teal-500" },
+];
+
+const DATE_FILTER_OPTIONS: Array<{ value: DateFilterMode; label: string }> = [
+  { value: "all", label: "All" },
+  { value: "future", label: "Future" },
+  { value: "past", label: "Past" },
+];
+
 interface ClientSelectedProps {
   geojson: any;
   onFiltersChange?: (filters: CategoryFilters) => void;
@@ -72,168 +94,67 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
   return (
     <div className="space-y-6">
       {/* Filter Controls */}
-      <div className="flex flex-wrap items-center gap-4 p-4 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 shadow-sm">
-        <span className="text-sm font-medium text-gray-700">Filter by category:</span>
-        <div className="flex flex-wrap gap-3">
-          <label className="flex items-center gap-2 cursor-pointer group">
-            <input 
-              type="checkbox" 
-              checked={filters.WDSC} 
-              onChange={e=>setFilters(f=>({...f, WDSC:e.target.checked}))}
-              className="w-4 h-4 text-orange-600 bg-gray-100 border-orange-300 rounded focus:ring-orange-500 focus:ring-2 checked:bg-orange-600 checked:border-orange-600 focus:outline-none appearance-none relative"
-              style={{
-                accentColor: 'transparent',
-                WebkitAppearance: 'none',
-                MozAppearance: 'none',
-                backgroundImage: filters.WDSC ? 'url("data:image/svg+xml,%3csvg viewBox=\'0 0 16 16\' fill=\'white\' xmlns=\'http://www.w3.org/2000/svg\'%3e%3cpath d=\'m13.854 3.646-7.5 7.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6 10.293l7.146-7.147a.5.5 0 0 1 .708.708z\'/%3e%3c/svg%3e")' : 'none',
-                backgroundSize: '12px 12px',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat'
-              }}
-            />
-            <span className="text-sm font-medium text-orange-600 transition-colors duration-200">WDSC Events</span>
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer group">
-            <input 
-              type="checkbox" 
-              checked={filters.EURO} 
-              onChange={e=>setFilters(f=>({...f, EURO:e.target.checked}))}
-              className="w-4 h-4 text-blue-600 bg-gray-100 border-blue-300 rounded focus:ring-blue-500 focus:ring-2 checked:bg-blue-600 checked:border-blue-600 focus:outline-none appearance-none relative"
-              style={{
-                accentColor: 'transparent',
-                WebkitAppearance: 'none',
-                MozAppearance: 'none',
-                backgroundImage: filters.EURO ? 'url("data:image/svg+xml,%3csvg viewBox=\'0 0 16 16\' fill=\'white\' xmlns=\'http://www.w3.org/2000/svg\'%3e%3cpath d=\'m13.854 3.646-7.5 7.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6 10.293l7.146-7.147a.5.5 0 0 1 .708.708z\'/%3e%3c/svg%3e")' : 'none',
-                backgroundSize: '12px 12px',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat'
-              }}
-            />
-            <span className="text-sm font-medium text-blue-600 transition-colors duration-200">Euro Tour</span>
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer group">
-            <input 
-              type="checkbox" 
-              checked={filters.FREERIDE} 
-              onChange={e=>setFilters(f=>({...f, FREERIDE:e.target.checked}))}
-              className="w-4 h-4 text-green-600 bg-gray-100 border-green-300 rounded focus:ring-green-500 focus:ring-2 checked:bg-green-600 checked:border-green-600 focus:outline-none appearance-none relative"
-              style={{
-                accentColor: 'transparent',
-                WebkitAppearance: 'none',
-                MozAppearance: 'none',
-                backgroundImage: filters.FREERIDE ? 'url("data:image/svg+xml,%3csvg viewBox=\'0 0 16 16\' fill=\'white\' xmlns=\'http://www.w3.org/2000/svg\'%3e%3cpath d=\'m13.854 3.646-7.5 7.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6 10.293l7.146-7.147a.5.5 0 0 1 .708.708z\'/%3e%3c/svg%3e")' : 'none',
-                backgroundSize: '12px 12px',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat'
-              }}
-            />
-            <span className="text-sm font-medium text-green-600 transition-colors duration-200">Freerides</span>
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer group">
-            <input 
-              type="checkbox" 
-              checked={filters.IDF} 
-              onChange={e=>setFilters(f=>({...f, IDF:e.target.checked}))}
-              className="w-4 h-4 text-purple-600 bg-gray-100 border-purple-300 rounded focus:ring-purple-500 focus:ring-2 checked:bg-purple-600 checked:border-purple-600 focus:outline-none appearance-none relative"
-              style={{
-                accentColor: 'transparent',
-                WebkitAppearance: 'none',
-                MozAppearance: 'none',
-                backgroundImage: filters.IDF ? 'url("data:image/svg+xml,%3csvg viewBox=\'0 0 16 16\' fill=\'white\' xmlns=\'http://www.w3.org/2000/svg\'%3e%3cpath d=\'m13.854 3.646-7.5 7.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6 10.293l7.146-7.147a.5.5 0 0 1 .708.708z\'/%3e%3c/svg%3e")' : 'none',
-                backgroundSize: '12px 12px',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat'
-              }}
-            />
-            <span className="text-sm font-medium text-purple-600 transition-colors duration-200">IDF Events</span>
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer group">
-            <input 
-              type="checkbox" 
-              checked={filters.SPOT} 
-              onChange={e=>setFilters(f=>({...f, SPOT:e.target.checked}))}
-              className="w-4 h-4 text-gray-600 bg-gray-100 border-gray-300 rounded focus:ring-gray-500 focus:ring-2 checked:bg-gray-600 checked:border-gray-600 focus:outline-none appearance-none relative"
-              style={{
-                accentColor: 'transparent',
-                WebkitAppearance: 'none',
-                MozAppearance: 'none',
-                backgroundImage: filters.SPOT ? 'url("data:image/svg+xml,%3csvg viewBox=\'0 0 16 16\' fill=\'white\' xmlns=\'http://www.w3.org/2000/svg\'%3e%3cpath d=\'m13.854 3.646-7.5 7.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6 10.293l7.146-7.147a.5.5 0 0 1 .708.708z\'/%3e%3c/svg%3e")' : 'none',
-                backgroundSize: '12px 12px',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat'
-              }}
-            />
-            <span className="text-sm font-medium text-gray-600 transition-colors duration-200">Spots</span>
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer group">
-            <input 
-              type="checkbox" 
-              checked={filters.OUTLAW} 
-              onChange={e=>setFilters(f=>({...f, OUTLAW:e.target.checked}))}
-              className="w-4 h-4 text-red-600 bg-gray-100 border-red-300 rounded focus:ring-red-500 focus:ring-2 checked:bg-red-600 checked:border-red-600 focus:outline-none appearance-none relative"
-              style={{
-                accentColor: 'transparent',
-                WebkitAppearance: 'none',
-                MozAppearance: 'none',
-                backgroundImage: filters.OUTLAW ? 'url("data:image/svg+xml,%3csvg viewBox=\'0 0 16 16\' fill=\'white\' xmlns=\'http://www.w3.org/2000/svg\'%3e%3cpath d=\'m13.854 3.646-7.5 7.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6 10.293l7.146-7.147a.5.5 0 0 1 .708.708z\'/%3e%3c/svg%3e")' : 'none',
-                backgroundSize: '12px 12px',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat'
-              }}
-            />
-            <span className="text-sm font-medium text-red-600 transition-colors duration-200">Outlaw Events</span>
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer group">
-            <input 
-              type="checkbox" 
-              checked={filters.NATIONAL} 
-              onChange={e=>setFilters(f=>({...f, NATIONAL:e.target.checked}))}
-              className="w-4 h-4 text-yellow-600 bg-gray-100 border-yellow-300 rounded focus:ring-yellow-500 focus:ring-2 checked:bg-yellow-600 checked:border-yellow-600 focus:outline-none appearance-none relative"
-              style={{
-                accentColor: 'transparent',
-                WebkitAppearance: 'none',
-                MozAppearance: 'none',
-                backgroundImage: filters.NATIONAL ? 'url("data:image/svg+xml,%3csvg viewBox=\'0 0 16 16\' fill=\'white\' xmlns=\'http://www.w3.org/2000/svg\'%3e%3cpath d=\'m13.854 3.646-7.5 7.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6 10.293l7.146-7.147a.5.5 0 0 1 .708.708z\'/%3e%3c/svg%3e")' : 'none',
-                backgroundSize: '12px 12px',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat'
-              }}
-            />
-            <span className="text-sm font-medium text-yellow-600 transition-colors duration-200">National Championships</span>
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer group">
-            <input 
-              type="checkbox" 
-              checked={filters.RACE} 
-              onChange={e=>setFilters(f=>({...f, RACE:e.target.checked}))}
-              className="w-4 h-4 text-teal-600 bg-gray-100 border-teal-300 rounded focus:ring-teal-500 focus:ring-2 checked:bg-teal-600 checked:border-teal-600 focus:outline-none appearance-none relative"
-              style={{
-                accentColor: 'transparent',
-                WebkitAppearance: 'none',
-                MozAppearance: 'none',
-                backgroundImage: filters.RACE ? 'url("data:image/svg+xml,%3csvg viewBox=\'0 0 16 16\' fill=\'white\' xmlns=\'http://www.w3.org/2000/svg\'%3e%3cpath d=\'m13.854 3.646-7.5 7.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6 10.293l7.146-7.147a.5.5 0 0 1 .708.708z\'/%3e%3c/svg%3e")' : 'none',
-                backgroundSize: '12px 12px',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat'
-              }}
-            />
-            <span className="text-sm font-medium text-teal-600 transition-colors duration-200">Race Events</span>
-          </label>
-        </div>
-        <div className="flex items-center gap-2 sm:ml-auto">
-          <label htmlFor="date-filter" className="text-sm font-medium text-gray-700">
-            Start date:
-          </label>
-          <select
-            id="date-filter"
-            value={dateFilter}
-            onChange={(e) => setDateFilter(e.target.value as DateFilterMode)}
-            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-          >
-            <option value="all">All</option>
-            <option value="future">Future</option>
-            <option value="past">Past</option>
-          </select>
+      <div className="rounded-2xl border border-gray-200/60 bg-white/88 p-5 shadow-sm backdrop-blur-sm">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+          <div className="space-y-3">
+            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
+              Category
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {CATEGORY_FILTER_OPTIONS.map((option) => {
+                const active = filters[option.key];
+                return (
+                  <button
+                    key={option.key}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() =>
+                      setFilters((current) => ({
+                        ...current,
+                        [option.key]: !current[option.key],
+                      }))
+                    }
+                    className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-medium transition-all duration-200 ${
+                      active
+                        ? `${option.activeClassName} shadow-sm`
+                        : "border-gray-200 bg-white text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                    }`}
+                  >
+                    <span className={`h-2.5 w-2.5 rounded-full ${active ? option.dotClassName : "bg-gray-300"}`} />
+                    <span>{option.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <div className="space-y-3 lg:min-w-[280px] lg:max-w-[320px]">
+            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
+              Start Date
+            </div>
+            <div className="inline-flex rounded-full bg-stone-100 p-1 shadow-inner">
+              {DATE_FILTER_OPTIONS.map((option) => {
+                const active = dateFilter === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => setDateFilter(option.value)}
+                    className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ${
+                      active
+                        ? "bg-gray-900 text-white shadow-sm"
+                        : "text-gray-600 hover:text-gray-900"
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-xs text-gray-500">
+              Filters use each event&apos;s start date. Spots remain visible in every mode.
+            </p>
+          </div>
         </div>
       </div>
 
