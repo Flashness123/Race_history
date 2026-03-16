@@ -14,7 +14,6 @@ const CATEGORY_IMAGES = {
 } as const;
 
 const DEFAULT_IMAGE = '/backgrounds/race.jpg'; // Default fallback
-const TRANSITION_MS = 900;
 const loadedImages = new Set<string>();
 
 function preloadImage(src: string) {
@@ -48,9 +47,11 @@ interface DynamicBackgroundProps {
 
 export default function DynamicBackground({ filters }: DynamicBackgroundProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [baseImage, setBaseImage] = useState(DEFAULT_IMAGE);
-  const [overlayImage, setOverlayImage] = useState<string | null>(null);
-  const [overlayVisible, setOverlayVisible] = useState(false);
+  const [layerImages, setLayerImages] = useState<[string, string]>([
+    DEFAULT_IMAGE,
+    DEFAULT_IMAGE,
+  ]);
+  const [visibleLayer, setVisibleLayer] = useState(0);
   
   // Get active categories and their corresponding images
   const activeCategories = useMemo(
@@ -100,51 +101,47 @@ export default function DynamicBackground({ filters }: DynamicBackgroundProps) {
 
   useEffect(() => {
     const targetImage = imagesToShow[currentImageIndex] || DEFAULT_IMAGE;
-    if (targetImage === baseImage) return;
+    const currentVisibleImage = layerImages[visibleLayer];
+    if (targetImage === currentVisibleImage) return;
 
     let cancelled = false;
-    let timeoutId: number | undefined;
+    const hiddenLayer = visibleLayer === 0 ? 1 : 0;
 
     void preloadImage(targetImage).then(() => {
       if (cancelled) return;
 
-      setOverlayImage(targetImage);
-      requestAnimationFrame(() => {
-        if (!cancelled) {
-          setOverlayVisible(true);
-        }
+      setLayerImages((previous) => {
+        const next = [...previous] as [string, string];
+        next[hiddenLayer] = targetImage;
+        return next;
       });
 
-      timeoutId = window.setTimeout(() => {
-        if (cancelled) return;
-        setBaseImage(targetImage);
-        setOverlayImage(null);
-        setOverlayVisible(false);
-      }, TRANSITION_MS);
+      requestAnimationFrame(() => {
+        if (!cancelled) {
+          setVisibleLayer(hiddenLayer);
+        }
+      });
     });
 
     return () => {
       cancelled = true;
-      if (timeoutId) {
-        window.clearTimeout(timeoutId);
-      }
     };
-  }, [baseImage, currentImageIndex, imagesToShow]);
+  }, [currentImageIndex, imagesToShow, layerImages, visibleLayer]);
   
   return (
     <div className="fixed inset-0 -z-10 overflow-hidden">
       <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${baseImage})` }}
+        className={`absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-[900ms] ease-in-out ${
+          visibleLayer === 0 ? "opacity-100" : "opacity-0"
+        }`}
+        style={{ backgroundImage: `url(${layerImages[0]})` }}
       />
-      {overlayImage && (
-        <div
-          className={`absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-[900ms] ease-in-out ${
-            overlayVisible ? "opacity-100" : "opacity-0"
-          }`}
-          style={{ backgroundImage: `url(${overlayImage})` }}
-        />
-      )}
+      <div
+        className={`absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-[900ms] ease-in-out ${
+          visibleLayer === 1 ? "opacity-100" : "opacity-0"
+        }`}
+        style={{ backgroundImage: `url(${layerImages[1]})` }}
+      />
 
       {/* Overlay for better content readability */}
       <div className="absolute inset-0 bg-black/40"></div>
