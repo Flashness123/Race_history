@@ -2,25 +2,25 @@ import Link from "next/link";
 
 export default function About() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
+    <main className="min-h-screen" style={{ background: "var(--ink)" }}>
       <div className="max-w-6xl mx-auto px-6 py-12">
         {/* Hero Section */}
         <div className="text-center mb-16">
-          <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <span className="text-white font-bold text-3xl">D</span>
+          <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ background: "var(--accent)" }}>
+            <span className="font-bold text-3xl" style={{ color: "var(--paper)", fontFamily: "var(--font-display)" }}>D</span>
           </div>
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent mb-4">
+          <h1 className="text-5xl font-bold mb-4" style={{ color: "var(--paper)", fontFamily: "var(--font-display)" }}>
             About Downhill Radar
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            A comprehensive platform for tracking and discovering downhill longboard races around the world. 
+          <p className="text-xl max-w-3xl mx-auto" style={{ color: "var(--muted)" }}>
+            A comprehensive platform for tracking and discovering downhill longboard races around the world.
             Our mission is to preserve the history of the sport and connect the global downhill community.
           </p>
         </div>
 
         {/* What We Do Section */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-8 mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">What We Do</h2>
+        <div className="rounded-2xl border p-8 mb-12" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
+          <h2 className="text-3xl font-bold mb-8 text-center" style={{ color: "var(--paper)", fontFamily: "var(--font-display)" }}>What We Do</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
               { icon: "🏁", title: "Track Results", desc: "Race results and podium finishes" },
@@ -30,86 +30,74 @@ export default function About() {
               { icon: "🌍", title: "Global Community", desc: "Connect riders and organizers" },
               { icon: "📊", title: "Analytics", desc: "Track progress and trends" }
             ].map((item, i) => (
-              <div key={i} className="text-center p-6 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors duration-200">
+              <div key={i} className="text-center p-6 rounded-xl transition-colors duration-200" style={{ background: "var(--surface-raised)", border: "1px solid var(--border)" }}>
                 <div className="text-4xl mb-4">{item.icon}</div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{item.title}</h3>
-                <p className="text-gray-600">{item.desc}</p>
+                <h3 className="text-lg font-semibold mb-2" style={{ color: "var(--paper)" }}>{item.title}</h3>
+                <p style={{ color: "var(--muted)" }}>{item.desc}</p>
               </div>
             ))}
           </div>
         </div>
 
         {/* How It Works Section */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-8 mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">How It Works</h2>
+        <div className="rounded-2xl border p-8 mb-12" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
+          <h2 className="text-3xl font-bold mb-8 text-center" style={{ color: "var(--paper)", fontFamily: "var(--font-display)" }}>How It Works</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-white text-2xl">📝</span>
+            {[
+              { emoji: "📝", title: "Submit Races", desc: "Registered users can submit race information including location, results, and media." },
+              { emoji: "✅", title: "Admin Review", desc: "All submissions are reviewed by administrators to ensure accuracy and quality." },
+              { emoji: "🌍", title: "Community Access", desc: "Once approved, races appear on the map and in search results for everyone to discover." },
+            ].map((item, i) => (
+              <div key={i} className="text-center">
+                <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: "var(--accent)" }}>
+                  <span className="text-2xl">{item.emoji}</span>
+                </div>
+                <h3 className="text-xl font-semibold mb-3" style={{ color: "var(--paper)" }}>{item.title}</h3>
+                <p style={{ color: "var(--muted)" }}>{item.desc}</p>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Submit Races</h3>
-              <p className="text-gray-600">Registered users can submit race information including location, results, and media.</p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-white text-2xl">✅</span>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Admin Review</h3>
-              <p className="text-gray-600">All submissions are reviewed by administrators to ensure accuracy and quality.</p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-white text-2xl">🌍</span>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Community Access</h3>
-              <p className="text-gray-600">Once approved, races appear on the map and in search results for everyone to discover.</p>
-            </div>
+            ))}
           </div>
         </div>
 
         {/* Community Section */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl shadow-lg p-8 mb-12 text-white">
+        <div className="rounded-2xl p-8 mb-12" style={{ background: "var(--accent)" }}>
           <div className="text-center">
-            <h2 className="text-3xl font-bold mb-4">Our Community</h2>
-            <p className="text-xl text-blue-100 max-w-3xl mx-auto mb-8">
-              We're built by and for the downhill longboarding community. Whether you're a 
-              seasoned racer, event organizer, or just getting into the sport, this platform 
+            <h2 className="text-3xl font-bold mb-4" style={{ color: "var(--paper)", fontFamily: "var(--font-display)" }}>Our Community</h2>
+            <p className="text-xl max-w-3xl mx-auto mb-8" style={{ color: "var(--paper)", opacity: 0.85 }}>
+              We're built by and for the downhill longboarding community. Whether you're a
+              seasoned racer, event organizer, or just getting into the sport, this platform
               helps you discover races, track your progress, and connect with fellow riders.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <div className="px-4 py-2 bg-white/20 rounded-full text-sm font-medium">🏁 Racers</div>
-              <div className="px-4 py-2 bg-white/20 rounded-full text-sm font-medium">🎯 Organizers</div>
-              <div className="px-4 py-2 bg-white/20 rounded-full text-sm font-medium">📸 Photographers</div>
-              <div className="px-4 py-2 bg-white/20 rounded-full text-sm font-medium">🎥 Videographers</div>
-              <div className="px-4 py-2 bg-white/20 rounded-full text-sm font-medium">👥 Fans</div>
+              {["🏁 Racers", "🎯 Organizers", "📸 Photographers", "🎥 Videographers", "👥 Fans"].map(label => (
+                <div key={label} className="px-4 py-2 rounded-full text-sm font-medium" style={{ background: "rgba(0,0,0,0.2)", color: "var(--paper)" }}>{label}</div>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Legal Information Section */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-8 mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Legal Information</h2>
+        {/* Legal Section */}
+        <div className="rounded-2xl border p-8 mb-12" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
+          <h2 className="text-3xl font-bold mb-8 text-center" style={{ color: "var(--paper)", fontFamily: "var(--font-display)" }}>Legal Information</h2>
           <div className="max-w-4xl mx-auto">
-            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 mb-6">
+            <div className="rounded-xl p-6 mb-6 border" style={{ background: "var(--surface-raised)", borderColor: "var(--accent)" }}>
               <div className="flex items-start gap-3">
-                <div className="flex-shrink-0">
-                  <span className="text-yellow-600 text-2xl">⚠️</span>
-                </div>
+                <span className="text-2xl flex-shrink-0" style={{ color: "var(--accent)" }}>⚠️</span>
                 <div>
-                  <h3 className="text-lg font-semibold text-yellow-800 mb-2">Copyright Notice</h3>
-                  <p className="text-yellow-700 leading-relaxed">
-                    <strong>Important:</strong> All images, videos, and media content displayed on this platform are 
-                    user-submitted and belong to their respective owners. Downhill Radar does not claim 
-                    ownership or copyright over any of the visual content, race photos, videos, or other media 
+                  <h3 className="text-lg font-semibold mb-2" style={{ color: "var(--paper)" }}>Copyright Notice</h3>
+                  <p style={{ color: "var(--muted)" }}>
+                    <strong style={{ color: "var(--paper)" }}>Important:</strong> All images, videos, and media content displayed on this platform are
+                    user-submitted and belong to their respective owners. Downhill Radar does not claim
+                    ownership or copyright over any of the visual content, race photos, videos, or other media
                     materials featured on this website.
                   </p>
                 </div>
               </div>
             </div>
-            
-            <div className="space-y-6 text-gray-700">
+
+            <div className="space-y-6" style={{ color: "var(--muted)" }}>
               <div>
-                <h4 className="text-lg font-semibold text-gray-900 mb-3">Content Ownership</h4>
+                <h4 className="text-lg font-semibold mb-3" style={{ color: "var(--paper)" }}>Content Ownership</h4>
                 <ul className="space-y-2 list-disc list-inside">
                   <li>All race images, videos, and media are submitted by community members</li>
                   <li>Original creators retain full copyright and ownership rights</li>
@@ -117,22 +105,18 @@ export default function About() {
                   <li>If you own content that appears here and want it removed, please contact us</li>
                 </ul>
               </div>
-              
               <div>
-                <h4 className="text-lg font-semibold text-gray-900 mb-3">User-Generated Content</h4>
-                <p className="leading-relaxed">
-                  This platform relies on community contributions for race information, results, and media. 
-                  We encourage users to only submit content they own or have permission to share. By submitting 
-                  content, users confirm they have the right to do so and grant us permission to display it 
-                  on the platform.
+                <h4 className="text-lg font-semibold mb-3" style={{ color: "var(--paper)" }}>User-Generated Content</h4>
+                <p>
+                  This platform relies on community contributions for race information, results, and media.
+                  We encourage users to only submit content they own or have permission to share.
                 </p>
               </div>
-              
               <div>
-                <h4 className="text-lg font-semibold text-gray-900 mb-3">Fair Use & Attribution</h4>
-                <p className="leading-relaxed">
-                  We strive to properly attribute content when possible and operate under fair use principles 
-                  for educational and community purposes. If you believe your copyrighted material is being 
+                <h4 className="text-lg font-semibold mb-3" style={{ color: "var(--paper)" }}>Fair Use & Attribution</h4>
+                <p>
+                  We strive to properly attribute content when possible and operate under fair use principles
+                  for educational and community purposes. If you believe your copyrighted material is being
                   used inappropriately, please contact us immediately for removal.
                 </p>
               </div>
@@ -141,21 +125,23 @@ export default function About() {
         </div>
 
         {/* Get Involved Section */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-8 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Get Involved</h2>
-          <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+        <div className="rounded-2xl border p-8 text-center" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
+          <h2 className="text-3xl font-bold mb-4" style={{ color: "var(--paper)", fontFamily: "var(--font-display)" }}>Get Involved</h2>
+          <p className="text-lg mb-8 max-w-2xl mx-auto" style={{ color: "var(--muted)" }}>
             Have a race to submit? Want to help improve the platform? We'd love to hear from you!
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link 
-              href="/contact" 
-              className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 hover-lift"
+            <Link
+              href="/contact"
+              className="px-8 py-3 font-semibold rounded-lg transition-opacity hover:opacity-90"
+              style={{ background: "var(--accent)", color: "var(--paper)" }}
             >
               Get in Touch
             </Link>
-            <Link 
-              href="/submit" 
-              className="px-8 py-3 bg-white text-gray-700 font-semibold rounded-lg border border-gray-300 hover:bg-gray-50 transition-all duration-200 hover-lift"
+            <Link
+              href="/submit"
+              className="px-8 py-3 font-semibold rounded-lg border transition-colors hover:opacity-80"
+              style={{ color: "var(--paper)", borderColor: "var(--border)", background: "var(--surface-raised)" }}
             >
               Submit a Race
             </Link>

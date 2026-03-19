@@ -2,10 +2,10 @@
 import { useEffect, useState } from "react";
 
 export default function EditMyBio() {
-  const [form, setForm] = useState({ 
-    nationality: "", 
-    place_of_birth: "", 
-    date_of_birth: "", 
+  const [form, setForm] = useState({
+    nationality: "",
+    place_of_birth: "",
+    date_of_birth: "",
     message: "",
     phone_number: "",
     email: "",
@@ -66,32 +66,35 @@ export default function EditMyBio() {
     setOk("Profile image updated");
   }
 
+  const inputStyle = { background: "var(--surface-raised)", border: "1px solid var(--border)", color: "var(--paper)" };
+
   return (
     <main className="max-w-4xl mx-auto p-6">
       {/* Header */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8 mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+      <div className="rounded-xl shadow-lg p-8 mb-6" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+        <h1 className="text-3xl font-bold mb-6 flex items-center gap-3" style={{ color: "var(--paper)" }}>
           <span>✏️</span>
           Edit My Bio
         </h1>
-        
+
         {/* Profile Image Section */}
-        <div className="flex items-center gap-6 p-6 bg-gray-50 rounded-xl border border-gray-200">
-          <img 
-            src={`${process.env.NEXT_PUBLIC_API_BASE}${profileImageUrl}`} 
-            className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-md" 
-            alt="Profile" 
+        <div className="flex items-center gap-6 p-6 rounded-xl" style={{ background: "var(--surface-raised)", border: "1px solid var(--border)" }}>
+          <img
+            src={`${process.env.NEXT_PUBLIC_API_BASE}${profileImageUrl}`}
+            className="w-20 h-20 rounded-full object-cover shadow-md"
+            style={{ border: "4px solid var(--border)" }}
+            alt="Profile"
           />
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Profile Picture</h3>
-            <p className="text-sm text-gray-600 mb-3">Upload a new profile picture to represent yourself</p>
-            <label className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200 cursor-pointer shadow-md hover:shadow-lg">
+            <h3 className="text-lg font-semibold mb-2" style={{ color: "var(--paper)" }}>Profile Picture</h3>
+            <p className="text-sm mb-3" style={{ color: "var(--muted)" }}>Upload a new profile picture to represent yourself</p>
+            <label className="inline-flex items-center gap-2 px-4 py-2 font-medium rounded-lg shadow-md transition-colors duration-200 cursor-pointer" style={{ background: "var(--accent)", color: "var(--paper)" }}>
               <span>📷</span>
               <span>{uploadBusy ? "Uploading..." : "Change Profile Image"}</span>
-              <input 
-                type="file" 
-                accept="image/*" 
-                onChange={onUpload} 
+              <input
+                type="file"
+                accept="image/*"
+                onChange={onUpload}
                 disabled={uploadBusy}
                 className="hidden"
               />
@@ -102,124 +105,133 @@ export default function EditMyBio() {
 
       <form onSubmit={save} className="space-y-6">
         {/* Personal Information */}
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
+        <div className="rounded-xl shadow-lg p-6" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+          <h2 className="text-xl font-semibold mb-6 flex items-center gap-2" style={{ color: "var(--paper)" }}>
             <span>👤</span>
             Personal Information
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <label className="space-y-2">
-              <span className="text-sm font-medium text-gray-700">Nationality (ISO-2)</span>
-              <input 
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
-                value={form.nationality} 
-                maxLength={2} 
+              <span className="text-sm font-medium" style={{ color: "var(--muted)" }}>Nationality (ISO-2)</span>
+              <input
+                className="w-full rounded-lg px-4 py-3 focus:outline-none transition-colors"
+                style={inputStyle}
+                value={form.nationality}
+                maxLength={2}
                 placeholder="e.g., DE, US, FR"
-                onChange={e=>setForm(f=>({...f, nationality:e.target.value.toUpperCase()}))} 
+                onChange={e=>setForm(f=>({...f, nationality:e.target.value.toUpperCase()}))}
               />
             </label>
             <label className="space-y-2">
-              <span className="text-sm font-medium text-gray-700">Place of Birth</span>
-              <input 
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
-                value={form.place_of_birth} 
+              <span className="text-sm font-medium" style={{ color: "var(--muted)" }}>Place of Birth</span>
+              <input
+                className="w-full rounded-lg px-4 py-3 focus:outline-none transition-colors"
+                style={inputStyle}
+                value={form.place_of_birth}
                 placeholder="e.g., Munich, Germany"
-                onChange={e=>setForm(f=>({...f, place_of_birth:e.target.value}))} 
+                onChange={e=>setForm(f=>({...f, place_of_birth:e.target.value}))}
               />
             </label>
             <label className="space-y-2">
-              <span className="text-sm font-medium text-gray-700">Date of Birth</span>
-              <input 
+              <span className="text-sm font-medium" style={{ color: "var(--muted)" }}>Date of Birth</span>
+              <input
                 type="date"
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
-                value={form.date_of_birth} 
-                onChange={e=>setForm(f=>({...f, date_of_birth:e.target.value}))} 
+                className="w-full rounded-lg px-4 py-3 focus:outline-none transition-colors"
+                style={inputStyle}
+                value={form.date_of_birth}
+                onChange={e=>setForm(f=>({...f, date_of_birth:e.target.value}))}
               />
             </label>
             <label className="space-y-2">
-              <span className="text-sm font-medium text-gray-700">Phone Number</span>
-              <input 
+              <span className="text-sm font-medium" style={{ color: "var(--muted)" }}>Phone Number</span>
+              <input
                 type="tel"
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
-                value={form.phone_number} 
+                className="w-full rounded-lg px-4 py-3 focus:outline-none transition-colors"
+                style={inputStyle}
+                value={form.phone_number}
                 placeholder="e.g., +1 234 567 8900"
-                onChange={e=>setForm(f=>({...f, phone_number:e.target.value}))} 
+                onChange={e=>setForm(f=>({...f, phone_number:e.target.value}))}
               />
             </label>
             <label className="space-y-2 md:col-span-2">
-              <span className="text-sm font-medium text-gray-700">Email Address</span>
-              <input 
+              <span className="text-sm font-medium" style={{ color: "var(--muted)" }}>Email Address</span>
+              <input
                 type="email"
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
-                value={form.email} 
+                className="w-full rounded-lg px-4 py-3 focus:outline-none transition-colors"
+                style={inputStyle}
+                value={form.email}
                 placeholder="your.email@example.com"
-                onChange={e=>setForm(f=>({...f, email:e.target.value}))} 
+                onChange={e=>setForm(f=>({...f, email:e.target.value}))}
               />
             </label>
           </div>
         </div>
 
         {/* Social Media */}
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
+        <div className="rounded-xl shadow-lg p-6" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+          <h2 className="text-xl font-semibold mb-6 flex items-center gap-2" style={{ color: "var(--paper)" }}>
             <span>🌐</span>
             Social Media
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <label className="space-y-2">
-              <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
+              <span className="text-sm font-medium flex items-center gap-2" style={{ color: "var(--muted)" }}>
                 <span>📷</span>
                 Instagram
               </span>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">@</span>
-                <input 
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 pl-8 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
-                  value={form.instagram} 
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2" style={{ color: "var(--muted)" }}>@</span>
+                <input
+                  className="w-full rounded-lg px-4 py-3 pl-8 focus:outline-none transition-colors"
+                  style={inputStyle}
+                  value={form.instagram}
                   placeholder="username"
-                  onChange={e=>setForm(f=>({...f, instagram:e.target.value}))} 
+                  onChange={e=>setForm(f=>({...f, instagram:e.target.value}))}
                 />
               </div>
             </label>
             <label className="space-y-2">
-              <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
+              <span className="text-sm font-medium flex items-center gap-2" style={{ color: "var(--muted)" }}>
                 <span>📘</span>
                 Facebook
               </span>
-              <input 
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
-                value={form.facebook} 
+              <input
+                className="w-full rounded-lg px-4 py-3 focus:outline-none transition-colors"
+                style={inputStyle}
+                value={form.facebook}
                 placeholder="facebook.com/username"
-                onChange={e=>setForm(f=>({...f, facebook:e.target.value}))} 
+                onChange={e=>setForm(f=>({...f, facebook:e.target.value}))}
               />
             </label>
             <label className="space-y-2">
-              <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
+              <span className="text-sm font-medium flex items-center gap-2" style={{ color: "var(--muted)" }}>
                 <span>📺</span>
                 YouTube
               </span>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">@</span>
-                <input 
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 pl-8 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
-                  value={form.youtube} 
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2" style={{ color: "var(--muted)" }}>@</span>
+                <input
+                  className="w-full rounded-lg px-4 py-3 pl-8 focus:outline-none transition-colors"
+                  style={inputStyle}
+                  value={form.youtube}
                   placeholder="channelname"
-                  onChange={e=>setForm(f=>({...f, youtube:e.target.value}))} 
+                  onChange={e=>setForm(f=>({...f, youtube:e.target.value}))}
                 />
               </div>
             </label>
             <label className="space-y-2">
-              <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
+              <span className="text-sm font-medium flex items-center gap-2" style={{ color: "var(--muted)" }}>
                 <span>🎵</span>
                 TikTok
               </span>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">@</span>
-                <input 
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 pl-8 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
-                  value={form.tiktok} 
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2" style={{ color: "var(--muted)" }}>@</span>
+                <input
+                  className="w-full rounded-lg px-4 py-3 pl-8 focus:outline-none transition-colors"
+                  style={inputStyle}
+                  value={form.tiktok}
                   placeholder="username"
-                  onChange={e=>setForm(f=>({...f, tiktok:e.target.value}))} 
+                  onChange={e=>setForm(f=>({...f, tiktok:e.target.value}))}
                 />
               </div>
             </label>
@@ -227,38 +239,41 @@ export default function EditMyBio() {
         </div>
 
         {/* Message */}
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
+        <div className="rounded-xl shadow-lg p-6" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+          <h2 className="text-xl font-semibold mb-6 flex items-center gap-2" style={{ color: "var(--paper)" }}>
             <span>💬</span>
             Message to Riders
           </h2>
           <label className="space-y-2">
-            <span className="text-sm font-medium text-gray-700">Share a message with the racing community</span>
-            <textarea 
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 min-h-[120px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none" 
-              value={form.message} 
+            <span className="text-sm font-medium" style={{ color: "var(--muted)" }}>Share a message with the racing community</span>
+            <textarea
+              className="w-full rounded-lg px-4 py-3 min-h-[120px] focus:outline-none transition-colors resize-none"
+              style={inputStyle}
+              value={form.message}
               placeholder="Tell other riders about yourself, your racing philosophy, or any advice you'd like to share..."
-              onChange={e=>setForm(f=>({...f, message:e.target.value}))} 
+              onChange={e=>setForm(f=>({...f, message:e.target.value}))}
             />
           </label>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center justify-between bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-          <div className="text-sm text-gray-600">
+        <div className="flex items-center justify-between rounded-xl shadow-lg p-6" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+          <div className="text-sm" style={{ color: "var(--muted)" }}>
             All fields are optional. Fill in what you're comfortable sharing.
           </div>
           <div className="flex items-center gap-4">
-            <button 
+            <button
               type="button"
               onClick={() => window.history.back()}
-              className="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200"
+              className="px-6 py-3 font-medium rounded-lg transition-colors duration-200"
+              style={{ border: "1px solid var(--border)", color: "var(--muted)", background: "transparent" }}
             >
               Cancel
             </button>
-            <button 
+            <button
               type="submit"
-              className="px-8 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200 shadow-md hover:shadow-lg"
+              className="px-8 py-3 font-medium rounded-lg shadow-md transition-colors duration-200"
+              style={{ background: "var(--accent)", color: "var(--paper)" }}
             >
               Save Changes
             </button>
@@ -268,7 +283,7 @@ export default function EditMyBio() {
 
       {/* Status Messages */}
       {ok && (
-        <div className="fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-6 py-3 rounded-lg shadow-lg z-50">
+        <div className="fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50" style={{ background: "var(--surface-raised)", border: "1px solid var(--border)", color: "var(--paper)" }}>
           <div className="flex items-center gap-2">
             <span>✅</span>
             <span>{ok}</span>
@@ -276,7 +291,7 @@ export default function EditMyBio() {
         </div>
       )}
       {err && (
-        <div className="fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-6 py-3 rounded-lg shadow-lg z-50">
+        <div className="fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50" style={{ background: "var(--surface-raised)", border: "1px solid var(--border)", color: "var(--paper)" }}>
           <div className="flex items-center gap-2">
             <span>❌</span>
             <span>{err}</span>

@@ -51,8 +51,8 @@ function SubmitContent() {
     if (!form.date_from) return false;
     const eventDate = new Date(form.date_from);
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Reset time to start of day
-    eventDate.setHours(0, 0, 0, 0); // Reset time to start of day
+    today.setHours(0, 0, 0, 0);
+    eventDate.setHours(0, 0, 0, 0);
     return eventDate > today;
   };
 
@@ -75,7 +75,7 @@ function SubmitContent() {
     const edit = searchParams.get('edit');
     const eventId = searchParams.get('eventId');
     const submissionId = searchParams.get('submissionId');
-    
+
     if (edit === 'true') {
       setIsEditMode(true);
       if (eventId) {
@@ -84,10 +84,10 @@ function SubmitContent() {
       if (submissionId) {
         setEditingSubmissionId(parseInt(submissionId));
       }
-      
+
       const editCategory = searchParams.get('category') || 'WDSC';
       setSubmissionMode(editCategory === 'SPOT' ? 'spot' : 'race');
-      
+
       // Prefill form with URL parameters
       setForm(prev => ({
         ...prev,
@@ -98,23 +98,23 @@ function SubmitContent() {
         category: editCategory,
         date_from: searchParams.get('date_from') ? new Date(searchParams.get('date_from')!).toISOString().slice(0,10) : new Date().toISOString().slice(0,10),
         date_to: searchParams.get('date_to') ? new Date(searchParams.get('date_to')!).toISOString().slice(0,10) : '',
-        links: searchParams.get('source_url') ? 
-          [{ name: "Event Page", url: searchParams.get('source_url') || '' }] : 
+        links: searchParams.get('source_url') ?
+          [{ name: "Event Page", url: searchParams.get('source_url') || '' }] :
           [{ name: "Event Page", url: "" }],
         event_description: searchParams.get('event_description') || '',
-        track_record_open: searchParams.get('track_record_open_name') && searchParams.get('track_record_open_time') ? 
-          { name: searchParams.get('track_record_open_name') || '', time: searchParams.get('track_record_open_time') || '' } : 
+        track_record_open: searchParams.get('track_record_open_name') && searchParams.get('track_record_open_time') ?
+          { name: searchParams.get('track_record_open_name') || '', time: searchParams.get('track_record_open_time') || '' } :
           null,
-        track_record_luge: searchParams.get('track_record_luge_name') && searchParams.get('track_record_luge_time') ? 
-          { name: searchParams.get('track_record_luge_name') || '', time: searchParams.get('track_record_luge_time') || '' } : 
+        track_record_luge: searchParams.get('track_record_luge_name') && searchParams.get('track_record_luge_time') ?
+          { name: searchParams.get('track_record_luge_name') || '', time: searchParams.get('track_record_luge_time') || '' } :
           null,
-        track_record_woman: searchParams.get('track_record_woman_name') && searchParams.get('track_record_woman_time') ? 
-          { name: searchParams.get('track_record_woman_name') || '', time: searchParams.get('track_record_woman_time') || '' } : 
+        track_record_woman: searchParams.get('track_record_woman_name') && searchParams.get('track_record_woman_time') ?
+          { name: searchParams.get('track_record_woman_name') || '', time: searchParams.get('track_record_woman_time') || '' } :
           null,
         organizer_name: searchParams.get('organizer_name') || '',
         spot_notes: searchParams.get('spot_notes') || '',
       }));
-      
+
       // Load rider data from URL parameters
       const loadRiderData = (category: string, riders: any[]) => {
         const riderData: any[] = [];
@@ -129,7 +129,7 @@ function SubmitContent() {
         }
         return riderData;
       };
-      
+
       // Update form with rider data
       setForm(prev => ({
         ...prev,
@@ -152,7 +152,7 @@ function SubmitContent() {
   function updateLink(index: number, field: keyof Link, value: string) {
     setForm(prev => ({
       ...prev,
-      links: prev.links.map((link, i) => 
+      links: prev.links.map((link, i) =>
         i === index ? { ...link, [field]: value } : link
       )
     }));
@@ -175,7 +175,7 @@ function SubmitContent() {
   function updateRider(category: 'top_riders_open' | 'top_riders_luge' | 'top_riders_woman' | 'top_qualifiers', index: number, field: keyof Rider, value: string | number) {
     setForm(prev => ({
       ...prev,
-      [category]: prev[category].map((rider, i) => 
+      [category]: prev[category].map((rider, i) =>
         i === index ? { ...rider, [field]: value } : rider
       )
     }));
@@ -301,14 +301,14 @@ function SubmitContent() {
         is_edit: isEditMode,
         editing_event_id: isEditMode ? editingEventId : null,
       };
-      
+
       // First, create the submission
       const res = await fetch("/api/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      
+
       let data;
       try {
         data = await res.json();
@@ -316,7 +316,7 @@ function SubmitContent() {
         setErr(`Server error: ${res.status} ${res.statusText}`);
         return;
       }
-      
+
       if (!res.ok) {
         if (res.status === 401) {
           setErr("Please sign in to submit races");
@@ -331,12 +331,12 @@ function SubmitContent() {
       if (form.event_image) {
         const formData = new FormData();
         formData.append('file', form.event_image);
-        
+
         const imageRes = await fetch(`/api/uploads/submission-image/${data.id}`, {
           method: "POST",
           body: formData,
         });
-        
+
         if (!imageRes.ok) {
           console.warn("Failed to upload image, but submission was successful");
         }
@@ -367,12 +367,12 @@ function SubmitContent() {
 
     const formData = new FormData();
     formData.append('file', form.batch_file);
-    
+
     const res = await fetch("/api/submit/batch", {
       method: "POST",
       body: formData,
     });
-    
+
     let data;
     try {
       data = await res.json();
@@ -380,7 +380,7 @@ function SubmitContent() {
       setErr(`Server error: ${res.status} ${res.statusText}`);
       return;
     }
-    
+
     if (!res.ok) {
       if (res.status === 401) {
         setErr("Please sign in to submit races");
@@ -395,110 +395,112 @@ function SubmitContent() {
     setOk(`Batch upload completed! ${data.message || `${data.successful} races submitted successfully. ${data.skipped} races were skipped (already exist).`}`);
   }
 
+  const inputStyle = { background: "var(--surface-raised)", border: "1px solid var(--border)", color: "var(--paper)" };
+  const cardStyle = { background: "var(--surface)", border: "1px solid var(--border)" };
+
   // Show loading state while checking authentication
   if (isAuthenticated === null) {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 flex items-center justify-center">
+      <main className="min-h-screen flex items-center justify-center" style={{ background: "var(--ink)" }}>
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <div className="w-12 h-12 border-4 border-t-transparent rounded-full animate-spin mx-auto mb-4" style={{ borderColor: "var(--border)", borderTopColor: "var(--accent)" }}></div>
+          <p style={{ color: "var(--muted)" }}>Loading...</p>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
+    <main className="min-h-screen" style={{ background: "var(--ink)" }}>
       <div className="max-w-4xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-6">
+          <h1 className="text-4xl font-bold mb-6" style={{ color: "var(--paper)" }}>
             {isEditMode ? (editingSubmissionId ? 'Edit Pending Submission' : 'Edit Event Details') : 'Submit a Race'}
           </h1>
           {isEditMode && (
-            <p className="text-gray-600 text-lg">
+            <p className="text-lg" style={{ color: "var(--muted)" }}>
               {editingSubmissionId ? (
-                <>Editing pending submission: <span className="font-semibold">{form.name}</span></>
+                <>Editing pending submission: <span className="font-semibold" style={{ color: "var(--paper)" }}>{form.name}</span></>
               ) : (
-                <>Updating event: <span className="font-semibold">{form.name}</span></>
+                <>Updating event: <span className="font-semibold" style={{ color: "var(--paper)" }}>{form.name}</span></>
               )}
             </p>
           )}
-          
+
           {/* Registration Prompt for Unauthenticated Users */}
           {isAuthenticated === false && (
-            <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl">
+            <div className="mb-8 p-6 rounded-xl" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
               <div className="text-center">
                 <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-white text-2xl">👥</span>
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-3">
+                <h2 className="text-2xl font-bold mb-3" style={{ color: "var(--paper)" }}>
                   Join Our Community!
                 </h2>
-                <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-                  You're viewing the submission form as a guest. <strong>Register for free</strong> to upload events, 
-                  strengthen our community database, and help preserve downhill racing history. 
+                <p className="mb-6 max-w-2xl mx-auto" style={{ color: "var(--muted)" }}>
+                  You're viewing the submission form as a guest. <strong style={{ color: "var(--paper)" }}>Register for free</strong> to upload events,
+                  strengthen our community database, and help preserve downhill racing history.
                   It only takes a minute!
                 </p>
                 <div className="flex justify-center gap-4">
                   <button
                     onClick={() => router.push('/register')}
-                    className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                    className="px-8 py-3 font-semibold rounded-lg shadow-lg transition-all duration-200"
+                    style={{ background: "var(--accent)", color: "var(--paper)" }}
                   >
                     🚀 Register Now
                   </button>
                   <button
                     onClick={() => router.push('/login')}
-                    className="px-8 py-3 bg-white text-gray-700 font-semibold rounded-lg border border-gray-300 hover:bg-gray-50 transition-all duration-200"
+                    className="px-8 py-3 font-semibold rounded-lg transition-all duration-200"
+                    style={{ background: "var(--surface-raised)", color: "var(--paper)", border: "1px solid var(--border)" }}
                   >
                     🔑 Sign In
                   </button>
                 </div>
-                <p className="text-sm text-gray-500 mt-4">
+                <p className="text-sm mt-4" style={{ color: "var(--muted)" }}>
                   You can still browse the form below, but you'll need to register to submit
                 </p>
               </div>
             </div>
           )}
-          
+
           {/* Submission Mode Selector */}
           <div className="flex justify-center gap-4 mb-6">
             <button
               type="button"
               onClick={() => setSubmissionMode('race')}
-              className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
-                submissionMode === 'race'
-                  ? 'bg-blue-600 text-white shadow-lg'
-                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-              }`}
+              className="px-6 py-3 rounded-lg font-medium transition-all duration-200"
+              style={submissionMode === 'race'
+                ? { background: "var(--accent)", color: "var(--paper)" }
+                : { background: "var(--surface)", color: "var(--muted)", border: "1px solid var(--border)" }}
             >
               🏁 Submit Race
             </button>
             <button
               type="button"
               onClick={() => setSubmissionMode('spot')}
-              className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
-                submissionMode === 'spot'
-                  ? 'bg-blue-600 text-white shadow-lg'
-                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-              }`}
+              className="px-6 py-3 rounded-lg font-medium transition-all duration-200"
+              style={submissionMode === 'spot'
+                ? { background: "var(--accent)", color: "var(--paper)" }
+                : { background: "var(--surface)", color: "var(--muted)", border: "1px solid var(--border)" }}
             >
               📍 Submit Spot
             </button>
             <button
               type="button"
               onClick={() => setSubmissionMode('batch')}
-              className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
-                submissionMode === 'batch'
-                  ? 'bg-blue-600 text-white shadow-lg'
-                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-              }`}
+              className="px-6 py-3 rounded-lg font-medium transition-all duration-200"
+              style={submissionMode === 'batch'
+                ? { background: "var(--accent)", color: "var(--paper)" }
+                : { background: "var(--surface)", color: "var(--muted)", border: "1px solid var(--border)" }}
             >
               📊 Batch Submit
             </button>
           </div>
-          
-          <p className="text-gray-600">
+
+          <p style={{ color: "var(--muted)" }}>
             {submissionMode === 'race' && 'Share your race with the community'}
             {submissionMode === 'spot' && 'Submit a new spot location'}
             {submissionMode === 'batch' && 'Upload multiple races from Excel/ODS file'}
@@ -511,55 +513,59 @@ function SubmitContent() {
             <>
               {/* Basic Information and Event Image */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Basic Information */}
-                <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Basic Information</h2>
-            <div className="space-y-6">
+                {/* Basic Information */}
+                <div className="lg:col-span-2 rounded-xl shadow-sm p-6" style={cardStyle}>
+                  <h2 className="text-lg font-semibold mb-4" style={{ color: "var(--paper)" }}>Basic Information</h2>
+                  <div className="space-y-6">
                     {/* Race Name - Required */}
-              <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Race Name <span className="text-red-500">*</span>
+                    <div>
+                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--muted)" }}>
+                        Race Name <span style={{ color: "var(--accent)" }}>*</span>
                       </label>
-                <input
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                  placeholder="Enter race name"
-                  value={form.name}
-                  onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))}
+                      <input
+                        className="w-full px-4 py-3 rounded-lg focus:outline-none transition-all duration-200"
+                        style={inputStyle}
+                        placeholder="Enter race name"
+                        value={form.name}
+                        onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))}
                         required
-                />
-              </div>
+                      />
+                    </div>
 
                     {/* Start Date - Required */}
-              <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Start Date <span className="text-red-500">*</span>
+                    <div>
+                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--muted)" }}>
+                        Start Date <span style={{ color: "var(--accent)" }}>*</span>
                       </label>
-                  <input
+                      <input
                         type="date"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        className="w-full px-4 py-3 rounded-lg focus:outline-none transition-all duration-200"
+                        style={inputStyle}
                         value={form.date_from}
                         onChange={(e) => setForm(prev => ({ ...prev, date_from: e.target.value }))}
                         required
-                  />
-                </div>
+                      />
+                    </div>
 
                     {/* End Date - Optional */}
-                <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">End Date (Optional)</label>
-                  <input
+                    <div>
+                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--muted)" }}>End Date (Optional)</label>
+                      <input
                         type="date"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        className="w-full px-4 py-3 rounded-lg focus:outline-none transition-all duration-200"
+                        style={inputStyle}
                         value={form.date_to}
                         onChange={(e) => setForm(prev => ({ ...prev, date_to: e.target.value }))}
                       />
-              </div>
+                    </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--muted)" }}>
                         Event Description (Optional)
                       </label>
                       <textarea
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 min-h-[120px] resize-none"
+                        className="w-full px-4 py-3 rounded-lg focus:outline-none transition-all duration-200 min-h-[120px] resize-none"
+                        style={inputStyle}
                         placeholder="Share context about the event, track, format, or anything useful for future riders."
                         value={form.event_description}
                         onChange={(e) =>
@@ -571,56 +577,59 @@ function SubmitContent() {
                       />
                     </div>
 
-              {/* Category */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                <select
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                  value={form.category}
-                  onChange={(e) => setForm(prev => ({ ...prev, category: e.target.value }))}
-                >
-                  <option value="WDSC">🏁 WDSC Event</option>
-                  <option value="EURO">🌍 Euro Tour Event</option>
-                  <option value="FREERIDE">🏄 Freeride Event</option>
-                  <option value="IDF">🏆 IDF Event</option>
-                  <option value="OUTLAW">⚡ Outlaw Event</option>
-                  <option value="NATIONAL">🏆 National Championship</option>
-                  <option value="RACE">🏁 Race Event</option>
-                  <option value="SPOT">📍 Spot (not an event)</option>
-                </select>
-              </div>
-            </div>
-          </div>
+                    {/* Category */}
+                    <div>
+                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--muted)" }}>Category</label>
+                      <select
+                        className="w-full px-4 py-3 rounded-lg focus:outline-none transition-all duration-200"
+                        style={inputStyle}
+                        value={form.category}
+                        onChange={(e) => setForm(prev => ({ ...prev, category: e.target.value }))}
+                      >
+                        <option value="WDSC">🏁 WDSC Event</option>
+                        <option value="EURO">🌍 Euro Tour Event</option>
+                        <option value="FREERIDE">🏄 Freeride Event</option>
+                        <option value="IDF">🏆 IDF Event</option>
+                        <option value="OUTLAW">⚡ Outlaw Event</option>
+                        <option value="NATIONAL">🏆 National Championship</option>
+                        <option value="RACE">🏁 Race Event</option>
+                        <option value="SPOT">📍 Spot (not an event)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
 
                 {/* Event Image - Smaller */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Event Image</h2>
+                <div className="rounded-xl shadow-sm p-6" style={cardStyle}>
+                  <h2 className="text-lg font-semibold mb-4" style={{ color: "var(--paper)" }}>Event Image</h2>
                   <div className="space-y-4">
                     {form.event_image_url ? (
                       <div className="relative">
                         <img
                           src={form.event_image_url}
                           alt="Event preview"
-                          className="w-full h-48 object-cover rounded-lg border border-gray-200"
+                          className="w-full h-48 object-cover rounded-lg"
+                          style={{ border: "1px solid var(--border)" }}
                         />
                         <button
                           type="button"
                           onClick={clearImage}
-                          className="absolute top-2 right-2 px-2 py-1 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors duration-200 text-xs font-medium"
+                          className="absolute top-2 right-2 px-2 py-1 rounded-lg transition-colors duration-200 text-xs font-medium"
+                          style={{ background: "var(--surface-raised)", color: "#ef4444", border: "1px solid var(--border)" }}
                         >
                           Remove
                         </button>
                       </div>
                     ) : (
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                      <div className="border-2 border-dashed rounded-lg p-4 text-center" style={{ borderColor: "var(--border)" }}>
                         <div className="space-y-3">
-                          <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
+                          <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto" style={{ background: "var(--surface-raised)" }}>
                             <span className="text-xl">📷</span>
                           </div>
-              <div>
-                            <h3 className="text-sm font-medium text-gray-900 mb-1">Upload Image</h3>
-                            <p className="text-xs text-gray-600 mb-3">Optional</p>
-                <input
+                          <div>
+                            <h3 className="text-sm font-medium mb-1" style={{ color: "var(--paper)" }}>Upload Image</h3>
+                            <p className="text-xs mb-3" style={{ color: "var(--muted)" }}>Optional</p>
+                            <input
                               type="file"
                               accept="image/*"
                               onChange={handleImageUpload}
@@ -629,7 +638,8 @@ function SubmitContent() {
                             />
                             <label
                               htmlFor="event-image-upload"
-                              className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 cursor-pointer text-sm"
+                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg transition-colors duration-200 cursor-pointer text-sm"
+                              style={{ background: "var(--accent)", color: "var(--paper)" }}
                             >
                               <span>📁</span>
                               <span>Choose</span>
@@ -638,9 +648,9 @@ function SubmitContent() {
                         </div>
                       </div>
                     )}
-                    
+
                     <div className="text-center">
-                      <p className="text-xs text-gray-500 mb-2">
+                      <p className="text-xs mb-2" style={{ color: "var(--muted)" }}>
                         No image? Random selection
                       </p>
                       <div className="flex justify-center gap-1">
@@ -649,7 +659,8 @@ function SubmitContent() {
                             key={i}
                             src={`/images/event-defaults/event_${i}.jpg`}
                             alt={`Sample ${i}`}
-                            className="w-8 h-6 object-cover rounded border border-gray-200 opacity-60 hover:opacity-100 transition-opacity duration-200"
+                            className="w-8 h-6 object-cover rounded opacity-60 hover:opacity-100 transition-opacity duration-200"
+                            style={{ border: "1px solid var(--border)" }}
                           />
                         ))}
                       </div>
@@ -662,16 +673,17 @@ function SubmitContent() {
 
           {/* Spot Submission Mode */}
           {submissionMode === 'spot' && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Spot Information</h2>
+            <div className="rounded-xl shadow-sm p-6" style={cardStyle}>
+              <h2 className="text-lg font-semibold mb-4" style={{ color: "var(--paper)" }}>Spot Information</h2>
               <div className="space-y-6">
                 {/* Spot Name - Required */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Spot Name <span className="text-red-500">*</span>
+                  <label className="block text-sm font-medium mb-2" style={{ color: "var(--muted)" }}>
+                    Spot Name <span style={{ color: "var(--accent)" }}>*</span>
                   </label>
                   <input
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    className="w-full px-4 py-3 rounded-lg focus:outline-none transition-all duration-200"
+                    style={inputStyle}
                     placeholder="Enter spot name"
                     value={form.name}
                     onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))}
@@ -681,9 +693,10 @@ function SubmitContent() {
 
                 {/* Location - Optional */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Location (Optional)</label>
+                  <label className="block text-sm font-medium mb-2" style={{ color: "var(--muted)" }}>Location (Optional)</label>
                   <input
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    className="w-full px-4 py-3 rounded-lg focus:outline-none transition-all duration-200"
+                    style={inputStyle}
                     placeholder="City, Country"
                     value={form.location}
                     onChange={(e) => setForm(prev => ({ ...prev, location: e.target.value }))}
@@ -692,8 +705,8 @@ function SubmitContent() {
 
                 {/* Map Picker for Spot */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Select Location on Map</label>
-                  <div className="rounded-lg overflow-hidden border border-gray-200">
+                  <label className="block text-sm font-medium mb-2" style={{ color: "var(--muted)" }}>Select Location on Map</label>
+                  <div className="rounded-lg overflow-hidden" style={{ border: "1px solid var(--border)" }}>
                     <MapPicker
                       lat={form.lat}
                       lng={form.lng}
@@ -704,9 +717,10 @@ function SubmitContent() {
 
                 {/* Important Notes */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Important Information</label>
+                  <label className="block text-sm font-medium mb-2" style={{ color: "var(--muted)" }}>Important Information</label>
                   <textarea
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 h-32 resize-none"
+                    className="w-full px-4 py-3 rounded-lg focus:outline-none transition-all duration-200 h-32 resize-none"
+                    style={inputStyle}
                     placeholder="Write down important things like what to care about, who to call, access information, etc."
                     value={form.spot_notes}
                     onChange={(e) => setForm(prev => ({ ...prev, spot_notes: e.target.value }))}
@@ -718,22 +732,22 @@ function SubmitContent() {
 
           {/* Batch Submission Mode */}
           {submissionMode === 'batch' && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Batch Upload</h2>
+            <div className="rounded-xl shadow-sm p-6" style={cardStyle}>
+              <h2 className="text-lg font-semibold mb-4" style={{ color: "var(--paper)" }}>Batch Upload</h2>
               <div className="space-y-6">
                 {/* File Upload */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Excel/ODS File <span className="text-red-500">*</span>
+                  <label className="block text-sm font-medium mb-2" style={{ color: "var(--muted)" }}>
+                    Excel/ODS File <span style={{ color: "var(--accent)" }}>*</span>
                   </label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                  <div className="border-2 border-dashed rounded-lg p-8 text-center" style={{ borderColor: "var(--border)" }}>
                     <div className="space-y-4">
-                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
+                      <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto" style={{ background: "var(--surface-raised)" }}>
                         <span className="text-3xl">📊</span>
                       </div>
                       <div>
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">Upload Excel/ODS File</h3>
-                        <p className="text-gray-600 mb-4">Supported formats: .xlsx, .ods</p>
+                        <h3 className="text-lg font-medium mb-2" style={{ color: "var(--paper)" }}>Upload Excel/ODS File</h3>
+                        <p className="mb-4" style={{ color: "var(--muted)" }}>Supported formats: .xlsx, .ods</p>
                         <input
                           type="file"
                           accept=".xlsx,.ods"
@@ -743,7 +757,8 @@ function SubmitContent() {
                         />
                         <label
                           htmlFor="batch-file-upload"
-                          className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 cursor-pointer"
+                          className="inline-flex items-center gap-2 px-6 py-3 rounded-lg transition-colors duration-200 cursor-pointer"
+                          style={{ background: "var(--accent)", color: "var(--paper)" }}
                         >
                           <span>📁</span>
                           <span>Choose File</span>
@@ -752,125 +767,130 @@ function SubmitContent() {
                     </div>
                   </div>
                   {form.batch_file && (
-                    <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                      <p className="text-green-800 text-sm">
+                    <div className="mt-4 p-3 rounded-lg" style={{ background: "var(--surface-raised)", border: "1px solid var(--border)" }}>
+                      <p className="text-sm" style={{ color: "var(--paper)" }}>
                         <span className="font-medium">Selected:</span> {form.batch_file.name}
                       </p>
                     </div>
                   )}
-          </div>
+                </div>
 
-                         {/* Instructions */}
-                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                           <h3 className="font-medium text-blue-900 mb-2">Required Columns:</h3>
-                           <div className="text-sm text-blue-800 space-y-1">
-                             <p><strong>event_name</strong> - Race Name (required)</p>
-                             <p><strong>date_start</strong> - Start Date (required)</p>
-                             <p><strong>date_end</strong> - End Date (optional)</p>
-                             <p><strong>location</strong> - Location (optional, will be automatically geocoded to coordinates)</p>
-                             <p><strong>category</strong> or <strong>link_event_category</strong> - Categories: WDSC, IDF, EURO, FREERIDE, OUTLAW, NATIONAL, RACE (comma-separated for multiple)</p>
-                             <p><strong>standup_top_1, standup_top_2, standup_top_3</strong> - Top 3 Open riders</p>
-                             <p><strong>luge_top_1, luge_top_2, luge_top_3</strong> - Top 3 Luge riders</p>
-                             <p><strong>women_top_1, women_top_2, women_top_3</strong> - Top 3 Women riders</p>
-                             <p><strong>track_record_1, track_record_2, track_record_3, track_record_4, track_record_5, track_record_6</strong> - Track records (up to 6)</p>
-                             <p><strong>organizer</strong> - Event organizer name(s) (comma-separated for multiple)</p>
-                             <p><strong>event_description</strong> - Event description (optional)</p>
-                             <p><strong>link_event_page</strong> - Event page URL</p>
-                           </div>
-                         <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded">
-                           <p className="text-sm text-green-800">
-                             <strong>📍 Automatic Geocoding:</strong> Locations will be automatically converted to map coordinates. 
-                             Processing may take a few seconds per location.
-                           </p>
-                         </div>
-                         
-                         {/* Template Download */}
-                         <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                           <div className="flex items-center justify-between">
-                             <div>
-                               <h4 className="font-medium text-blue-900 mb-1">Recommended Template</h4>
-                               <p className="text-sm text-blue-800">Download our sample file to see the correct column format</p>
-                             </div>
-                             <a
-                               href="/batch_submission_template_custom.ods"
-                               download="batch_submission_template_custom.ods"
-                               className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
-                             >
-                               <span>📥</span>
-                               <span>Download Template</span>
-                             </a>
-                           </div>
-                         </div>
-                       </div>
+                {/* Instructions */}
+                <div className="rounded-lg p-4" style={{ background: "var(--surface-raised)", border: "1px solid var(--border)" }}>
+                  <h3 className="font-medium mb-2" style={{ color: "var(--paper)" }}>Required Columns:</h3>
+                  <div className="text-sm space-y-1" style={{ color: "var(--muted)" }}>
+                    <p><strong style={{ color: "var(--paper)" }}>event_name</strong> - Race Name (required)</p>
+                    <p><strong style={{ color: "var(--paper)" }}>date_start</strong> - Start Date (required)</p>
+                    <p><strong style={{ color: "var(--paper)" }}>date_end</strong> - End Date (optional)</p>
+                    <p><strong style={{ color: "var(--paper)" }}>location</strong> - Location (optional, will be automatically geocoded to coordinates)</p>
+                    <p><strong style={{ color: "var(--paper)" }}>category</strong> or <strong style={{ color: "var(--paper)" }}>link_event_category</strong> - Categories: WDSC, IDF, EURO, FREERIDE, OUTLAW, NATIONAL, RACE (comma-separated for multiple)</p>
+                    <p><strong style={{ color: "var(--paper)" }}>standup_top_1, standup_top_2, standup_top_3</strong> - Top 3 Open riders</p>
+                    <p><strong style={{ color: "var(--paper)" }}>luge_top_1, luge_top_2, luge_top_3</strong> - Top 3 Luge riders</p>
+                    <p><strong style={{ color: "var(--paper)" }}>women_top_1, women_top_2, women_top_3</strong> - Top 3 Women riders</p>
+                    <p><strong style={{ color: "var(--paper)" }}>track_record_1, track_record_2, track_record_3, track_record_4, track_record_5, track_record_6</strong> - Track records (up to 6)</p>
+                    <p><strong style={{ color: "var(--paper)" }}>organizer</strong> - Event organizer name(s) (comma-separated for multiple)</p>
+                    <p><strong style={{ color: "var(--paper)" }}>event_description</strong> - Event description (optional)</p>
+                    <p><strong style={{ color: "var(--paper)" }}>link_event_page</strong> - Event page URL</p>
+                  </div>
+                  <div className="mt-3 p-3 rounded" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+                    <p className="text-sm" style={{ color: "var(--muted)" }}>
+                      <strong style={{ color: "var(--paper)" }}>📍 Automatic Geocoding:</strong> Locations will be automatically converted to map coordinates.
+                      Processing may take a few seconds per location.
+                    </p>
+                  </div>
+
+                  {/* Template Download */}
+                  <div className="mt-4 p-4 rounded-lg" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium mb-1" style={{ color: "var(--paper)" }}>Recommended Template</h4>
+                        <p className="text-sm" style={{ color: "var(--muted)" }}>Download our sample file to see the correct column format</p>
+                      </div>
+                      <a
+                        href="/batch_submission_template_custom.ods"
+                        download="batch_submission_template_custom.ods"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg transition-colors duration-200 text-sm font-medium"
+                        style={{ background: "var(--accent)", color: "var(--paper)" }}
+                      >
+                        <span>📥</span>
+                        <span>Download Template</span>
+                      </a>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}
 
           {/* Location - Only for race mode */}
           {submissionMode === 'race' && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Location (Optional)</h2>
-            <div className="space-y-6">
-              {/* Map Picker */}
-              <div className="rounded-lg overflow-hidden border border-gray-200">
-                <MapPicker
-                  lat={form.lat}
-                  lng={form.lng}
-                  onPick={(lat, lng) => setForm(prev => ({ ...prev, lat, lng }))}
-                />
-              </div>
+            <div className="rounded-xl shadow-sm p-6" style={cardStyle}>
+              <h2 className="text-lg font-semibold mb-4" style={{ color: "var(--paper)" }}>Location (Optional)</h2>
+              <div className="space-y-6">
+                {/* Map Picker */}
+                <div className="rounded-lg overflow-hidden" style={{ border: "1px solid var(--border)" }}>
+                  <MapPicker
+                    lat={form.lat}
+                    lng={form.lng}
+                    onPick={(lat, lng) => setForm(prev => ({ ...prev, lat, lng }))}
+                  />
+                </div>
 
                 {/* Location Name */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Location Name (Optional)</label>
+                  <label className="block text-sm font-medium mb-2" style={{ color: "var(--muted)" }}>Location Name (Optional)</label>
                   <input
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    className="w-full px-4 py-3 rounded-lg focus:outline-none transition-all duration-200"
+                    style={inputStyle}
                     placeholder="City, Country"
                     value={form.location}
                     onChange={(e) => setForm(prev => ({ ...prev, location: e.target.value }))}
                   />
                 </div>
 
-              {/* Lat/Lng inputs */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Latitude</label>
-                  <input
-                    type="number"
-                    step="any"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                    value={form.lat}
-                    onChange={(e) =>
-                      setForm(prev => ({ ...prev, lat: Number(e.target.value) }))
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Longitude</label>
-                  <input
-                    type="number"
-                    step="any"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                    value={form.lng}
-                    onChange={(e) =>
-                      setForm(prev => ({ ...prev, lng: Number(e.target.value) }))
-                    }
-                  />
+                {/* Lat/Lng inputs */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium mb-2" style={{ color: "var(--muted)" }}>Latitude</label>
+                    <input
+                      type="number"
+                      step="any"
+                      className="w-full px-4 py-3 rounded-lg focus:outline-none transition-all duration-200"
+                      style={inputStyle}
+                      value={form.lat}
+                      onChange={(e) =>
+                        setForm(prev => ({ ...prev, lat: Number(e.target.value) }))
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2" style={{ color: "var(--muted)" }}>Longitude</label>
+                    <input
+                      type="number"
+                      step="any"
+                      className="w-full px-4 py-3 rounded-lg focus:outline-none transition-all duration-200"
+                      style={inputStyle}
+                      value={form.lng}
+                      onChange={(e) =>
+                        setForm(prev => ({ ...prev, lng: Number(e.target.value) }))
+                      }
+                    />
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
           )}
 
           {/* Links - Only for race mode */}
           {submissionMode === 'race' && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="rounded-xl shadow-sm p-6" style={cardStyle}>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-900">Links (Optional)</h2>
+                <h2 className="text-lg font-semibold" style={{ color: "var(--paper)" }}>Links (Optional)</h2>
                 <button
                   type="button"
                   onClick={addLink}
-                  className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors duration-200 text-sm font-medium"
+                  style={{ background: "var(--accent)", color: "var(--paper)" }}
                 >
                   <span>+</span>
                   <span>Add Link</span>
@@ -880,27 +900,30 @@ function SubmitContent() {
                 {form.links.map((link, index) => (
                   <div key={index} className="flex gap-4 items-end">
                     <div className="flex-1">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Link Name</label>
-                <input
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--muted)" }}>Link Name</label>
+                      <input
+                        className="w-full px-4 py-3 rounded-lg focus:outline-none transition-all duration-200"
+                        style={inputStyle}
                         placeholder="e.g., Event Page, Results, Photos"
                         value={link.name}
                         onChange={(e) => updateLink(index, 'name', e.target.value)}
-                />
-              </div>
+                      />
+                    </div>
                     <div className="flex-1">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">URL</label>
-                  <input
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--muted)" }}>URL</label>
+                      <input
+                        className="w-full px-4 py-3 rounded-lg focus:outline-none transition-all duration-200"
+                        style={inputStyle}
                         placeholder="https://example.com"
                         value={link.url}
                         onChange={(e) => updateLink(index, 'url', e.target.value)}
-                  />
-                </div>
+                      />
+                    </div>
                     <button
                       type="button"
                       onClick={() => removeLink(index)}
-                      className="px-3 py-3 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors duration-200"
+                      className="px-3 py-3 rounded-lg transition-colors duration-200"
+                      style={{ background: "var(--surface-raised)", color: "#ef4444", border: "1px solid var(--border)" }}
                     >
                       ✕
                     </button>
@@ -914,31 +937,33 @@ function SubmitContent() {
           {submissionMode === 'race' && form.category !== "SPOT" && form.category !== "FREERIDE" && !isFutureEvent() && (
             <div className="space-y-6">
               {/* Top Riders Open */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="rounded-xl shadow-sm p-6" style={cardStyle}>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <span className="text-xl">🏆</span>
+                  <h2 className="text-lg font-semibold flex items-center gap-2" style={{ color: "var(--paper)" }}>
+                    <span className="text-xl">🏆</span>
                     Top Riders Open
-              </h2>
+                  </h2>
                   <button
                     type="button"
                     onClick={() => addRider('top_riders_open')}
-                    className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors duration-200 text-sm font-medium"
+                    style={{ background: "var(--accent)", color: "var(--paper)" }}
                   >
                     <span>+</span>
                     <span>Add Rider</span>
                   </button>
                 </div>
-              <div className="space-y-4">
+                <div className="space-y-4">
                   {form.top_riders_open.map((rider, index) => (
-                    <div key={index} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div key={index} className="flex items-center gap-4 p-4 rounded-lg" style={{ background: "var(--surface-raised)", border: "1px solid var(--border)" }}>
                       <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                         <span className="text-white font-bold text-lg">#{rider.position}</span>
                       </div>
                       <div className="flex-1">
-                          <input
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                            placeholder="Full name"
+                        <input
+                          className="w-full px-4 py-3 rounded-lg focus:outline-none transition-all duration-200"
+                          style={inputStyle}
+                          placeholder="Full name"
                           value={rider.name}
                           onChange={(e) => updateRider('top_riders_open', index, 'name', e.target.value)}
                         />
@@ -946,26 +971,28 @@ function SubmitContent() {
                       <button
                         type="button"
                         onClick={() => removeRider('top_riders_open', index)}
-                        className="px-3 py-3 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors duration-200"
+                        className="px-3 py-3 rounded-lg transition-colors duration-200"
+                        style={{ background: "var(--surface-raised)", color: "#ef4444", border: "1px solid var(--border)" }}
                       >
                         ✕
                       </button>
                     </div>
                   ))}
-                            </div>
-                        </div>
-                        
+                </div>
+              </div>
+
               {/* Top Riders Luge */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="rounded-xl shadow-sm p-6" style={cardStyle}>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <h2 className="text-lg font-semibold flex items-center gap-2" style={{ color: "var(--paper)" }}>
                     <span className="text-xl">🛷</span>
                     Top Riders Luge
                   </h2>
                   <button
                     type="button"
                     onClick={() => addRider('top_riders_luge')}
-                    className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors duration-200 text-sm font-medium"
+                    style={{ background: "var(--accent)", color: "var(--paper)" }}
                   >
                     <span>+</span>
                     <span>Add Rider</span>
@@ -973,13 +1000,14 @@ function SubmitContent() {
                 </div>
                 <div className="space-y-4">
                   {form.top_riders_luge.map((rider, index) => (
-                    <div key={index} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div key={index} className="flex items-center gap-4 p-4 rounded-lg" style={{ background: "var(--surface-raised)", border: "1px solid var(--border)" }}>
                       <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                         <span className="text-white font-bold text-lg">#{rider.position}</span>
                       </div>
                       <div className="flex-1">
                         <input
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                          className="w-full px-4 py-3 rounded-lg focus:outline-none transition-all duration-200"
+                          style={inputStyle}
                           placeholder="Full name"
                           value={rider.name}
                           onChange={(e) => updateRider('top_riders_luge', index, 'name', e.target.value)}
@@ -988,7 +1016,8 @@ function SubmitContent() {
                       <button
                         type="button"
                         onClick={() => removeRider('top_riders_luge', index)}
-                        className="px-3 py-3 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors duration-200"
+                        className="px-3 py-3 rounded-lg transition-colors duration-200"
+                        style={{ background: "var(--surface-raised)", color: "#ef4444", border: "1px solid var(--border)" }}
                       >
                         ✕
                       </button>
@@ -998,16 +1027,17 @@ function SubmitContent() {
               </div>
 
               {/* Top Riders Woman */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="rounded-xl shadow-sm p-6" style={cardStyle}>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <h2 className="text-lg font-semibold flex items-center gap-2" style={{ color: "var(--paper)" }}>
                     <span className="text-xl">👩</span>
                     Top Riders Woman
                   </h2>
                   <button
                     type="button"
                     onClick={() => addRider('top_riders_woman')}
-                    className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors duration-200 text-sm font-medium"
+                    style={{ background: "var(--accent)", color: "var(--paper)" }}
                   >
                     <span>+</span>
                     <span>Add Rider</span>
@@ -1015,13 +1045,14 @@ function SubmitContent() {
                 </div>
                 <div className="space-y-4">
                   {form.top_riders_woman.map((rider, index) => (
-                    <div key={index} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div key={index} className="flex items-center gap-4 p-4 rounded-lg" style={{ background: "var(--surface-raised)", border: "1px solid var(--border)" }}>
                       <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                         <span className="text-white font-bold text-lg">#{rider.position}</span>
                       </div>
                       <div className="flex-1">
                         <input
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                          className="w-full px-4 py-3 rounded-lg focus:outline-none transition-all duration-200"
+                          style={inputStyle}
                           placeholder="Full name"
                           value={rider.name}
                           onChange={(e) => updateRider('top_riders_woman', index, 'name', e.target.value)}
@@ -1030,26 +1061,28 @@ function SubmitContent() {
                       <button
                         type="button"
                         onClick={() => removeRider('top_riders_woman', index)}
-                        className="px-3 py-3 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors duration-200"
+                        className="px-3 py-3 rounded-lg transition-colors duration-200"
+                        style={{ background: "var(--surface-raised)", color: "#ef4444", border: "1px solid var(--border)" }}
                       >
                         ✕
                       </button>
                     </div>
                   ))}
-                      </div>
-                    </div>
-                    
+                </div>
+              </div>
+
               {/* Top Qualifiers */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="rounded-xl shadow-sm p-6" style={cardStyle}>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <h2 className="text-lg font-semibold flex items-center gap-2" style={{ color: "var(--paper)" }}>
                     <span className="text-xl">🏃</span>
                     Top Qualifiers
                   </h2>
                   <button
                     type="button"
                     onClick={() => addRider('top_qualifiers')}
-                    className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors duration-200 text-sm font-medium"
+                    style={{ background: "var(--accent)", color: "var(--paper)" }}
                   >
                     <span>+</span>
                     <span>Add Qualifier</span>
@@ -1057,27 +1090,29 @@ function SubmitContent() {
                 </div>
                 <div className="space-y-4">
                   {form.top_qualifiers.map((rider, index) => (
-                    <div key={index} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div key={index} className="flex items-center gap-4 p-4 rounded-lg" style={{ background: "var(--surface-raised)", border: "1px solid var(--border)" }}>
                       <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-green-500 to-teal-600 rounded-full flex items-center justify-center">
                         <span className="text-white font-bold text-lg">#{rider.position}</span>
                       </div>
                       <div className="flex-1">
                         <input
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                          className="w-full px-4 py-3 rounded-lg focus:outline-none transition-all duration-200"
+                          style={inputStyle}
                           placeholder="Full name"
                           value={rider.name}
                           onChange={(e) => updateRider('top_qualifiers', index, 'name', e.target.value)}
                         />
                       </div>
-                              <button 
-                                type="button" 
+                      <button
+                        type="button"
                         onClick={() => removeRider('top_qualifiers', index)}
-                        className="px-3 py-3 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors duration-200"
+                        className="px-3 py-3 rounded-lg transition-colors duration-200"
+                        style={{ background: "var(--surface-raised)", color: "#ef4444", border: "1px solid var(--border)" }}
                       >
                         ✕
-                              </button>
+                      </button>
                     </div>
-                          ))}
+                  ))}
                 </div>
               </div>
             </div>
@@ -1085,19 +1120,19 @@ function SubmitContent() {
 
           {/* Future Event Message - Show when event is in the future */}
           {submissionMode === 'race' && form.category !== "SPOT" && form.category !== "FREERIDE" && isFutureEvent() && (
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+            <div className="rounded-xl p-6" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-blue-600 text-lg">ℹ️</span>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "var(--surface-raised)" }}>
+                  <span className="text-lg" style={{ color: "var(--accent)" }}>ℹ️</span>
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-blue-900 mb-2">
+                  <h3 className="text-lg font-semibold mb-2" style={{ color: "var(--paper)" }}>
                     Future Event
                   </h3>
-                  <p className="text-blue-800 mb-3">
+                  <p className="mb-3" style={{ color: "var(--muted)" }}>
                     This event is scheduled for the future. Top riders and qualifiers can only be added after the event has taken place.
                   </p>
-                  <p className="text-sm text-blue-700">
+                  <p className="text-sm" style={{ color: "var(--muted)" }}>
                     You can still submit the event details now and add results later by editing the event.
                   </p>
                 </div>
@@ -1109,9 +1144,9 @@ function SubmitContent() {
           {submissionMode === 'race' && form.category !== "SPOT" && form.category !== "FREERIDE" && (
             <div className="space-y-6">
               {/* Track Record Open */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="rounded-xl shadow-sm p-6" style={cardStyle}>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <h2 className="text-lg font-semibold flex items-center gap-2" style={{ color: "var(--paper)" }}>
                     <span className="text-xl">🏁</span>
                     Track Record Open
                   </h2>
@@ -1119,7 +1154,8 @@ function SubmitContent() {
                     <button
                       type="button"
                       onClick={() => clearTrackRecord('track_record_open')}
-                      className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors duration-200 text-sm font-medium"
+                      className="px-3 py-2 rounded-lg transition-colors duration-200 text-sm font-medium"
+                      style={{ background: "var(--surface-raised)", color: "#ef4444", border: "1px solid var(--border)" }}
                     >
                       Clear
                     </button>
@@ -1128,18 +1164,20 @@ function SubmitContent() {
                 {form.track_record_open ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Rider Name</label>
+                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--muted)" }}>Rider Name</label>
                       <input
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        className="w-full px-4 py-3 rounded-lg focus:outline-none transition-all duration-200"
+                        style={inputStyle}
                         placeholder="Full name"
                         value={form.track_record_open.name}
                         onChange={(e) => updateTrackRecord('track_record_open', 'name', e.target.value)}
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Time</label>
+                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--muted)" }}>Time</label>
                       <input
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        className="w-full px-4 py-3 rounded-lg focus:outline-none transition-all duration-200"
+                        style={inputStyle}
                         placeholder="1,27.46"
                         value={form.track_record_open.time}
                         onChange={(e) => updateTrackRecord('track_record_open', 'time', e.target.value)}
@@ -1150,7 +1188,8 @@ function SubmitContent() {
                   <button
                     type="button"
                     onClick={() => updateTrackRecord('track_record_open', 'name', '')}
-                    className="flex items-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-500 hover:text-blue-600 transition-colors duration-200 w-full justify-center"
+                    className="flex items-center gap-2 px-4 py-3 border-2 border-dashed rounded-lg transition-colors duration-200 w-full justify-center"
+                    style={{ borderColor: "var(--border)", color: "var(--muted)" }}
                   >
                     <span>+</span>
                     <span>Add Track Record</span>
@@ -1159,9 +1198,9 @@ function SubmitContent() {
               </div>
 
               {/* Track Record Luge */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="rounded-xl shadow-sm p-6" style={cardStyle}>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <h2 className="text-lg font-semibold flex items-center gap-2" style={{ color: "var(--paper)" }}>
                     <span className="text-xl">🛷</span>
                     Track Record Luge
                   </h2>
@@ -1169,7 +1208,8 @@ function SubmitContent() {
                     <button
                       type="button"
                       onClick={() => clearTrackRecord('track_record_luge')}
-                      className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors duration-200 text-sm font-medium"
+                      className="px-3 py-2 rounded-lg transition-colors duration-200 text-sm font-medium"
+                      style={{ background: "var(--surface-raised)", color: "#ef4444", border: "1px solid var(--border)" }}
                     >
                       Clear
                     </button>
@@ -1178,18 +1218,20 @@ function SubmitContent() {
                 {form.track_record_luge ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Rider Name</label>
+                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--muted)" }}>Rider Name</label>
                       <input
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        className="w-full px-4 py-3 rounded-lg focus:outline-none transition-all duration-200"
+                        style={inputStyle}
                         placeholder="Full name"
                         value={form.track_record_luge.name}
                         onChange={(e) => updateTrackRecord('track_record_luge', 'name', e.target.value)}
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Time</label>
+                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--muted)" }}>Time</label>
                       <input
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        className="w-full px-4 py-3 rounded-lg focus:outline-none transition-all duration-200"
+                        style={inputStyle}
                         placeholder="1,27.46"
                         value={form.track_record_luge.time}
                         onChange={(e) => updateTrackRecord('track_record_luge', 'time', e.target.value)}
@@ -1200,7 +1242,8 @@ function SubmitContent() {
                   <button
                     type="button"
                     onClick={() => updateTrackRecord('track_record_luge', 'name', '')}
-                    className="flex items-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-500 hover:text-blue-600 transition-colors duration-200 w-full justify-center"
+                    className="flex items-center gap-2 px-4 py-3 border-2 border-dashed rounded-lg transition-colors duration-200 w-full justify-center"
+                    style={{ borderColor: "var(--border)", color: "var(--muted)" }}
                   >
                     <span>+</span>
                     <span>Add Track Record</span>
@@ -1209,9 +1252,9 @@ function SubmitContent() {
               </div>
 
               {/* Track Record Woman */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="rounded-xl shadow-sm p-6" style={cardStyle}>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <h2 className="text-lg font-semibold flex items-center gap-2" style={{ color: "var(--paper)" }}>
                     <span className="text-xl">👩</span>
                     Track Record Woman
                   </h2>
@@ -1219,7 +1262,8 @@ function SubmitContent() {
                     <button
                       type="button"
                       onClick={() => clearTrackRecord('track_record_woman')}
-                      className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors duration-200 text-sm font-medium"
+                      className="px-3 py-2 rounded-lg transition-colors duration-200 text-sm font-medium"
+                      style={{ background: "var(--surface-raised)", color: "#ef4444", border: "1px solid var(--border)" }}
                     >
                       Clear
                     </button>
@@ -1228,18 +1272,20 @@ function SubmitContent() {
                 {form.track_record_woman ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Rider Name</label>
+                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--muted)" }}>Rider Name</label>
                       <input
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        className="w-full px-4 py-3 rounded-lg focus:outline-none transition-all duration-200"
+                        style={inputStyle}
                         placeholder="Full name"
                         value={form.track_record_woman.name}
                         onChange={(e) => updateTrackRecord('track_record_woman', 'name', e.target.value)}
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Time</label>
+                      <label className="block text-sm font-medium mb-2" style={{ color: "var(--muted)" }}>Time</label>
                       <input
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        className="w-full px-4 py-3 rounded-lg focus:outline-none transition-all duration-200"
+                        style={inputStyle}
                         placeholder="1,27.46"
                         value={form.track_record_woman.time}
                         onChange={(e) => updateTrackRecord('track_record_woman', 'time', e.target.value)}
@@ -1250,7 +1296,8 @@ function SubmitContent() {
                   <button
                     type="button"
                     onClick={() => updateTrackRecord('track_record_woman', 'name', '')}
-                    className="flex items-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-500 hover:text-blue-600 transition-colors duration-200 w-full justify-center"
+                    className="flex items-center gap-2 px-4 py-3 border-2 border-dashed rounded-lg transition-colors duration-200 w-full justify-center"
+                    style={{ borderColor: "var(--border)", color: "var(--muted)" }}
                   >
                     <span>+</span>
                     <span>Add Track Record</span>
@@ -1262,21 +1309,22 @@ function SubmitContent() {
 
           {/* Organizer - Only for race mode */}
           {submissionMode === 'race' && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <div className="rounded-xl shadow-sm p-6" style={cardStyle}>
+              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2" style={{ color: "var(--paper)" }}>
                 <span>👤</span>
                 Organizer
               </h2>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Organizer Name (Optional)</label>
+                <label className="block text-sm font-medium mb-2" style={{ color: "var(--muted)" }}>Organizer Name (Optional)</label>
                 <input
                   type="text"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  className="w-full px-4 py-3 rounded-lg focus:outline-none transition-all duration-200"
+                  style={inputStyle}
                   placeholder="Enter organizer name"
                   value={form.organizer_name}
                   onChange={(e) => setForm(prev => ({ ...prev, organizer_name: e.target.value }))}
                 />
-                <p className="text-sm text-gray-500 mt-2">
+                <p className="text-sm mt-2" style={{ color: "var(--muted)" }}>
                   The organizer will be treated as a rider and can be clicked on the event page.
                 </p>
               </div>
@@ -1284,14 +1332,15 @@ function SubmitContent() {
           )}
 
           {/* Submit Button */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="rounded-xl shadow-sm p-6" style={cardStyle}>
             <button
-              className="w-full px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200 hover-lift"
+              className="w-full px-8 py-4 font-semibold rounded-lg shadow-md disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
+              style={{ background: "var(--accent)", color: "var(--paper)" }}
               disabled={busy || isAuthenticated === false}
             >
               {busy ? (
                 <div className="flex items-center justify-center gap-3">
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  <div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "rgba(255,255,255,0.3)", borderTopColor: "white" }}></div>
                   <span>Submitting...</span>
                 </div>
               ) : (
@@ -1312,23 +1361,23 @@ function SubmitContent() {
 
         {/* Feedback Messages */}
         {ok && (
-          <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <div className="mt-6 p-4 rounded-lg" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
             <div className="flex items-center gap-3">
-              <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
-                <span className="text-green-600 text-sm">✓</span>
+              <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: "var(--surface-raised)" }}>
+                <span className="text-sm">✓</span>
               </div>
-              <p className="text-green-800 font-medium">{ok}</p>
+              <p className="font-medium" style={{ color: "var(--paper)" }}>{ok}</p>
             </div>
           </div>
         )}
-        
+
         {err && (
-          <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="mt-6 p-4 rounded-lg" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
             <div className="flex items-center gap-3">
-              <div className="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center">
-                <span className="text-red-600 text-sm">⚠</span>
+              <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: "var(--surface-raised)" }}>
+                <span className="text-sm">⚠</span>
               </div>
-              <p className="text-red-800 font-medium">{err}</p>
+              <p className="font-medium" style={{ color: "var(--paper)" }}>{err}</p>
             </div>
           </div>
         )}

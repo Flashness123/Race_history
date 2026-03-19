@@ -13,17 +13,17 @@ import {
 const CATEGORY_FILTER_OPTIONS: Array<{
   key: keyof CategoryFilters;
   label: string;
-  activeClassName: string;
-  dotClassName: string;
+  activeStyle: React.CSSProperties;
+  dotColor: string;
 }> = [
-  { key: "WDSC", label: "WDSC", activeClassName: "border-orange-300 bg-orange-50 text-orange-700", dotClassName: "bg-orange-500" },
-  { key: "EURO", label: "Euro", activeClassName: "border-blue-300 bg-blue-50 text-blue-700", dotClassName: "bg-blue-500" },
-  { key: "FREERIDE", label: "Freeride", activeClassName: "border-green-300 bg-green-50 text-green-700", dotClassName: "bg-green-500" },
-  { key: "IDF", label: "IDF", activeClassName: "border-purple-300 bg-purple-50 text-purple-700", dotClassName: "bg-purple-500" },
-  { key: "SPOT", label: "Spots", activeClassName: "border-gray-300 bg-gray-100 text-gray-700", dotClassName: "bg-gray-500" },
-  { key: "OUTLAW", label: "Outlaw", activeClassName: "border-red-300 bg-red-50 text-red-700", dotClassName: "bg-red-500" },
-  { key: "NATIONAL", label: "National", activeClassName: "border-amber-300 bg-amber-50 text-amber-700", dotClassName: "bg-amber-500" },
-  { key: "RACE", label: "Race", activeClassName: "border-teal-300 bg-teal-50 text-teal-700", dotClassName: "bg-teal-500" },
+  { key: "WDSC", label: "WDSC", activeStyle: { borderColor: "#FF6200", background: "rgba(255,98,0,0.15)", color: "#FF6200" }, dotColor: "#FF6200" },
+  { key: "EURO", label: "Euro", activeStyle: { borderColor: "#3b82f6", background: "rgba(59,130,246,0.15)", color: "#60a5fa" }, dotColor: "#3b82f6" },
+  { key: "FREERIDE", label: "Freeride", activeStyle: { borderColor: "#22c55e", background: "rgba(34,197,94,0.15)", color: "#4ade80" }, dotColor: "#22c55e" },
+  { key: "IDF", label: "IDF", activeStyle: { borderColor: "#a855f7", background: "rgba(168,85,247,0.15)", color: "#c084fc" }, dotColor: "#a855f7" },
+  { key: "SPOT", label: "Spots", activeStyle: { borderColor: "#7A7A84", background: "rgba(122,122,132,0.15)", color: "#7A7A84" }, dotColor: "#7A7A84" },
+  { key: "OUTLAW", label: "Outlaw", activeStyle: { borderColor: "#ef4444", background: "rgba(239,68,68,0.15)", color: "#f87171" }, dotColor: "#ef4444" },
+  { key: "NATIONAL", label: "National", activeStyle: { borderColor: "#f59e0b", background: "rgba(245,158,11,0.15)", color: "#fbbf24" }, dotColor: "#f59e0b" },
+  { key: "RACE", label: "Race", activeStyle: { borderColor: "#14b8a6", background: "rgba(20,184,166,0.15)", color: "#2dd4bf" }, dotColor: "#14b8a6" },
 ];
 
 const DATE_FILTER_OPTIONS: Array<{ value: DateFilterMode; label: string }> = [
@@ -94,10 +94,10 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
   return (
     <div className="space-y-6">
       {/* Filter Controls */}
-      <div className="rounded-2xl border border-gray-200/60 bg-white/88 p-5 shadow-sm backdrop-blur-sm">
+      <div className="rounded-2xl p-5 shadow-sm" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-3">
-            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
+            <div className="text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--muted)" }}>
               Category
             </div>
             <div className="flex flex-wrap gap-2">
@@ -114,13 +114,12 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                         [option.key]: !current[option.key],
                       }))
                     }
-                    className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-medium transition-all duration-200 ${
-                      active
-                        ? `${option.activeClassName} shadow-sm`
-                        : "border-gray-200 bg-white text-gray-500 hover:border-gray-300 hover:text-gray-700"
-                    }`}
+                    className="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-medium transition-all duration-200"
+                    style={active
+                      ? { ...option.activeStyle, boxShadow: "0 1px 2px 0 rgb(0 0 0 / 0.05)" }
+                      : { borderColor: "var(--border)", background: "var(--surface-raised)", color: "var(--muted)" }}
                   >
-                    <span className={`h-2.5 w-2.5 rounded-full ${active ? option.dotClassName : "bg-gray-300"}`} />
+                    <span className="h-2.5 w-2.5 rounded-full" style={{ background: active ? option.dotColor : "var(--muted)" }} />
                     <span>{option.label}</span>
                   </button>
                 );
@@ -128,10 +127,10 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
             </div>
           </div>
           <div className="space-y-3 lg:min-w-[280px] lg:max-w-[320px]">
-            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
+            <div className="text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--muted)" }}>
               Start Date
             </div>
-            <div className="inline-flex rounded-full bg-stone-100 p-1 shadow-inner">
+            <div className="inline-flex rounded-full p-1 shadow-inner" style={{ background: "var(--surface-raised)" }}>
               {DATE_FILTER_OPTIONS.map((option) => {
                 const active = dateFilter === option.value;
                 return (
@@ -140,18 +139,17 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                     type="button"
                     aria-pressed={active}
                     onClick={() => setDateFilter(option.value)}
-                    className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ${
-                      active
-                        ? "bg-gray-900 text-white shadow-sm"
-                        : "text-gray-600 hover:text-gray-900"
-                    }`}
+                    className="rounded-full px-4 py-2 text-sm font-medium transition-all duration-200"
+                    style={active
+                      ? { background: "var(--accent)", color: "var(--paper)" }
+                      : { color: "var(--muted)" }}
                   >
                     {option.label}
                   </button>
                 );
               })}
             </div>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs" style={{ color: "var(--muted)" }}>
               Filters use each event&apos;s start date. Spots remain visible in every mode.
             </p>
           </div>
@@ -160,51 +158,51 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
 
       {/* Map and Details Layout */}
       <div className={`grid gap-6 transition-[grid-template-columns] duration-300 ease-out`} style={{ gridTemplateColumns: selectedId ? "1fr 400px" : "1fr" }}>
-        <div className="rounded-xl overflow-hidden shadow-lg border border-gray-200/50">
+        <div className="rounded-xl overflow-hidden shadow-lg" style={{ border: "1px solid var(--border)" }}>
           <Map geojson={geojson} onSelect={onSelect} filters={filters} dateFilter={dateFilter} />
         </div>
-        
+
         {selectedId && (
-          <aside className="bg-white rounded-xl shadow-lg border border-gray-200/50 overflow-hidden">
+          <aside className="rounded-xl shadow-lg overflow-hidden" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
             <div className="h-[70vh] overflow-auto">
               {loading && (
                 <div className="flex items-center justify-center h-full">
                   <div className="flex flex-col items-center space-y-3">
-                    <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-                    <p className="text-gray-600 text-sm">Loading event details...</p>
+                    <div className="w-8 h-8 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: "var(--border)", borderTopColor: "var(--accent)" }}></div>
+                    <p className="text-sm" style={{ color: "var(--muted)" }}>Loading event details...</p>
                   </div>
                 </div>
               )}
-              
+
               {err && (
                 <div className="p-6 text-center">
-                  <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <span className="text-red-600 text-xl">⚠️</span>
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3" style={{ background: "var(--surface-raised)" }}>
+                    <span className="text-xl">⚠️</span>
                   </div>
-                  <p className="text-red-600 text-sm">{err}</p>
+                  <p className="text-sm" style={{ color: "var(--muted)" }}>{err}</p>
                 </div>
               )}
-              
+
               {detail && (
                 <div className="p-6 space-y-6">
                   {/* Event Header */}
                   <div className="flex items-start gap-4">
-                    <img 
-                      src={detail.image_url ? `${process.env.NEXT_PUBLIC_API_BASE}${detail.image_url}` : "/file.svg"} 
-                      className="w-20 h-20 rounded-xl object-cover border-2 border-gray-200 shadow-sm" 
-                      alt={detail.name} 
+                    <img
+                      src={detail.image_url ? `${process.env.NEXT_PUBLIC_API_BASE}${detail.image_url}` : "/file.svg"}
+                      className="w-20 h-20 rounded-xl object-cover shadow-sm"
+                      style={{ border: "2px solid var(--border)" }}
+                      alt={detail.name}
                     />
                     <div className="flex-1">
-                      <h3 className="text-xl font-bold text-gray-900 mb-1">{detail.name}</h3>
-                      <div className="flex items-center gap-2 text-gray-600">
+                      <h3 className="text-xl font-bold mb-1" style={{ color: "var(--paper)" }}>{detail.name}</h3>
+                      <div className="flex items-center gap-2" style={{ color: "var(--muted)" }}>
                         <span className="text-sm">📍 {detail.location}</span>
-                        <span className="text-gray-400">•</span>
+                        <span style={{ color: "var(--border)" }}>•</span>
                         <span className="text-sm">📅 {detail.year}</span>
                       </div>
                       {(detail.category || detail.all_categories) && (
                         <div className="mt-2 flex flex-wrap gap-1">
                           {(() => {
-                            // Parse all categories if available, otherwise use single category
                             let categories = [];
                             if (detail.all_categories) {
                               try {
@@ -215,21 +213,21 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                             } else if (detail.category) {
                               categories = [detail.category];
                             }
-                            
+
                             return categories.map((cat: string, index: number) => {
-                              const getCategoryStyle = (category: string) => {
+                              const getCategoryStyle = (category: string): React.CSSProperties => {
                                 switch (category) {
-                                  case 'WDSC': return 'bg-orange-100 text-orange-800';
-                                  case 'EURO': return 'bg-blue-100 text-blue-800';
-                                  case 'FREERIDE': return 'bg-green-100 text-green-800';
-                                  case 'IDF': return 'bg-purple-100 text-purple-800';
-                                  case 'OUTLAW': return 'bg-red-100 text-red-800';
-                                  case 'NATIONAL': return 'bg-yellow-100 text-yellow-800';
-                                  case 'RACE': return 'bg-teal-100 text-teal-800';
-                                  default: return 'bg-gray-100 text-gray-800';
+                                  case 'WDSC': return { background: "rgba(255,98,0,0.15)", color: "#FF6200" };
+                                  case 'EURO': return { background: "rgba(59,130,246,0.15)", color: "#60a5fa" };
+                                  case 'FREERIDE': return { background: "rgba(34,197,94,0.15)", color: "#4ade80" };
+                                  case 'IDF': return { background: "rgba(168,85,247,0.15)", color: "#c084fc" };
+                                  case 'OUTLAW': return { background: "rgba(239,68,68,0.15)", color: "#f87171" };
+                                  case 'NATIONAL': return { background: "rgba(245,158,11,0.15)", color: "#fbbf24" };
+                                  case 'RACE': return { background: "rgba(20,184,166,0.15)", color: "#2dd4bf" };
+                                  default: return { background: "var(--surface-raised)", color: "var(--muted)" };
                                 }
                               };
-                              
+
                               const getCategoryLabel = (category: string) => {
                                 switch (category) {
                                   case 'WDSC': return 'WDSC Event';
@@ -242,9 +240,9 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                                   default: return 'Spot';
                                 }
                               };
-                              
+
                               return (
-                                <span key={index} className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryStyle(cat)}`}>
+                                <span key={index} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" style={getCategoryStyle(cat)}>
                                   {getCategoryLabel(cat)}
                                 </span>
                               );
@@ -256,79 +254,79 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                   </div>
 
                   {/* Event Details */}
-                  <div className="bg-gray-50 rounded-xl p-4">
-                    <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <div className="rounded-xl p-4" style={{ background: "var(--surface-raised)" }}>
+                    <h4 className="font-semibold mb-3 flex items-center gap-2" style={{ color: "var(--paper)" }}>
                       <span className="text-lg">📅</span>
                       Event Details
                     </h4>
                     <div className="space-y-2 text-sm">
                       {detail.date_from && (
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Start Date:</span>
-                          <span className="font-medium">{new Date(detail.date_from).toLocaleDateString()}</span>
+                          <span style={{ color: "var(--muted)" }}>Start Date:</span>
+                          <span className="font-medium" style={{ color: "var(--paper)" }}>{new Date(detail.date_from).toLocaleDateString()}</span>
                         </div>
                       )}
                       {detail.date_to && (
                         <div className="flex justify-between">
-                          <span className="text-gray-600">End Date:</span>
-                          <span className="font-medium">{new Date(detail.date_to).toLocaleDateString()}</span>
+                          <span style={{ color: "var(--muted)" }}>End Date:</span>
+                          <span className="font-medium" style={{ color: "var(--paper)" }}>{new Date(detail.date_to).toLocaleDateString()}</span>
                         </div>
                       )}
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Coordinates:</span>
-                        <span className="font-medium">{detail.lat.toFixed(4)}, {detail.lng.toFixed(4)}</span>
+                        <span style={{ color: "var(--muted)" }}>Coordinates:</span>
+                        <span className="font-medium" style={{ color: "var(--paper)" }}>{detail.lat.toFixed(4)}, {detail.lng.toFixed(4)}</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Track Records */}
+                  {/* Event Description */}
                   {detail.description && (
-                    <div className="bg-gray-50 rounded-xl p-4">
-                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <div className="rounded-xl p-4" style={{ background: "var(--surface-raised)" }}>
+                      <h4 className="font-semibold mb-3 flex items-center gap-2" style={{ color: "var(--paper)" }}>
                         <span className="text-lg">📝</span>
                         Event Description
                       </h4>
-                      <div className="bg-white rounded-lg p-3 border border-gray-200 whitespace-pre-wrap text-sm text-gray-700">
+                      <div className="rounded-lg p-3 whitespace-pre-wrap text-sm" style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--muted)" }}>
                         {detail.description}
                       </div>
                     </div>
                   )}
 
                   {detail.spot_notes && (
-                    <div className="bg-gray-50 rounded-xl p-4">
-                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <div className="rounded-xl p-4" style={{ background: "var(--surface-raised)" }}>
+                      <h4 className="font-semibold mb-3 flex items-center gap-2" style={{ color: "var(--paper)" }}>
                         <span className="text-lg">📍</span>
                         Spot Notes
                       </h4>
-                      <div className="bg-white rounded-lg p-3 border border-gray-200 whitespace-pre-wrap text-sm text-gray-700">
+                      <div className="rounded-lg p-3 whitespace-pre-wrap text-sm" style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--muted)" }}>
                         {detail.spot_notes}
                       </div>
                     </div>
                   )}
 
                   {(detail.track_record_open_name || detail.track_record_luge_name || detail.track_record_woman_name) && (
-                    <div className="bg-gray-50 rounded-xl p-4">
-                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <div className="rounded-xl p-4" style={{ background: "var(--surface-raised)" }}>
+                      <h4 className="font-semibold mb-3 flex items-center gap-2" style={{ color: "var(--paper)" }}>
                         <span className="text-lg">⏱️</span>
                         Track Records
                       </h4>
                       <div className="space-y-2">
                         {detail.track_record_open_name && (
-                          <div className="flex justify-between items-center p-2 bg-white rounded-lg border border-gray-200">
-                            <span className="text-sm font-medium text-gray-700">Open:</span>
-                            <span className="text-sm">{detail.track_record_open_name} - {detail.track_record_open_time}</span>
+                          <div className="flex justify-between items-center p-2 rounded-lg" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+                            <span className="text-sm font-medium" style={{ color: "var(--muted)" }}>Open:</span>
+                            <span className="text-sm" style={{ color: "var(--paper)" }}>{detail.track_record_open_name} - {detail.track_record_open_time}</span>
                           </div>
                         )}
                         {detail.track_record_luge_name && (
-                          <div className="flex justify-between items-center p-2 bg-white rounded-lg border border-gray-200">
-                            <span className="text-sm font-medium text-gray-700">Luge:</span>
-                            <span className="text-sm">{detail.track_record_luge_name} - {detail.track_record_luge_time}</span>
+                          <div className="flex justify-between items-center p-2 rounded-lg" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+                            <span className="text-sm font-medium" style={{ color: "var(--muted)" }}>Luge:</span>
+                            <span className="text-sm" style={{ color: "var(--paper)" }}>{detail.track_record_luge_name} - {detail.track_record_luge_time}</span>
                           </div>
                         )}
                         {detail.track_record_woman_name && (
-                          <div className="flex justify-between items-center p-2 bg-white rounded-lg border border-gray-200">
-                            <span className="text-sm font-medium text-gray-700">Women:</span>
-                            <span className="text-sm">{detail.track_record_woman_name} - {detail.track_record_woman_time}</span>
+                          <div className="flex justify-between items-center p-2 rounded-lg" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+                            <span className="text-sm font-medium" style={{ color: "var(--muted)" }}>Women:</span>
+                            <span className="text-sm" style={{ color: "var(--paper)" }}>{detail.track_record_woman_name} - {detail.track_record_woman_time}</span>
                           </div>
                         )}
                       </div>
@@ -337,14 +335,13 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
 
                   {/* Organizer */}
                   {(detail.organizer_name || detail.all_organizers) && (
-                    <div className="bg-gray-50 rounded-xl p-4">
-                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <div className="rounded-xl p-4" style={{ background: "var(--surface-raised)" }}>
+                      <h4 className="font-semibold mb-3 flex items-center gap-2" style={{ color: "var(--paper)" }}>
                         <span className="text-lg">👤</span>
                         Organizer{detail.all_organizers ? 's' : ''}
                       </h4>
                       <div className="space-y-2">
                         {(() => {
-                          // Parse all organizers if available, otherwise use single organizer
                           let organizers = [];
                           if (detail.all_organizers) {
                             try {
@@ -355,15 +352,16 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                           } else if (detail.organizer_name) {
                             organizers = [detail.organizer_name];
                           }
-                          
+
                           return organizers.map((organizer: string, index: number) => (
-                            <div key={index} className="flex justify-between items-center p-2 bg-white rounded-lg border border-gray-200">
-                              <span className="text-sm font-medium text-gray-700">
+                            <div key={index} className="flex justify-between items-center p-2 rounded-lg" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+                              <span className="text-sm font-medium" style={{ color: "var(--muted)" }}>
                                 {organizers.length > 1 ? `Organizer ${index + 1}:` : 'Event Organizer:'}
                               </span>
-                              <ClickableRiderName 
-                                name={organizer} 
-                                className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
+                              <ClickableRiderName
+                                name={organizer}
+                                className="text-sm hover:underline"
+                                style={{ color: "var(--accent)" } as any}
                               />
                             </div>
                           ));
@@ -376,14 +374,14 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                   <div className="space-y-4">
                     {/* Open Results */}
                     {Array.isArray(detail.open_results) && detail.open_results.length > 0 && (
-                      <div className="bg-gray-50 rounded-xl p-4">
-                        <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                      <div className="rounded-xl p-4" style={{ background: "var(--surface-raised)" }}>
+                        <h4 className="font-semibold mb-3 flex items-center gap-2" style={{ color: "var(--paper)" }}>
                           <span className="text-lg">🏆</span>
                           Open Results ({detail.open_results.length})
                         </h4>
                         <div className="space-y-1 max-h-40 overflow-y-auto">
                           {detail.open_results.map((p: any) => (
-                            <div key={p.position} className="flex items-center gap-3 p-2 bg-white rounded-lg border border-gray-200">
+                            <div key={p.position} className="flex items-center gap-3 p-2 rounded-lg" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
                               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${
                                 p.position === 1 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600' :
                                 p.position === 2 ? 'bg-gradient-to-br from-gray-300 to-gray-500' :
@@ -393,9 +391,9 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                                 {p.position}
                               </div>
                               <div className="flex-1">
-                                <ClickableRiderName name={p.name} className="font-medium text-gray-900 text-sm hover:text-blue-600 transition-colors duration-200" />
+                                <ClickableRiderName name={p.name} className="font-medium text-sm transition-colors duration-200" style={{ color: "var(--paper)" } as any} />
                                 {p.country && (
-                                  <div className="text-xs text-gray-500">{p.country}</div>
+                                  <div className="text-xs" style={{ color: "var(--muted)" }}>{p.country}</div>
                                 )}
                               </div>
                             </div>
@@ -406,14 +404,14 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
 
                     {/* Luge Results */}
                     {Array.isArray(detail.luge_results) && detail.luge_results.length > 0 && (
-                      <div className="bg-gray-50 rounded-xl p-4">
-                        <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                      <div className="rounded-xl p-4" style={{ background: "var(--surface-raised)" }}>
+                        <h4 className="font-semibold mb-3 flex items-center gap-2" style={{ color: "var(--paper)" }}>
                           <span className="text-lg">🛷</span>
                           Luge Results ({detail.luge_results.length})
                         </h4>
                         <div className="space-y-1 max-h-40 overflow-y-auto">
                           {detail.luge_results.map((p: any) => (
-                            <div key={p.position} className="flex items-center gap-3 p-2 bg-white rounded-lg border border-gray-200">
+                            <div key={p.position} className="flex items-center gap-3 p-2 rounded-lg" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
                               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${
                                 p.position === 1 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600' :
                                 p.position === 2 ? 'bg-gradient-to-br from-gray-300 to-gray-500' :
@@ -423,9 +421,9 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                                 {p.position}
                               </div>
                               <div className="flex-1">
-                                <ClickableRiderName name={p.name} className="font-medium text-gray-900 text-sm hover:text-blue-600 transition-colors duration-200" />
+                                <ClickableRiderName name={p.name} className="font-medium text-sm transition-colors duration-200" style={{ color: "var(--paper)" } as any} />
                                 {p.country && (
-                                  <div className="text-xs text-gray-500">{p.country}</div>
+                                  <div className="text-xs" style={{ color: "var(--muted)" }}>{p.country}</div>
                                 )}
                               </div>
                             </div>
@@ -436,14 +434,14 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
 
                     {/* Women Results */}
                     {Array.isArray(detail.woman_results) && detail.woman_results.length > 0 && (
-                      <div className="bg-gray-50 rounded-xl p-4">
-                        <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                      <div className="rounded-xl p-4" style={{ background: "var(--surface-raised)" }}>
+                        <h4 className="font-semibold mb-3 flex items-center gap-2" style={{ color: "var(--paper)" }}>
                           <span className="text-lg">👩</span>
                           Women Results ({detail.woman_results.length})
                         </h4>
                         <div className="space-y-1 max-h-40 overflow-y-auto">
                           {detail.woman_results.map((p: any) => (
-                            <div key={p.position} className="flex items-center gap-3 p-2 bg-white rounded-lg border border-gray-200">
+                            <div key={p.position} className="flex items-center gap-3 p-2 rounded-lg" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
                               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${
                                 p.position === 1 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600' :
                                 p.position === 2 ? 'bg-gradient-to-br from-gray-300 to-gray-500' :
@@ -453,9 +451,9 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                                 {p.position}
                               </div>
                               <div className="flex-1">
-                                <ClickableRiderName name={p.name} className="font-medium text-gray-900 text-sm hover:text-blue-600 transition-colors duration-200" />
+                                <ClickableRiderName name={p.name} className="font-medium text-sm transition-colors duration-200" style={{ color: "var(--paper)" } as any} />
                                 {p.country && (
-                                  <div className="text-xs text-gray-500">{p.country}</div>
+                                  <div className="text-xs" style={{ color: "var(--muted)" }}>{p.country}</div>
                                 )}
                               </div>
                             </div>
@@ -466,21 +464,21 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
 
                     {/* Qualifier Results */}
                     {Array.isArray(detail.qualifier_results) && detail.qualifier_results.length > 0 && (
-                      <div className="bg-gray-50 rounded-xl p-4">
-                        <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                      <div className="rounded-xl p-4" style={{ background: "var(--surface-raised)" }}>
+                        <h4 className="font-semibold mb-3 flex items-center gap-2" style={{ color: "var(--paper)" }}>
                           <span className="text-lg">🎯</span>
                           Qualifiers ({detail.qualifier_results.length})
                         </h4>
                         <div className="space-y-1 max-h-40 overflow-y-auto">
                           {detail.qualifier_results.map((p: any) => (
-                            <div key={p.position} className="flex items-center gap-3 p-2 bg-white rounded-lg border border-gray-200">
+                            <div key={p.position} className="flex items-center gap-3 p-2 rounded-lg" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
                               <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white bg-gradient-to-br from-green-500 to-teal-600">
                                 Q{p.position}
                               </div>
                               <div className="flex-1">
-                                <ClickableRiderName name={p.name} className="font-medium text-gray-900 text-sm hover:text-blue-600 transition-colors duration-200" />
+                                <ClickableRiderName name={p.name} className="font-medium text-sm transition-colors duration-200" style={{ color: "var(--paper)" } as any} />
                                 {p.country && (
-                                  <div className="text-xs text-gray-500">{p.country}</div>
+                                  <div className="text-xs" style={{ color: "var(--muted)" }}>{p.country}</div>
                                 )}
                               </div>
                             </div>
@@ -492,12 +490,13 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
 
                   {/* Source Link */}
                   {detail.source_url && (
-                    <div className="pt-4 border-t border-gray-200">
-                      <a 
-                        href={detail.source_url} 
-                        target="_blank" 
+                    <div className="pt-4" style={{ borderTop: "1px solid var(--border)" }}>
+                      <a
+                        href={detail.source_url}
+                        target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors duration-200 text-sm font-medium"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg transition-colors duration-200 text-sm font-medium"
+                        style={{ background: "var(--surface-raised)", color: "var(--accent)", border: "1px solid var(--border)" }}
                       >
                         <span>🔗</span>
                         View Source
@@ -510,22 +509,21 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                     const missingInfo = getMissingEventInfo(detail);
                     if (missingInfo.length > 0) {
                       return (
-                        <div className="pt-4 border-t border-gray-200">
-                          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <div className="pt-4" style={{ borderTop: "1px solid var(--border)" }}>
+                          <div className="rounded-lg p-4" style={{ background: "var(--surface-raised)", border: "1px solid var(--border)" }}>
                             <div className="flex items-start gap-3">
                               <div className="flex-shrink-0">
-                                <span className="text-yellow-600 text-lg">⚠️</span>
+                                <span className="text-lg" style={{ color: "var(--accent)" }}>⚠️</span>
                               </div>
                               <div className="flex-1">
-                                <h4 className="text-sm font-medium text-yellow-800 mb-2">
+                                <h4 className="text-sm font-medium mb-2" style={{ color: "var(--paper)" }}>
                                   Missing Information
                                 </h4>
-                                <p className="text-xs text-yellow-700 mb-3">
+                                <p className="text-xs mb-3" style={{ color: "var(--muted)" }}>
                                   This event is missing: {missingInfo.join(", ")}
                                 </p>
                                 <button
                                   onClick={() => {
-                                    // Navigate to submit page with prefilled data
                                     const params = new URLSearchParams({
                                       edit: 'true',
                                       eventId: detail.id.toString(),
@@ -547,8 +545,7 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                                       organizer_name: detail.organizer_name || '',
                                       spot_notes: detail.spot_notes || '',
                                     });
-                                    
-                                    // Add rider data
+
                                     if (detail.open_results && detail.open_results.length > 0) {
                                       detail.open_results.forEach((rider: any, index: number) => {
                                         params.append(`open_${index}_name`, rider.name);
@@ -556,7 +553,7 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                                         if (rider.country) params.append(`open_${index}_country`, rider.country);
                                       });
                                     }
-                                    
+
                                     if (detail.luge_results && detail.luge_results.length > 0) {
                                       detail.luge_results.forEach((rider: any, index: number) => {
                                         params.append(`luge_${index}_name`, rider.name);
@@ -564,7 +561,7 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                                         if (rider.country) params.append(`luge_${index}_country`, rider.country);
                                       });
                                     }
-                                    
+
                                     if (detail.woman_results && detail.woman_results.length > 0) {
                                       detail.woman_results.forEach((rider: any, index: number) => {
                                         params.append(`woman_${index}_name`, rider.name);
@@ -572,7 +569,7 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                                         if (rider.country) params.append(`woman_${index}_country`, rider.country);
                                       });
                                     }
-                                    
+
                                     if (detail.qualifier_results && detail.qualifier_results.length > 0) {
                                       detail.qualifier_results.forEach((rider: any, index: number) => {
                                         params.append(`qualifier_${index}_name`, rider.name);
@@ -582,7 +579,8 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                                     }
                                     router.push(`/submit?${params.toString()}`);
                                   }}
-                                  className="inline-flex items-center gap-2 px-3 py-2 bg-yellow-600 text-white text-xs font-medium rounded-lg hover:bg-yellow-700 transition-colors duration-200"
+                                  className="inline-flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg transition-colors duration-200"
+                                  style={{ background: "var(--accent)", color: "var(--paper)" }}
                                 >
                                   <span>✏️</span>
                                   Submit Missing Details
@@ -597,10 +595,11 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                   })()}
 
                   {/* Close Button */}
-                  <div className="pt-4 border-t border-gray-200">
-                    <button 
-                      onClick={() => setSelectedId(null)} 
-                      className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200 font-medium"
+                  <div className="pt-4" style={{ borderTop: "1px solid var(--border)" }}>
+                    <button
+                      onClick={() => setSelectedId(null)}
+                      className="w-full px-4 py-2 rounded-lg transition-colors duration-200 font-medium"
+                      style={{ background: "var(--surface-raised)", color: "var(--muted)", border: "1px solid var(--border)" }}
                     >
                       Close Details
                     </button>
