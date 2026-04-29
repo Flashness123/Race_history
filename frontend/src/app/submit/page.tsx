@@ -6,7 +6,7 @@ import MapPicker from "@/components/MapPicker";
 type Link = { name: string; url: string };
 type Rider = { name: string; position: number };
 type TrackRecord = { name: string; time: string };
-type SubmissionMode = 'race' | 'spot' | 'batch';
+type SubmissionMode = 'race' | 'spot';
 
 function SubmitContent() {
   const router = useRouter();
@@ -38,14 +38,12 @@ function SubmitContent() {
     event_image_url: null as string | null,
     // Spot-specific fields
     spot_notes: "",
-    // Batch upload fields
-    batch_file: null as File | null,
-    batch_results: null as any,
   });
   const [ok, setOk] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [attachmentFiles, setAttachmentFiles] = useState<File[]>([]);
+  const [attachmentErr, setAttachmentErr] = useState<string | null>(null);
 
   // Check if the event is in the future
   const isFutureEvent = () => {
@@ -227,51 +225,12 @@ function SubmitContent() {
     return `/images/event-defaults/event_${randomIndex}.jpg`;
   }
 
-  function handleBatchFileUpload(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (file) {
-      setForm(prev => ({
-        ...prev,
-        batch_file: file
-      }));
-    }
-  }
-
-  async function geocodeLocation(location: string): Promise<{lat: number, lng: number} | null> {
-    try {
-      const response = await fetch(`https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(location)}&key=YOUR_API_KEY&limit=1`);
-      const data = await response.json();
-      if (data.results && data.results.length > 0) {
-        const { lat, lng } = data.results[0].geometry;
-        return { lat, lng };
-      }
-    } catch (error) {
-      console.warn('Geocoding failed:', error);
-    }
-    return null;
-  }
-
-  function mapCategoryToValue(category: string): string {
-    switch (category?.toUpperCase()) {
-      case 'WDSC': return 'WDSC';
-      case 'IDF': return 'IDF';
-      case 'EURO': return 'EURO';
-      case 'FREERIDE': return 'FREERIDE';
-      default: return 'WDSC';
-    }
-  }
-
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErr(null);
     setOk(null);
     setBusy(true);
     try {
-      if (submissionMode === 'batch') {
-        await handleBatchSubmit();
-        return;
-      }
-
       // Filter out empty links and riders
       const filteredLinks = form.links.filter(link => link.name.trim() && link.url.trim());
       const filteredOpenRiders = form.top_riders_open.filter(rider => rider.name.trim());
@@ -373,42 +332,6 @@ function SubmitContent() {
     }
   }
 
-  async function handleBatchSubmit() {
-    if (!form.batch_file) {
-      setErr("Please select a file to upload");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('file', form.batch_file);
-
-    const res = await fetch("/api/submit/batch", {
-      method: "POST",
-      body: formData,
-    });
-
-    let data;
-    try {
-      data = await res.json();
-    } catch (jsonError) {
-      setErr(`Server error: ${res.status} ${res.statusText}`);
-      return;
-    }
-
-    if (!res.ok) {
-      if (res.status === 401) {
-        setErr("Please sign in to submit races");
-        setIsAuthenticated(false);
-      } else {
-        setErr(data?.error || `Failed: ${res.status}`);
-      }
-      return;
-    }
-
-    setForm(prev => ({ ...prev, batch_results: data }));
-    setOk(`Batch upload completed! ${data.message || `${data.successful} races submitted successfully. ${data.skipped} races were skipped (already exist).`}`);
-  }
-
   const inputStyle = { background: "var(--surface-raised)", border: "1px solid var(--border)", color: "var(--paper)" };
   const cardStyle = { background: "var(--surface)", border: "1px solid var(--border)" };
 
@@ -502,22 +425,11 @@ function SubmitContent() {
             >
               📍 Submit Spot
             </button>
-            <button
-              type="button"
-              onClick={() => setSubmissionMode('batch')}
-              className="px-6 py-3 rounded-lg font-medium transition-all duration-200"
-              style={submissionMode === 'batch'
-                ? { background: "var(--accent)", color: "var(--paper)" }
-                : { background: "var(--surface)", color: "var(--muted)", border: "1px solid var(--border)" }}
-            >
-              📊 Batch Submit
-            </button>
           </div>
 
           <p style={{ color: "var(--muted)" }}>
             {submissionMode === 'race' && 'Share your race with the community'}
             {submissionMode === 'spot' && 'Submit a new spot location'}
-            {submissionMode === 'batch' && 'Upload multiple races from Excel/ODS file'}
           </p>
         </div>
 
@@ -739,98 +651,6 @@ function SubmitContent() {
                     value={form.spot_notes}
                     onChange={(e) => setForm(prev => ({ ...prev, spot_notes: e.target.value }))}
                   />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Batch Submission Mode */}
-          {submissionMode === 'batch' && (
-            <div className="rounded-xl shadow-sm p-6" style={cardStyle}>
-              <h2 className="text-lg font-semibold mb-4" style={{ color: "var(--paper)" }}>Batch Upload</h2>
-              <div className="space-y-6">
-                {/* File Upload */}
-                <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: "var(--muted)" }}>
-                    Excel/ODS File <span style={{ color: "var(--accent)" }}>*</span>
-                  </label>
-                  <div className="border-2 border-dashed rounded-lg p-8 text-center" style={{ borderColor: "var(--border)" }}>
-                    <div className="space-y-4">
-                      <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto" style={{ background: "var(--surface-raised)" }}>
-                        <span className="text-3xl">📊</span>
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-medium mb-2" style={{ color: "var(--paper)" }}>Upload Excel/ODS File</h3>
-                        <p className="mb-4" style={{ color: "var(--muted)" }}>Supported formats: .xlsx, .ods</p>
-                        <input
-                          type="file"
-                          accept=".xlsx,.ods"
-                          onChange={handleBatchFileUpload}
-                          className="hidden"
-                          id="batch-file-upload"
-                        />
-                        <label
-                          htmlFor="batch-file-upload"
-                          className="inline-flex items-center gap-2 px-6 py-3 rounded-lg transition-colors duration-200 cursor-pointer"
-                          style={{ background: "var(--accent)", color: "var(--paper)" }}
-                        >
-                          <span>📁</span>
-                          <span>Choose File</span>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                  {form.batch_file && (
-                    <div className="mt-4 p-3 rounded-lg" style={{ background: "var(--surface-raised)", border: "1px solid var(--border)" }}>
-                      <p className="text-sm" style={{ color: "var(--paper)" }}>
-                        <span className="font-medium">Selected:</span> {form.batch_file.name}
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Instructions */}
-                <div className="rounded-lg p-4" style={{ background: "var(--surface-raised)", border: "1px solid var(--border)" }}>
-                  <h3 className="font-medium mb-2" style={{ color: "var(--paper)" }}>Required Columns:</h3>
-                  <div className="text-sm space-y-1" style={{ color: "var(--muted)" }}>
-                    <p><strong style={{ color: "var(--paper)" }}>event_name</strong> - Race Name (required)</p>
-                    <p><strong style={{ color: "var(--paper)" }}>date_start</strong> - Start Date (required)</p>
-                    <p><strong style={{ color: "var(--paper)" }}>date_end</strong> - End Date (optional)</p>
-                    <p><strong style={{ color: "var(--paper)" }}>location</strong> - Location (optional, will be automatically geocoded to coordinates)</p>
-                    <p><strong style={{ color: "var(--paper)" }}>category</strong> or <strong style={{ color: "var(--paper)" }}>link_event_category</strong> - Categories: WDSC, IDF, EURO, FREERIDE, OUTLAW, NATIONAL, RACE (comma-separated for multiple)</p>
-                    <p><strong style={{ color: "var(--paper)" }}>standup_top_1, standup_top_2, standup_top_3</strong> - Top 3 Open riders</p>
-                    <p><strong style={{ color: "var(--paper)" }}>luge_top_1, luge_top_2, luge_top_3</strong> - Top 3 Luge riders</p>
-                    <p><strong style={{ color: "var(--paper)" }}>women_top_1, women_top_2, women_top_3</strong> - Top 3 Women riders</p>
-                    <p><strong style={{ color: "var(--paper)" }}>track_record_1, track_record_2, track_record_3, track_record_4, track_record_5, track_record_6</strong> - Track records (up to 6)</p>
-                    <p><strong style={{ color: "var(--paper)" }}>organizer</strong> - Event organizer name(s) (comma-separated for multiple)</p>
-                    <p><strong style={{ color: "var(--paper)" }}>event_description</strong> - Event description (optional)</p>
-                    <p><strong style={{ color: "var(--paper)" }}>link_event_page</strong> - Event page URL</p>
-                  </div>
-                  <div className="mt-3 p-3 rounded" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
-                    <p className="text-sm" style={{ color: "var(--muted)" }}>
-                      <strong style={{ color: "var(--paper)" }}>📍 Automatic Geocoding:</strong> Locations will be automatically converted to map coordinates.
-                      Processing may take a few seconds per location.
-                    </p>
-                  </div>
-
-                  {/* Template Download */}
-                  <div className="mt-4 p-4 rounded-lg" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-medium mb-1" style={{ color: "var(--paper)" }}>Recommended Template</h4>
-                        <p className="text-sm" style={{ color: "var(--muted)" }}>Download our sample file to see the correct column format</p>
-                      </div>
-                      <a
-                        href="/batch_submission_template_custom.ods"
-                        download="batch_submission_template_custom.ods"
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg transition-colors duration-200 text-sm font-medium"
-                        style={{ background: "var(--accent)", color: "var(--paper)" }}
-                      >
-                        <span>📥</span>
-                        <span>Download Template</span>
-                      </a>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
@@ -1345,12 +1165,11 @@ function SubmitContent() {
             </div>
           )}
 
-          {/* Supporting Documents - race and spot modes only */}
-          {submissionMode !== 'batch' && (
-            <div className="rounded-xl shadow-sm p-6" style={cardStyle}>
+          {/* Supporting Documents */}
+          <div className="rounded-xl shadow-sm p-6" style={cardStyle}>
               <h2 className="text-lg font-semibold mb-1" style={{ color: "var(--paper)" }}>Supporting Documents</h2>
               <p className="text-sm mb-4" style={{ color: "var(--muted)" }}>
-                Optionally attach qualifying results, race schedules, or other files (csv, xlsx, pdf, docx, txt — max 1 MB each).
+                Optionally attach qualifying results, race schedules, or other files (csv, xlsx, pdf, docx, txt — max 1 MB total).
               </p>
 
               {attachmentFiles.length > 0 && (
@@ -1363,7 +1182,7 @@ function SubmitContent() {
                       </span>
                       <button
                         type="button"
-                        onClick={() => setAttachmentFiles(prev => prev.filter((_, j) => j !== i))}
+                        onClick={() => { setAttachmentFiles(prev => prev.filter((_, j) => j !== i)); setAttachmentErr(null); }}
                         className="text-xs px-2 py-0.5 rounded flex-shrink-0"
                         style={{ color: "#ef4444", background: "var(--surface)" }}
                       >
@@ -1372,6 +1191,10 @@ function SubmitContent() {
                     </div>
                   ))}
                 </div>
+              )}
+
+              {attachmentErr && (
+                <p className="text-sm mb-3" style={{ color: "#ef4444" }}>{attachmentErr}</p>
               )}
 
               <label className="inline-flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer transition-opacity hover:opacity-80 text-sm"
@@ -1384,13 +1207,22 @@ function SubmitContent() {
                   className="hidden"
                   onChange={(e) => {
                     const file = e.target.files?.[0];
-                    if (file) setAttachmentFiles(prev => [...prev, file]);
+                    if (file) {
+                      const MAX_TOTAL = 1 * 1024 * 1024;
+                      const currentTotal = attachmentFiles.reduce((sum, f) => sum + f.size, 0);
+                      if (currentTotal + file.size > MAX_TOTAL) {
+                        const remaining = MAX_TOTAL - currentTotal;
+                        setAttachmentErr(`Total attachment size would exceed 1 MB. You have ${remaining < 1024 ? "< 1" : Math.floor(remaining / 1024)} KB remaining.`);
+                      } else {
+                        setAttachmentErr(null);
+                        setAttachmentFiles(prev => [...prev, file]);
+                      }
+                    }
                     e.target.value = "";
                   }}
                 />
               </label>
             </div>
-          )}
 
           {/* Submit Button */}
           <div className="rounded-xl shadow-sm p-6" style={cardStyle}>
@@ -1408,11 +1240,7 @@ function SubmitContent() {
                 <div className="flex items-center justify-center gap-2">
                   <span>🚀</span>
                   <span>
-                    {submissionMode === "batch"
-                      ? "Upload Batch"
-                      : submissionMode === "spot"
-                        ? "Submit Spot"
-                        : "Submit Race"}
+                    {submissionMode === "spot" ? "Submit Spot" : "Submit Race"}
                   </span>
                 </div>
               )}

@@ -10,11 +10,7 @@ from app.models.models import Submission, RaceEvent, Result, Person, User, Submi
 from app.core.norm import norm
 from app.core.files import save_attachment_file
 import os
-import pandas as pd
-import io
 import json
-import requests
-import time
 
 router = APIRouter(prefix="/submissions", tags=["submissions"])
 
@@ -456,6 +452,20 @@ async def upload_submission_attachment(
 
     content = await file.read()
     original_name = file.filename or "attachment"
+
+    # Enforce 1 MB total across all attachments for this submission
+    MAX_TOTAL_BYTES = 1 * 1024 * 1024
+    existing_total = db.scalar(
+        select(func.coalesce(func.sum(SubmissionAttachment.file_size), 0))
+        .where(SubmissionAttachment.submission_id == submission_id)
+    ) or 0
+    if existing_total + len(content) > MAX_TOTAL_BYTES:
+        remaining = MAX_TOTAL_BYTES - existing_total
+        raise HTTPException(
+            status_code=413,
+            detail=f"Total attachment size would exceed 1 MB. You have {remaining // 1024} KB remaining."
+        )
+
     try:
         stored_path, file_size = save_attachment_file(content, original_name, user_id)
     except ValueError as e:
@@ -512,249 +522,3 @@ def download_submission_attachment(
         headers={"Content-Disposition": f'attachment; filename="{att.original_filename}"'},
     )
 
-@router.post("/batch", status_code=201)
-def batch_submit(file: UploadFile = File(...), db: Session = Depends(get_db), claims: dict = Depends(get_current_user_claims)):
-    """Process batch upload of races from Excel/ODS file with new column structure"""
-    try:
-        user_id = int(claims["sub"])
-        user = db.get(User, user_id)
-        if not user or not user.is_active:
-            raise HTTPException(status_code=403, detail="Inactive user")
-        if not user.can_submit:
-            raise HTTPException(status_code=403, detail="Submitting disabled for your account")
-
-        # Read the uploaded file
-        content = file.file.read()
-        
-        # Determine file type and read accordingly
-        if file.filename.endswith('.xlsx'):
-            df = pd.read_excel(io.BytesIO(content))
-        elif file.filename.endswith('.ods'):
-            df = pd.read_excel(io.BytesIO(content), engine='odf')
-        else:
-            raise HTTPException(status_code=400, detail="Unsupported file format. Please use .xlsx or .ods")
-
-        # Validate required columns
-        required_columns = ['event_name', 'date_start']
-        missing_columns = [col for col in required_columns if col not in df.columns]
-        if missing_columns:
-            raise HTTPException(status_code=400, detail=f"Missing required columns: {missing_columns}")
-
-        successful = 0
-        skipped = 0
-        errors = []
-
-        for index, row in df.iterrows():
-            try:
-                # Skip empty rows - check if essential fields are empty
-                event_name = str(row.get('event_name', '')).strip()
-                date_start = row.get('date_start')
-                
-                if not event_name or event_name == 'nan' or event_name == '' or pd.isna(date_start):
-                    print(f"Skipping empty row {index + 1}")
-                    continue
-                
-                # Check if race already exists
-                existing_race = db.scalar(
-                    select(RaceEvent).where(
-                        RaceEvent.name == event_name,
-                        RaceEvent.year == pd.to_datetime(date_start, dayfirst=True).year
-                    )
-                )
-                
-                if existing_race:
-                    skipped += 1
-                    continue
-
-                # Geocode location if provided
-                location = str(row.get('location', '')).strip()
-                lat, lng = 0.0, 0.0
-                
-                # Skip geocoding if location is empty, nan, or invalid
-                if location and location != "" and location.lower() != 'nan' and location != 'None':
-                    coords = geocode_location(location)
-                    if coords:
-                        lat, lng = coords
-                        # Add small delay to respect Nominatim rate limits
-                        time.sleep(1)
-                    else:
-                        print(f"Warning: Could not geocode location '{location}' for event '{row['event_name']}'")
-                        location = ""  # Clear invalid location
-
-                # Process categories (can be multiple, comma-separated)
-                # Try different possible column names for categories
-                categories = None
-                for col_name in ['link_event_category', 'category', 'event_category']:
-                    if col_name in row and pd.notna(row[col_name]):
-                        categories = str(row[col_name]).strip()
-                        break
-                
-                if not categories or categories == 'nan' or categories == '':
-                    categories = 'WDSC'
-                
-                # Split categories and map to valid values
-                category_list = [cat.strip().upper() for cat in categories.split(',')]
-                primary_category = map_category_to_value(category_list[0]) if category_list else 'WDSC'
-                
-                # Debug logging
-                print(f"Event: {row['event_name']}, Raw categories: '{categories}', Parsed: {category_list}, Final: {primary_category}")
-
-                # Process organizers (can be multiple, comma-separated)
-                organizers = str(row.get('organizer', '')).strip()
-                organizer_list = []
-                if organizers and organizers != 'nan':
-                    organizer_list = [org.strip() for org in organizers.split(',') if org.strip()]
-
-                # Prepare submission data
-                submission_data = {
-                    "name": str(row['event_name']),
-                    "date_from": pd.to_datetime(row['date_start'], dayfirst=True).date().isoformat(),
-                    "date_to": pd.to_datetime(row.get('date_end'), dayfirst=True).date().isoformat() if pd.notna(row.get('date_end')) else None,
-                    "location": location,
-                    "lat": lat,
-                    "lng": lng,
-                    "category": primary_category,
-                    "links": [{"name": "Event Page", "url": str(row.get('link_event_page', ''))}] if pd.notna(row.get('link_event_page')) else [],
-                    "top_riders_open": [],
-                    "top_riders_luge": [],
-                    "top_riders_woman": [],
-                    "top_qualifiers": [],
-                    "track_record_open": None,
-                    "track_record_luge": None,
-                    "track_record_woman": None,
-                    "organizer_name": organizer_list[0] if organizer_list else None,
-                    # Store all categories and organizers as JSON strings
-                    "all_categories": json.dumps(category_list) if category_list else None,
-                    "all_organizers": json.dumps(organizer_list) if organizer_list else None,
-                    "event_description": str(row.get('event_description', '')).strip() if pd.notna(row.get('event_description')) else None,
-                }
-
-                # Add riders if they exist (new column structure)
-                for i in range(1, 4):
-                    if pd.notna(row.get(f'standup_top_{i}')):
-                        submission_data["top_riders_open"].append({
-                            "name": str(row[f'standup_top_{i}']),
-                            "position": i
-                        })
-                    if pd.notna(row.get(f'luge_top_{i}')):
-                        submission_data["top_riders_luge"].append({
-                            "name": str(row[f'luge_top_{i}']),
-                            "position": i
-                        })
-                    if pd.notna(row.get(f'women_top_{i}')):
-                        submission_data["top_riders_woman"].append({
-                            "name": str(row[f'women_top_{i}']),
-                            "position": i
-                        })
-                
-                # Add qualifiers if they exist (support up to 64 qualifiers)
-                qualifier_position = 1
-                for i in range(1, 65):  # Support up to 64 qualifiers
-                    if pd.notna(row.get(f'qualifier_{i}')):
-                        submission_data["top_qualifiers"].append({
-                            "name": str(row[f'qualifier_{i}']),
-                            "position": qualifier_position
-                        })
-                        qualifier_position += 1
-
-                # Add track records if they exist (new column structure)
-                track_records = []
-                for i in range(1, 7):  # track_record_1 to track_record_6
-                    if pd.notna(row.get(f'track_record_{i}')):
-                        track_records.append(str(row[f'track_record_{i}']))
-                
-                # Assign track records to categories if available
-                if len(track_records) >= 1:
-                    submission_data["track_record_open"] = {
-                        "name": track_records[0],
-                        "time": ""  # No time column in new structure
-                    }
-                if len(track_records) >= 2:
-                    submission_data["track_record_luge"] = {
-                        "name": track_records[1],
-                        "time": ""
-                    }
-                if len(track_records) >= 3:
-                    submission_data["track_record_woman"] = {
-                        "name": track_records[2],
-                        "time": ""
-                    }
-
-                # Create submission
-                sub = Submission(submitted_by_user_id=user_id, payload=submission_data, status="PENDING")
-                db.add(sub)
-                successful += 1
-
-            except Exception as e:
-                errors.append(f"Row {index + 1}: {str(e)}")
-                continue
-
-        db.commit()
-        
-        return {
-            "successful": successful,
-            "skipped": skipped,
-            "errors": errors[:10],  # Limit to first 10 errors
-            "total_errors": len(errors),
-            "message": f"Processed {len(df)} rows. {successful} successful, {skipped} skipped, {len(errors)} errors."
-        }
-
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=f"Batch processing error: {str(e)}")
-
-def geocode_location(location: str) -> tuple[float, float] | None:
-    """Geocode a location string to lat/lng coordinates using OpenStreetMap Nominatim"""
-    if not location or location.strip() == "":
-        return None
-    
-    try:
-        # Use OpenStreetMap Nominatim API (free, no API key required)
-        url = "https://nominatim.openstreetmap.org/search"
-        params = {
-            'q': location.strip(),
-            'format': 'json',
-            'limit': 1,
-            'addressdetails': 1
-        }
-        headers = {
-            'User-Agent': 'RaceHistoryApp/1.0'  # Required by Nominatim
-        }
-        
-        response = requests.get(url, params=params, headers=headers, timeout=10)
-        response.raise_for_status()
-        
-        data = response.json()
-        if data and len(data) > 0:
-            result = data[0]
-            lat = float(result['lat'])
-            lng = float(result['lon'])
-            print(f"Geocoded '{location}' -> ({lat}, {lng})")
-            return (lat, lng)
-        else:
-            print(f"No geocoding results for '{location}'")
-            return None
-            
-    except Exception as e:
-        print(f"Geocoding failed for '{location}': {e}")
-        return None
-
-def map_category_to_value(category: str) -> str:
-    """Map category string to valid category value"""
-    category_upper = category.upper()
-    if category_upper == 'WDSC':
-        return 'WDSC'
-    elif category_upper == 'IDF':
-        return 'IDF'
-    elif category_upper == 'EURO':
-        return 'EURO'
-    elif category_upper == 'FREERIDE':
-        return 'FREERIDE'
-    elif category_upper == 'OUTLAW':
-        return 'OUTLAW'
-    elif category_upper == 'NATIONAL':
-        return 'NATIONAL'
-    elif category_upper == 'RACE':
-        return 'RACE'
-    else:
-        return 'WDSC'  # Default fallback
