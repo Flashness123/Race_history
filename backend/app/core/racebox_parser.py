@@ -1,7 +1,7 @@
 import csv
 import io
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 @dataclass
@@ -14,7 +14,7 @@ class RunData:
 
 
 _COLUMN_MAP = {
-    "time":  ["time (s)", "time_s", "elapsed time (s)", "elapsed", "t"],
+    "time":  ["time (s)", "time_s", "elapsed time (s)", "elapsed", "time", "t"],
     "lat":   ["latitude", "lat"],
     "lng":   ["longitude", "lng", "lon"],
     "alt":   ["altitude (m)", "altitude", "alt", "elevation (m)", "elevation"],
@@ -25,33 +25,73 @@ _DOWNSAMPLE_INTERVAL_MS = 200  # keep at most 5 Hz
 
 
 def _detect_column(headers: list[str], candidates: list[str]) -> str | None:
-    lower = {h.lower(): h for h in headers}
+    lower = {h.lower().strip(): h for h in headers}
     for c in candidates:
         if c in lower:
             return lower[c]
     return None
 
 
+def _parse_time_value(t_str: str) -> float:
+    """Return a sortable float from either elapsed-seconds or ISO datetime string."""
+    t_str = t_str.strip()
+    try:
+        return float(t_str)
+    except ValueError:
+        pass
+    # ISO 8601 datetime (e.g. "2026-04-26T10:56:02.600Z")
+    t_str = t_str.replace("Z", "+00:00")
+    try:
+        return datetime.fromisoformat(t_str).timestamp()
+    except ValueError:
+        raise ValueError(f"Unrecognised time format: {t_str!r}")
+
+
+def _find_data_start(lines: list[str]) -> int:
+    """Return the index of the line that contains the actual column headers."""
+    for i, line in enumerate(lines):
+        lower = line.lower()
+        if "latitude" in lower and "longitude" in lower:
+            return i
+    return -1
+
+
 def parse_racebox_csv(content: bytes) -> RunData:
-    # Try UTF-8 first, fall back to latin-1
     try:
         text = content.decode("utf-8")
     except UnicodeDecodeError:
         text = content.decode("latin-1")
 
-    # Skip comment/metadata lines that start with # or are not CSV
-    lines = [l for l in text.splitlines() if l.strip() and not l.startswith("#")]
-    if not lines:
-        raise ValueError("CSV file is empty")
+    all_lines = text.splitlines()
 
-    reader = csv.DictReader(io.StringIO("\n".join(lines)))
-    headers = reader.fieldnames or []
+    # Find the header row by looking for the line that contains lat/lng column names.
+    # This skips any session description block (RaceBox custom export header).
+    header_idx = _find_data_start(all_lines)
+    if header_idx == -1:
+        raise ValueError("CSV missing latitude/longitude columns")
 
-    col_time  = _detect_column(list(headers), _COLUMN_MAP["time"])
-    col_lat   = _detect_column(list(headers), _COLUMN_MAP["lat"])
-    col_lng   = _detect_column(list(headers), _COLUMN_MAP["lng"])
-    col_alt   = _detect_column(list(headers), _COLUMN_MAP["alt"])
-    col_speed = _detect_column(list(headers), _COLUMN_MAP["speed"])
+    # Also try to extract run_date from the metadata block above the header
+    run_date: datetime | None = None
+    for line in all_lines[:header_idx]:
+        lower = line.lower()
+        if lower.startswith("date utc,") or lower.startswith("date,"):
+            parts = line.split(",", 1)
+            if len(parts) == 2:
+                try:
+                    val = parts[1].strip().replace("Z", "+00:00")
+                    run_date = datetime.fromisoformat(val)
+                except ValueError:
+                    pass
+
+    csv_text = "\n".join(all_lines[header_idx:])
+    reader = csv.DictReader(io.StringIO(csv_text))
+    headers = list(reader.fieldnames or [])
+
+    col_time  = _detect_column(headers, _COLUMN_MAP["time"])
+    col_lat   = _detect_column(headers, _COLUMN_MAP["lat"])
+    col_lng   = _detect_column(headers, _COLUMN_MAP["lng"])
+    col_alt   = _detect_column(headers, _COLUMN_MAP["alt"])
+    col_speed = _detect_column(headers, _COLUMN_MAP["speed"])
 
     if not col_lat or not col_lng:
         raise ValueError("CSV missing latitude/longitude columns")
@@ -61,14 +101,14 @@ def parse_racebox_csv(content: bytes) -> RunData:
     raw: list[tuple[float, float, float, float, float]] = []
     for row in reader:
         try:
-            t_s   = float(row[col_time])
+            t_val = _parse_time_value(row[col_time])
             lat   = float(row[col_lat])
             lng   = float(row[col_lng])
             alt   = float(row[col_alt]) if col_alt and row.get(col_alt) else 0.0
             speed = float(row[col_speed]) if col_speed and row.get(col_speed) else 0.0
             if lat == 0.0 and lng == 0.0:
                 continue
-            raw.append((t_s, lat, lng, alt, speed))
+            raw.append((t_val, lat, lng, alt, speed))
         except (ValueError, KeyError):
             continue
 
@@ -76,7 +116,6 @@ def parse_racebox_csv(content: bytes) -> RunData:
         raise ValueError("CSV contains too few valid GPS points")
 
     t0 = raw[0][0]
-    # Normalize time to elapsed ms from start
     points_ms = [(round((t - t0) * 1000), lat, lng, alt, spd) for t, lat, lng, alt, spd in raw]
 
     # Downsample to _DOWNSAMPLE_INTERVAL_MS
@@ -101,5 +140,5 @@ def parse_racebox_csv(content: bytes) -> RunData:
         max_speed_kmh=max_speed,
         avg_speed_kmh=avg_speed,
         track_points=downsampled,
-        run_date=None,
+        run_date=run_date,
     )
