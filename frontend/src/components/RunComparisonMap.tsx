@@ -15,7 +15,41 @@ interface RunTrack {
   color: string;
 }
 
-export default function RunComparisonMap({ runs }: { runs: RunTrack[] }) {
+interface Props {
+  runs: RunTrack[];
+  hoveredTime?: number | null;
+}
+
+function findNearest(pts: TrackPoint[], t_ms: number): TrackPoint {
+  let best = pts[0];
+  let bestDiff = Math.abs(pts[0].t - t_ms);
+  for (const p of pts) {
+    const d = Math.abs(p.t - t_ms);
+    if (d < bestDiff) { bestDiff = d; best = p; }
+    if (p.t > t_ms + bestDiff) break;
+  }
+  return best;
+}
+
+function buildHoverGeoJSON(runs: RunTrack[], t_ms: number): GeoJSON.FeatureCollection {
+  return {
+    type: "FeatureCollection",
+    features: runs
+      .filter((r) => r.trackPoints.length > 0)
+      .map((r) => {
+        const p = findNearest(r.trackPoints, t_ms);
+        return {
+          type: "Feature" as const,
+          geometry: { type: "Point" as const, coordinates: [p.lng, p.lat] },
+          properties: { color: r.color },
+        };
+      }),
+  };
+}
+
+const EMPTY_FC: GeoJSON.FeatureCollection = { type: "FeatureCollection", features: [] };
+
+export default function RunComparisonMap({ runs, hoveredTime }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const loadedRef = useRef(false);
@@ -34,6 +68,22 @@ export default function RunComparisonMap({ runs }: { runs: RunTrack[] }) {
 
     map.on("load", () => {
       loadedRef.current = true;
+
+      // Hover-points layer (always present, data updated on hover)
+      map.addSource("hover-points", { type: "geojson", data: EMPTY_FC });
+      map.addLayer({
+        id: "hover-points-circle",
+        type: "circle",
+        source: "hover-points",
+        paint: {
+          "circle-radius": 7,
+          "circle-color": ["get", "color"],
+          "circle-stroke-width": 2.5,
+          "circle-stroke-color": "#ffffff",
+          "circle-opacity": 0.95,
+        },
+      });
+
       applyRuns(map, runs);
     });
 
@@ -44,11 +94,25 @@ export default function RunComparisonMap({ runs }: { runs: RunTrack[] }) {
     };
   }, []);
 
+  // Update track lines when selected runs change
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !loadedRef.current) return;
     applyRuns(map, runs);
   }, [runs]);
+
+  // Update hover markers when hovered time changes
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !loadedRef.current) return;
+    const src = map.getSource("hover-points") as maplibregl.GeoJSONSource | undefined;
+    if (!src) return;
+    if (hoveredTime == null || runs.length === 0) {
+      src.setData(EMPTY_FC);
+    } else {
+      src.setData(buildHoverGeoJSON(runs, hoveredTime));
+    }
+  }, [hoveredTime, runs]);
 
   return (
     <div className="relative w-full h-full">
@@ -75,7 +139,6 @@ export default function RunComparisonMap({ runs }: { runs: RunTrack[] }) {
 }
 
 function applyRuns(map: maplibregl.Map, runs: RunTrack[]) {
-  // Remove any old layers/sources not in current runs
   const currentIds = new Set(runs.map((r) => `run-${r.runId}`));
   const style = map.getStyle();
   for (const layer of style?.layers ?? []) {
@@ -104,20 +167,19 @@ function applyRuns(map: maplibregl.Map, runs: RunTrack[]) {
       (map.getSource(sourceId) as maplibregl.GeoJSONSource).setData(geojson);
     } else {
       map.addSource(sourceId, { type: "geojson", data: geojson });
-      map.addLayer({
-        id: sourceId,
-        type: "line",
-        source: sourceId,
-        paint: {
-          "line-color": run.color,
-          "line-width": 3,
-          "line-opacity": 0.85,
+      // Insert track lines below the hover-points layer so dots appear on top
+      map.addLayer(
+        {
+          id: sourceId,
+          type: "line",
+          source: sourceId,
+          paint: { "line-color": run.color, "line-width": 3, "line-opacity": 0.85 },
         },
-      });
+        "hover-points-circle"
+      );
     }
   }
 
-  // Fit to bounds of all tracks
   if (allCoords.length > 0) {
     const lngs = allCoords.map((c) => c[0]);
     const lats = allCoords.map((c) => c[1]);

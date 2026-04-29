@@ -92,7 +92,7 @@ export type SpotRunListItem = {
   is_own: boolean;
 };
 
-export type TrackPoint = { t: number; lat: number; lng: number; alt: number; spd: number };
+export type TrackPoint = { t: number; lat: number; lng: number; alt: number; spd: number; gx?: number; gy?: number };
 
 export type SpotRunOut = SpotRunListItem & {
   track_points: TrackPoint[];

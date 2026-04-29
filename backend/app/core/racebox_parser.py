@@ -19,6 +19,8 @@ _COLUMN_MAP = {
     "lng":   ["longitude", "lng", "lon"],
     "alt":   ["altitude (m)", "altitude", "alt", "elevation (m)", "elevation"],
     "speed": ["speed (km/h)", "gps speed (km/h)", "speed_kmh", "speed (kmh)", "speed"],
+    "gx":    ["gforcex", "g-force x", "longitudinal acc. (g)", "longitudinal acc (g)", "accel_x"],
+    "gy":    ["gforcey", "g-force y", "lateral acc. (g)", "lateral acc (g)", "accel_y"],
 }
 
 _DOWNSAMPLE_INTERVAL_MS = 200  # keep at most 5 Hz
@@ -92,13 +94,15 @@ def parse_racebox_csv(content: bytes) -> RunData:
     col_lng   = _detect_column(headers, _COLUMN_MAP["lng"])
     col_alt   = _detect_column(headers, _COLUMN_MAP["alt"])
     col_speed = _detect_column(headers, _COLUMN_MAP["speed"])
+    col_gx    = _detect_column(headers, _COLUMN_MAP["gx"])
+    col_gy    = _detect_column(headers, _COLUMN_MAP["gy"])
 
     if not col_lat or not col_lng:
         raise ValueError("CSV missing latitude/longitude columns")
     if not col_time:
         raise ValueError("CSV missing time column")
 
-    raw: list[tuple[float, float, float, float, float]] = []
+    raw: list[tuple[float, float, float, float, float, float, float]] = []
     for row in reader:
         try:
             t_val = _parse_time_value(row[col_time])
@@ -106,9 +110,11 @@ def parse_racebox_csv(content: bytes) -> RunData:
             lng   = float(row[col_lng])
             alt   = float(row[col_alt]) if col_alt and row.get(col_alt) else 0.0
             speed = float(row[col_speed]) if col_speed and row.get(col_speed) else 0.0
+            gx    = float(row[col_gx]) if col_gx and row.get(col_gx) else 0.0
+            gy    = float(row[col_gy]) if col_gy and row.get(col_gy) else 0.0
             if lat == 0.0 and lng == 0.0:
                 continue
-            raw.append((t_val, lat, lng, alt, speed))
+            raw.append((t_val, lat, lng, alt, speed, gx, gy))
         except (ValueError, KeyError):
             continue
 
@@ -116,15 +122,16 @@ def parse_racebox_csv(content: bytes) -> RunData:
         raise ValueError("CSV contains too few valid GPS points")
 
     t0 = raw[0][0]
-    points_ms = [(round((t - t0) * 1000), lat, lng, alt, spd) for t, lat, lng, alt, spd in raw]
+    points_ms = [(round((t - t0) * 1000), lat, lng, alt, spd, gx, gy) for t, lat, lng, alt, spd, gx, gy in raw]
 
     # Downsample to _DOWNSAMPLE_INTERVAL_MS
     downsampled: list[dict] = []
     last_kept_t = -_DOWNSAMPLE_INTERVAL_MS
-    for t_ms, lat, lng, alt, spd in points_ms:
+    for t_ms, lat, lng, alt, spd, gx, gy in points_ms:
         if t_ms - last_kept_t >= _DOWNSAMPLE_INTERVAL_MS:
             downsampled.append({"t": t_ms, "lat": round(lat, 6), "lng": round(lng, 6),
-                                 "alt": round(alt, 1), "spd": round(spd, 1)})
+                                 "alt": round(alt, 1), "spd": round(spd, 1),
+                                 "gx": round(gx, 3), "gy": round(gy, 3)})
             last_kept_t = t_ms
 
     if not downsampled:

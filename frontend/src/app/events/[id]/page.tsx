@@ -40,6 +40,7 @@ export default function EventRunsPage() {
   const [me, setMe] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [hoveredTime, setHoveredTime] = useState<number | null>(null);
 
   useEffect(() => {
     fetch("/api/me", { cache: "no-store" })
@@ -260,13 +261,13 @@ export default function EventRunsPage() {
           {/* Right: map + chart */}
           <div className="flex-1 flex flex-col gap-4 min-w-0">
             <div className="rounded-xl overflow-hidden" style={{ height: "380px", background: "var(--surface)" }}>
-              <RunComparisonMap runs={selectedRuns} />
+              <RunComparisonMap runs={selectedRuns} hoveredTime={hoveredTime} />
             </div>
             <div
               className="rounded-xl p-3"
-              style={{ height: "200px", background: "var(--surface)" }}
+              style={{ height: "270px", background: "var(--surface)" }}
             >
-              <SpeedChart runs={selectedRuns} />
+              <SpeedChart runs={selectedRuns} onHoverTime={setHoveredTime} />
             </div>
           </div>
         </div>
