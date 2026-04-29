@@ -8,13 +8,17 @@ MAX_BYTES = 5 * 1024 * 1024  # 5 MB
 ALLOWED_RUN_EXTS = {".csv"}
 MAX_RUN_BYTES = 10 * 1024 * 1024  # 10 MB
 
+ALLOWED_ATTACHMENT_EXTS = {".csv", ".xlsx", ".xls", ".doc", ".docx", ".pdf", ".txt", ".ods"}
+MAX_ATTACHMENT_BYTES = 1 * 1024 * 1024  # 1 MB
+
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 UPLOAD_ROOT = os.path.join(BASE_DIR, "static", "uploads")
 PROFILE_DIR = os.path.join(UPLOAD_ROOT, "profiles")
 EVENT_DIR = os.path.join(UPLOAD_ROOT, "events")
 RUN_DIR = os.path.join(UPLOAD_ROOT, "runs")
+ATTACHMENT_DIR = os.path.join(UPLOAD_ROOT, "attachments")
 
-for d in (UPLOAD_ROOT, PROFILE_DIR, EVENT_DIR, RUN_DIR):
+for d in (UPLOAD_ROOT, PROFILE_DIR, EVENT_DIR, RUN_DIR, ATTACHMENT_DIR):
     os.makedirs(d, exist_ok=True)
 
 def _ext_ok(filename: str) -> bool:
@@ -53,3 +57,17 @@ def save_run_file(file_bytes: bytes, filename: str, owner_id: int) -> str:
     with open(path, "wb") as f:
         f.write(file_bytes)
     return os.path.join(RUN_DIR, outname)  # return absolute path for download
+
+def save_attachment_file(file_bytes: bytes, filename: str, owner_id: int) -> tuple[str, int]:
+    """Returns (absolute_path, file_size_bytes). Raises ValueError on invalid file."""
+    _, ext = os.path.splitext(filename.lower())
+    if ext not in ALLOWED_ATTACHMENT_EXTS:
+        raise ValueError(f"File type '{ext}' not allowed. Supported: csv, xlsx, xls, doc, docx, pdf, txt, ods")
+    if len(file_bytes) > MAX_ATTACHMENT_BYTES:
+        raise ValueError("File exceeds 1 MB limit")
+    uid = uuid.uuid4().hex[:8]
+    outname = f"{owner_id}_{uid}{ext}"
+    path = os.path.join(ATTACHMENT_DIR, outname)
+    with open(path, "wb") as f:
+        f.write(file_bytes)
+    return path, len(file_bytes)

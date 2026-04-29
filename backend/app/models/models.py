@@ -170,3 +170,14 @@ class SpotRun(Base):
     raw_file_path: Mapped[str | None] = mapped_column(String(400), nullable=True)
     run_date: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     uploaded_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class EventAttachment(Base):
+    __tablename__ = "event_attachments"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    event_id: Mapped[int] = mapped_column(ForeignKey("race_events.id", ondelete="CASCADE"), index=True)
+    uploaded_by_user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    original_filename: Mapped[str] = mapped_column(String(260))
+    stored_path: Mapped[str] = mapped_column(String(400))
+    file_size: Mapped[int]
+    uploaded_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

@@ -147,3 +147,44 @@ export async function deleteSpotRun(eventId: number, runId: number): Promise<voi
 export function spotRunDownloadUrl(eventId: number, runId: number): string {
   return `/api/spots/${eventId}/runs/${runId}/download`;
 }
+
+export type EventAttachment = {
+  id: number;
+  original_filename: string;
+  file_size: number;
+  uploaded_at: string;
+  uploaded_by_name: string;
+  is_own: boolean;
+};
+
+export async function fetchEventAttachments(eventId: number): Promise<EventAttachment[]> {
+  const res = await fetch(`/api/events/${eventId}/attachments`, { cache: "no-store" });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || data.detail || `Failed to fetch attachments (${res.status})`);
+  }
+  return res.json();
+}
+
+export async function uploadEventAttachment(eventId: number, file: File): Promise<EventAttachment> {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await fetch(`/api/events/${eventId}/attachments`, { method: "POST", body: form });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || data.detail || `Upload failed (${res.status})`);
+  }
+  return res.json();
+}
+
+export async function deleteEventAttachment(eventId: number, attId: number): Promise<void> {
+  const res = await fetch(`/api/events/${eventId}/attachments/${attId}`, { method: "DELETE" });
+  if (!res.ok && res.status !== 204) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || data.detail || `Failed to delete attachment (${res.status})`);
+  }
+}
+
+export function eventAttachmentDownloadUrl(eventId: number, attId: number): string {
+  return `/api/events/${eventId}/attachments/${attId}/download`;
+}
