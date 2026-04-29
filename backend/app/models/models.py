@@ -149,10 +149,24 @@ class VideoLike(Base):
     video_id: Mapped[int] = mapped_column(ForeignKey("videos.id", ondelete="CASCADE"), index=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
-    
+
     # Relationships
     video: Mapped["Video"] = relationship("Video", back_populates="likes")
     user: Mapped["User"] = relationship("User", backref="video_likes")
-    
+
     # Ensure one like per user per video
     __table_args__ = (UniqueConstraint("video_id", "user_id", name="uq_video_user_like"),)
+
+class SpotRun(Base):
+    __tablename__ = "spot_runs"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    event_id: Mapped[int] = mapped_column(ForeignKey("race_events.id", ondelete="CASCADE"), index=True)
+    uploaded_by_user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    rider_name: Mapped[str] = mapped_column(String(160))
+    duration_ms: Mapped[int]
+    max_speed_kmh: Mapped[float]
+    avg_speed_kmh: Mapped[float]
+    track_points: Mapped[dict] = mapped_column(JSON)  # [{t, lat, lng, alt, spd}, ...]
+    raw_file_path: Mapped[str | None] = mapped_column(String(400), nullable=True)
+    run_date: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    uploaded_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

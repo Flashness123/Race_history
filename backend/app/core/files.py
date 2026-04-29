@@ -5,12 +5,16 @@ from typing import Literal
 ALLOWED_EXTS = {".jpg", ".jpeg", ".png", ".webp"}
 MAX_BYTES = 5 * 1024 * 1024  # 5 MB
 
+ALLOWED_RUN_EXTS = {".csv"}
+MAX_RUN_BYTES = 10 * 1024 * 1024  # 10 MB
+
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 UPLOAD_ROOT = os.path.join(BASE_DIR, "static", "uploads")
 PROFILE_DIR = os.path.join(UPLOAD_ROOT, "profiles")
 EVENT_DIR = os.path.join(UPLOAD_ROOT, "events")
+RUN_DIR = os.path.join(UPLOAD_ROOT, "runs")
 
-for d in (UPLOAD_ROOT, PROFILE_DIR, EVENT_DIR):
+for d in (UPLOAD_ROOT, PROFILE_DIR, EVENT_DIR, RUN_DIR):
     os.makedirs(d, exist_ok=True)
 
 def _ext_ok(filename: str) -> bool:
@@ -36,3 +40,16 @@ def save_file(file_bytes: bytes, filename: str, kind: Literal["profile", "event"
     with open(path, "wb") as f:
         f.write(file_bytes)
     return rel
+
+def save_run_file(file_bytes: bytes, filename: str, owner_id: int) -> str:
+    if len(file_bytes) > MAX_RUN_BYTES:
+        raise ValueError("File too large (max 10 MB)")
+    _, ext = os.path.splitext(filename.lower())
+    if ext not in ALLOWED_RUN_EXTS:
+        raise ValueError("Only CSV files are supported")
+    uid = uuid.uuid4().hex[:8]
+    outname = f"{owner_id}_{uid}{ext}"
+    path = os.path.join(RUN_DIR, outname)
+    with open(path, "wb") as f:
+        f.write(file_bytes)
+    return os.path.join(RUN_DIR, outname)  # return absolute path for download

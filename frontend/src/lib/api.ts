@@ -72,11 +72,78 @@ export async function likeVideo(videoId: number) {
 
 export async function unlikeVideo(videoId: number) {
   const res = await fetch(`/api/videos/${videoId}/like`, { method: "DELETE" });
-  
+
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
     throw new Error(errorData.error || `Failed to unlike video (${res.status})`);
   }
-  
+
   return res.json();
+}
+
+export type SpotRunListItem = {
+  id: number;
+  rider_name: string;
+  duration_ms: number;
+  max_speed_kmh: number;
+  avg_speed_kmh: number;
+  run_date: string | null;
+  uploaded_at: string;
+  is_own: boolean;
+};
+
+export type TrackPoint = { t: number; lat: number; lng: number; alt: number; spd: number };
+
+export type SpotRunOut = SpotRunListItem & {
+  track_points: TrackPoint[];
+};
+
+export async function fetchSpotRuns(
+  eventId: number,
+  sortBy: "time" | "speed" | "name" | "date" = "time"
+): Promise<SpotRunListItem[]> {
+  const res = await fetch(`/api/spots/${eventId}/runs?sort_by=${sortBy}`, { cache: "no-store" });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || `Failed to fetch runs (${res.status})`);
+  }
+  return res.json();
+}
+
+export async function fetchSpotRun(eventId: number, runId: number): Promise<SpotRunOut> {
+  const res = await fetch(`/api/spots/${eventId}/runs/${runId}`, { cache: "no-store" });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || `Failed to fetch run (${res.status})`);
+  }
+  return res.json();
+}
+
+export async function uploadSpotRun(
+  eventId: number,
+  file: File,
+  riderName?: string
+): Promise<SpotRunOut> {
+  const form = new FormData();
+  form.append("file", file);
+  if (riderName) form.append("rider_name", riderName);
+
+  const res = await fetch(`/api/spots/${eventId}/runs`, { method: "POST", body: form });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || data.detail || `Upload failed (${res.status})`);
+  }
+  return res.json();
+}
+
+export async function deleteSpotRun(eventId: number, runId: number): Promise<void> {
+  const res = await fetch(`/api/spots/${eventId}/runs/${runId}`, { method: "DELETE" });
+  if (!res.ok && res.status !== 204) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || `Failed to delete run (${res.status})`);
+  }
+}
+
+export function spotRunDownloadUrl(eventId: number, runId: number): string {
+  return `/api/spots/${eventId}/runs/${runId}/download`;
 }

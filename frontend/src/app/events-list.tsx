@@ -560,9 +560,9 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
                   {/* Source Link */}
                   {eventDetails.source_url && (
                     <div className="pt-4 border-t border-gray-200">
-                      <a 
-                        href={eventDetails.source_url} 
-                        target="_blank" 
+                      <a
+                        href={eventDetails.source_url}
+                        target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium"
                       >
@@ -571,6 +571,18 @@ export default function ClientEventsList({ year }: ClientEventsListProps) {
                       </a>
                     </div>
                   )}
+
+                  {/* GPS Run Comparison */}
+                  <div className={eventDetails.source_url ? "pt-3" : "pt-4 border-t border-gray-200"}>
+                    <a
+                      href={`/events/${selectedEvent.id}`}
+                      className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors duration-200"
+                      style={{ background: "var(--surface-raised)", color: "var(--accent)" }}
+                    >
+                      <span>📍</span>
+                      GPS Run Comparison →
+                    </a>
+                  </div>
                 </div>
               ) : (
                 <div className="p-6 text-center">
