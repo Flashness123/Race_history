@@ -25,6 +25,33 @@ _COLUMN_MAP = {
 
 _DOWNSAMPLE_INTERVAL_MS = 200  # keep at most 5 Hz
 
+# Run-start detection: find last idle period before the rider clearly starts moving
+_RUN_START_MOVING_KMH = 10.0  # "clearly in motion" threshold
+_RUN_START_IDLE_KMH = 3.0     # "essentially stationary" threshold
+
+
+def _find_run_start_idx(points_ms: list) -> int:
+    """
+    Find the index where the actual descent begins.
+    Scans forward to find the first point at or above MOVING threshold,
+    then walks back to find the last point below IDLE threshold before it.
+    This trims pre-start waiting time so all runs align at t=0.
+    """
+    fast_idx = -1
+    for i, p in enumerate(points_ms):
+        if p[4] >= _RUN_START_MOVING_KMH:
+            fast_idx = i
+            break
+
+    if fast_idx <= 0:
+        return 0  # already moving from first point, or never reaches threshold
+
+    for i in range(fast_idx - 1, -1, -1):
+        if points_ms[i][4] < _RUN_START_IDLE_KMH:
+            return i + 1  # first point after the last stationary moment
+
+    return 0  # no idle period found before movement, keep full track
+
 
 def _detect_column(headers: list[str], candidates: list[str]) -> str | None:
     lower = {h.lower().strip(): h for h in headers}
@@ -123,6 +150,13 @@ def parse_racebox_csv(content: bytes) -> RunData:
 
     t0 = raw[0][0]
     points_ms = [(round((t - t0) * 1000), lat, lng, alt, spd, gx, gy) for t, lat, lng, alt, spd, gx, gy in raw]
+
+    # Trim idle pre-run waiting time so all runs align at t=0 = descent start
+    start_idx = _find_run_start_idx(points_ms)
+    if start_idx > 0:
+        t_origin = points_ms[start_idx][0]
+        points_ms = [(t - t_origin, lat, lng, alt, spd, gx, gy)
+                     for t, lat, lng, alt, spd, gx, gy in points_ms[start_idx:]]
 
     # Downsample to _DOWNSAMPLE_INTERVAL_MS
     downsampled: list[dict] = []
