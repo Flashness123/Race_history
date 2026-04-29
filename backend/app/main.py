@@ -12,7 +12,6 @@ from app.api.events import router as events_router
 from app.api.uploads import router as uploads_router
 from app.api.videos import router as videos_router
 from app.api.spot_runs import router as spot_runs_router
-from app.api.attachments import router as attachments_router
 import app.models.models
 
 app = FastAPI(title="Downhill Longboarding API")
@@ -40,7 +39,6 @@ app.include_router(events_router)
 app.include_router(uploads_router)
 app.include_router(videos_router)
 app.include_router(spot_runs_router)
-app.include_router(attachments_router)
 
 # Serve static uploads
 app.mount("/static", StaticFiles(directory="app/static"), name="static")

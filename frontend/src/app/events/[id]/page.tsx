@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import {
@@ -8,13 +8,8 @@ import {
   fetchSpotRun,
   deleteSpotRun,
   spotRunDownloadUrl,
-  fetchEventAttachments,
-  uploadEventAttachment,
-  deleteEventAttachment,
-  eventAttachmentDownloadUrl,
   type SpotRunListItem,
   type SpotRunOut,
-  type EventAttachment,
 } from "@/lib/api";
 import { TRACK_COLORS } from "@/components/RunComparisonMap";
 
@@ -29,19 +24,6 @@ function fmtDuration(ms: number) {
   const m = Math.floor(s / 60);
   const sec = s % 60;
   return m > 0 ? `${m}:${sec.toString().padStart(2, "0")}` : `${sec}s`;
-}
-
-function fmtFileSize(bytes: number): string {
-  if (bytes < 1024) return "< 1 KB";
-  return `${Math.round(bytes / 1024)} KB`;
-}
-
-function fileIcon(filename: string): string {
-  const ext = filename.split(".").pop()?.toLowerCase() ?? "";
-  if (ext === "pdf") return "📕";
-  if (["xlsx", "xls", "ods", "csv"].includes(ext)) return "📊";
-  if (["doc", "docx"].includes(ext)) return "📄";
-  return "📎";
 }
 
 export default function EventRunsPage() {
@@ -59,10 +41,6 @@ export default function EventRunsPage() {
   const [loading, setLoading] = useState(true);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [hoveredTime, setHoveredTime] = useState<number | null>(null);
-  const [attachments, setAttachments] = useState<EventAttachment[]>([]);
-  const [attachError, setAttachError] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     fetch("/api/me", { cache: "no-store" })
@@ -90,12 +68,6 @@ export default function EventRunsPage() {
   );
 
   useEffect(() => { loadRuns(); }, [loadRuns]);
-
-  useEffect(() => {
-    fetchEventAttachments(eventId)
-      .then(setAttachments)
-      .catch(() => {});
-  }, [eventId]);
 
   async function toggleRun(runId: number) {
     const next = new Set(selectedIds);
@@ -130,33 +102,6 @@ export default function EventRunsPage() {
       setTracks((prev) => { const n = { ...prev }; delete n[runId]; return n; });
     } catch (err: any) {
       setDeleteError(err.message || "Failed to delete run");
-    }
-  }
-
-  async function handleAttachmentUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    e.target.value = "";
-    setAttachError(null);
-    setUploading(true);
-    try {
-      const att = await uploadEventAttachment(eventId, file);
-      setAttachments((prev) => [att, ...prev]);
-    } catch (err: any) {
-      setAttachError(err.message || "Upload failed");
-    } finally {
-      setUploading(false);
-    }
-  }
-
-  async function handleAttachmentDelete(attId: number) {
-    if (!confirm("Delete this attachment?")) return;
-    setAttachError(null);
-    try {
-      await deleteEventAttachment(eventId, attId);
-      setAttachments((prev) => prev.filter((a) => a.id !== attId));
-    } catch (err: any) {
-      setAttachError(err.message || "Failed to delete attachment");
     }
   }
 
@@ -323,80 +268,6 @@ export default function EventRunsPage() {
               style={{ height: "270px", background: "var(--surface)" }}
             >
               <SpeedChart runs={selectedRuns} onHoverTime={setHoveredTime} />
-            </div>
-
-            {/* Attachments */}
-            <div className="rounded-xl p-4" style={{ background: "var(--surface)" }}>
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-semibold" style={{ color: "var(--paper)" }}>Attachments</h2>
-                {me?.authenticated && (
-                  <>
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={uploading}
-                      className="text-xs px-3 py-1 rounded-lg transition-opacity hover:opacity-80 disabled:opacity-50"
-                      style={{ background: "var(--accent)", color: "var(--paper)" }}
-                    >
-                      {uploading ? "Uploading…" : "+ Attach"}
-                    </button>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept=".csv,.xlsx,.xls,.doc,.docx,.pdf,.txt,.ods"
-                      className="hidden"
-                      onChange={handleAttachmentUpload}
-                    />
-                  </>
-                )}
-              </div>
-
-              {attachError && (
-                <p className="text-xs text-red-400 mb-2">{attachError}</p>
-              )}
-
-              {attachments.length === 0 ? (
-                <p className="text-xs" style={{ color: "var(--muted)" }}>
-                  No attachments yet.{me?.authenticated ? ' Use "+ Attach" to add qualifying results, schedules, etc.' : ""}
-                </p>
-              ) : (
-                <div className="flex flex-col gap-2">
-                  {attachments.map((att) => (
-                    <div
-                      key={att.id}
-                      className="flex items-center gap-2 rounded-lg px-3 py-2"
-                      style={{ background: "var(--surface-raised)" }}
-                    >
-                      <span className="flex-shrink-0">{fileIcon(att.original_filename)}</span>
-                      <span className="flex-1 text-xs truncate" style={{ color: "var(--paper)" }}>
-                        {att.original_filename}
-                      </span>
-                      <span className="text-xs flex-shrink-0" style={{ color: "var(--muted)" }}>
-                        {fmtFileSize(att.file_size)}
-                      </span>
-                      <span className="text-xs flex-shrink-0 hidden sm:block" style={{ color: "var(--muted)" }}>
-                        {att.uploaded_by_name}
-                      </span>
-                      <a
-                        href={eventAttachmentDownloadUrl(eventId, att.id)}
-                        download
-                        className="text-xs px-2 py-0.5 rounded transition-opacity hover:opacity-70 flex-shrink-0"
-                        style={{ background: "var(--ink)", color: "var(--muted)" }}
-                      >
-                        ↓
-                      </a>
-                      {att.is_own && (
-                        <button
-                          onClick={() => handleAttachmentDelete(att.id)}
-                          className="text-xs px-2 py-0.5 rounded text-red-400 transition-opacity hover:opacity-70 flex-shrink-0"
-                          style={{ background: "var(--ink)" }}
-                        >
-                          ×
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           </div>
         </div>

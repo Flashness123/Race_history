@@ -45,6 +45,7 @@ function SubmitContent() {
   const [ok, setOk] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [attachmentFiles, setAttachmentFiles] = useState<File[]>([]);
 
   // Check if the event is in the future
   const isFutureEvent = () => {
@@ -339,6 +340,19 @@ function SubmitContent() {
 
         if (!imageRes.ok) {
           console.warn("Failed to upload image, but submission was successful");
+        }
+      }
+
+      // Upload any attached documents
+      for (const file of attachmentFiles) {
+        const fd = new FormData();
+        fd.append("file", file);
+        const attRes = await fetch(`/api/submit/${data.id}/attachments`, {
+          method: "POST",
+          body: fd,
+        });
+        if (!attRes.ok) {
+          console.warn(`Failed to upload attachment ${file.name}`);
         }
       }
 
@@ -1328,6 +1342,53 @@ function SubmitContent() {
                   The organizer will be treated as a rider and can be clicked on the event page.
                 </p>
               </div>
+            </div>
+          )}
+
+          {/* Supporting Documents - race and spot modes only */}
+          {submissionMode !== 'batch' && (
+            <div className="rounded-xl shadow-sm p-6" style={cardStyle}>
+              <h2 className="text-lg font-semibold mb-1" style={{ color: "var(--paper)" }}>Supporting Documents</h2>
+              <p className="text-sm mb-4" style={{ color: "var(--muted)" }}>
+                Optionally attach qualifying results, race schedules, or other files (csv, xlsx, pdf, docx, txt — max 1 MB each).
+              </p>
+
+              {attachmentFiles.length > 0 && (
+                <div className="flex flex-col gap-2 mb-4">
+                  {attachmentFiles.map((f, i) => (
+                    <div key={i} className="flex items-center gap-3 px-3 py-2 rounded-lg" style={{ background: "var(--surface-raised)", border: "1px solid var(--border)" }}>
+                      <span className="text-sm flex-1 truncate" style={{ color: "var(--paper)" }}>{f.name}</span>
+                      <span className="text-xs flex-shrink-0" style={{ color: "var(--muted)" }}>
+                        {f.size < 1024 ? "< 1 KB" : `${Math.round(f.size / 1024)} KB`}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setAttachmentFiles(prev => prev.filter((_, j) => j !== i))}
+                        className="text-xs px-2 py-0.5 rounded flex-shrink-0"
+                        style={{ color: "#ef4444", background: "var(--surface)" }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <label className="inline-flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer transition-opacity hover:opacity-80 text-sm"
+                style={{ background: "var(--surface-raised)", color: "var(--paper)", border: "1px solid var(--border)" }}>
+                <span>📎</span>
+                <span>Add file</span>
+                <input
+                  type="file"
+                  accept=".csv,.xlsx,.xls,.doc,.docx,.pdf,.txt,.ods"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) setAttachmentFiles(prev => [...prev, file]);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
             </div>
           )}
 

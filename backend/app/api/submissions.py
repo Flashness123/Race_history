@@ -6,8 +6,10 @@ from sqlalchemy import select, func, cast, delete
 from geoalchemy2 import Geography
 from app.core.db import get_db
 from app.core.security import get_current_user_claims, require_role
-from app.models.models import Submission, RaceEvent, Result, Person, User
+from app.models.models import Submission, RaceEvent, Result, Person, User, SubmissionAttachment, EventAttachment
 from app.core.norm import norm
+from app.core.files import save_attachment_file
+import os
 import pandas as pd
 import io
 import json
@@ -401,6 +403,24 @@ def approve(submission_id: int, db: Session = Depends(get_db)):
 
     sub.status = "APPROVED"
     db.commit()
+
+    # Copy submission attachments to event_attachments
+    sub_atts = db.scalars(
+        select(SubmissionAttachment).where(SubmissionAttachment.submission_id == submission_id)
+    ).all()
+    for sa_att in sub_atts:
+        ev_att = EventAttachment(
+            event_id=ev.id,
+            uploaded_by_user_id=sa_att.uploaded_by_user_id,
+            original_filename=sa_att.original_filename,
+            stored_path=sa_att.stored_path,
+            file_size=sa_att.file_size,
+            uploaded_at=sa_att.uploaded_at,
+        )
+        db.add(ev_att)
+    if sub_atts:
+        db.commit()
+
     return {"ok": True, "event_id": ev.id}
 
 @router.delete("/{submission_id}", dependencies=[Depends(require_role("ADMIN","OWNER"))])
@@ -416,6 +436,81 @@ def delete_submission(submission_id: int, db: Session = Depends(get_db)):
     db.delete(sub)
     db.commit()
     return {"ok": True}
+
+
+@router.post("/{submission_id}/attachments", status_code=201)
+async def upload_submission_attachment(
+    submission_id: int,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    claims: dict = Depends(get_current_user_claims),
+):
+    user_id = int(claims["sub"])
+    sub = db.get(Submission, submission_id)
+    if not sub:
+        raise HTTPException(status_code=404, detail="Submission not found")
+    if sub.submitted_by_user_id != user_id:
+        user = db.get(User, user_id)
+        if not user or user.role.value not in ("ADMIN", "OWNER"):
+            raise HTTPException(status_code=403, detail="Not your submission")
+
+    content = await file.read()
+    original_name = file.filename or "attachment"
+    try:
+        stored_path, file_size = save_attachment_file(content, original_name, user_id)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+
+    att = SubmissionAttachment(
+        submission_id=submission_id,
+        uploaded_by_user_id=user_id,
+        original_filename=original_name,
+        stored_path=stored_path,
+        file_size=file_size,
+        uploaded_at=datetime.utcnow(),
+    )
+    db.add(att)
+    db.commit()
+    db.refresh(att)
+    return {
+        "id": att.id,
+        "original_filename": att.original_filename,
+        "file_size": att.file_size,
+        "uploaded_at": att.uploaded_at.isoformat(),
+    }
+
+
+@router.get("/{submission_id}/attachments/{att_id}/download")
+def download_submission_attachment(
+    submission_id: int,
+    att_id: int,
+    db: Session = Depends(get_db),
+):
+    from fastapi.responses import FileResponse
+    att = db.scalar(
+        select(SubmissionAttachment).where(
+            SubmissionAttachment.id == att_id,
+            SubmissionAttachment.submission_id == submission_id,
+        )
+    )
+    if not att:
+        raise HTTPException(status_code=404, detail="Attachment not found")
+    if not os.path.exists(att.stored_path):
+        raise HTTPException(status_code=404, detail="File not available")
+
+    _, ext = os.path.splitext(att.original_filename.lower())
+    media_types = {
+        ".pdf": "application/pdf", ".csv": "text/csv",
+        ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        ".xls": "application/vnd.ms-excel", ".doc": "application/msword",
+        ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        ".ods": "application/vnd.oasis.opendocument.spreadsheet", ".txt": "text/plain",
+    }
+    return FileResponse(
+        att.stored_path,
+        media_type=media_types.get(ext, "application/octet-stream"),
+        headers={"Content-Disposition": f'attachment; filename="{att.original_filename}"'},
+    )
 
 @router.post("/batch", status_code=201)
 def batch_submit(file: UploadFile = File(...), db: Session = Depends(get_db), claims: dict = Depends(get_current_user_claims)):

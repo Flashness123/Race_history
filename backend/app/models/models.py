@@ -181,3 +181,14 @@ class EventAttachment(Base):
     stored_path: Mapped[str] = mapped_column(String(400))
     file_size: Mapped[int]
     uploaded_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class SubmissionAttachment(Base):
+    __tablename__ = "submission_attachments"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    submission_id: Mapped[int] = mapped_column(ForeignKey("submissions.id", ondelete="CASCADE"), index=True)
+    uploaded_by_user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    original_filename: Mapped[str] = mapped_column(String(260))
+    stored_path: Mapped[str] = mapped_column(String(400))
+    file_size: Mapped[int]
+    uploaded_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
