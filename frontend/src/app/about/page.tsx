@@ -59,6 +59,60 @@ export default function About() {
           </div>
         </div>
 
+        {/* RaceBox GPS Runs Section */}
+        <div className="rounded-2xl border p-8 mb-12" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "var(--accent)" }}>
+              <span className="text-2xl">📡</span>
+            </div>
+            <h2 className="text-3xl font-bold" style={{ color: "var(--paper)", fontFamily: "var(--font-display)" }}>GPS Run Tracking</h2>
+          </div>
+
+          <p className="text-lg mb-8" style={{ color: "var(--muted)" }}>
+            Downhill Radar supports GPS run data from <strong style={{ color: "var(--paper)" }}>RaceBox</strong> devices. You can upload your run
+            CSV files to any spot or race event and compare your speed, time, and trajectory against other riders.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {[
+              {
+                step: "1",
+                title: "Create Your Track in RaceBox",
+                desc: "Open the RaceBox app and create a new track session. Place your start line and finish line manually on the map at your spot. You cannot import tracks from external files — they must be created inside the RaceBox app itself.",
+              },
+              {
+                step: "2",
+                title: "Drive the Track & Export",
+                desc: "Drive your run with the RaceBox device recording. After your session, export your run data as a CSV file from the RaceBox app. The CSV contains your GPS coordinates, speed, altitude, and G-force data.",
+              },
+              {
+                step: "3",
+                title: "Upload & Compare",
+                desc: "Open the event or spot on Downhill Radar and upload your RaceBox CSV. Your run is added to the leaderboard and you can visually compare your GPS track, speed chart, and G-forces against other riders' runs.",
+              },
+            ].map((item) => (
+              <div key={item.step} className="rounded-xl p-5" style={{ background: "var(--surface-raised)", border: "1px solid var(--border)" }}>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center mb-3 font-bold text-sm" style={{ background: "var(--accent)", color: "var(--paper)" }}>
+                  {item.step}
+                </div>
+                <h3 className="font-semibold mb-2" style={{ color: "var(--paper)" }}>{item.title}</h3>
+                <p className="text-sm" style={{ color: "var(--muted)" }}>{item.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="rounded-xl p-5" style={{ background: "var(--surface-raised)", border: "1px solid var(--border)" }}>
+            <div className="flex items-start gap-3">
+              <span className="text-xl flex-shrink-0">ℹ️</span>
+              <div className="space-y-2 text-sm" style={{ color: "var(--muted)" }}>
+                <p><strong style={{ color: "var(--paper)" }}>Route sharing:</strong> RaceBox does not support importing routes from external files or URLs. Each rider must create their own custom track inside the RaceBox app by manually placing the start and finish lines. Use the GPS coordinates shown on each spot page to find the correct start location.</p>
+                <p><strong style={{ color: "var(--paper)" }}>Location auto-detect:</strong> When submitting a spot or race, you can upload a RaceBox CSV file to automatically pin the correct location on the map — no manual coordinate entry needed.</p>
+                <p><strong style={{ color: "var(--paper)" }}>Distance limit:</strong> GPS runs can only be uploaded to an event if the recorded track starts within 10 km of the event location. This prevents runs from unrelated spots being mixed in.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Community Section */}
         <div className="rounded-2xl p-8 mb-12" style={{ background: "var(--accent)" }}>
           <div className="text-center">

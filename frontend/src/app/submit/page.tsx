@@ -44,6 +44,55 @@ function SubmitContent() {
   const [busy, setBusy] = useState(false);
   const [attachmentFiles, setAttachmentFiles] = useState<File[]>([]);
   const [attachmentErr, setAttachmentErr] = useState<string | null>(null);
+  const [gpsLocMsg, setGpsLocMsg] = useState<string | null>(null);
+
+  function detectLocationFromCSV(file: File): Promise<{ lat: number; lng: number }> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const text = (e.target?.result as string) ?? "";
+        const lines = text.split(/\r?\n/);
+        let headerIdx = -1, latCol = -1, lngCol = -1;
+        for (let i = 0; i < lines.length; i++) {
+          const lower = lines[i].toLowerCase();
+          if (lower.includes("latitude") && lower.includes("longitude")) {
+            headerIdx = i;
+            const headers = lines[i].split(",").map((h) => h.trim().toLowerCase().replace(/"/g, ""));
+            latCol = headers.findIndex((h) => h === "latitude" || h === "lat");
+            lngCol = headers.findIndex((h) => h === "longitude" || h === "lng" || h === "lon");
+            break;
+          }
+        }
+        if (headerIdx === -1 || latCol === -1 || lngCol === -1) {
+          reject(new Error("No GPS columns found in file"));
+          return;
+        }
+        for (let i = headerIdx + 1; i < lines.length; i++) {
+          const parts = lines[i].split(",");
+          const lat = parseFloat(parts[latCol]);
+          const lng = parseFloat(parts[lngCol]);
+          if (!isNaN(lat) && !isNaN(lng) && (lat !== 0 || lng !== 0)) {
+            resolve({ lat, lng });
+            return;
+          }
+        }
+        reject(new Error("No valid GPS coordinates found in file"));
+      };
+      reader.onerror = () => reject(new Error("Failed to read file"));
+      reader.readAsText(file);
+    });
+  }
+
+  async function handleGpsLocDetect(file: File) {
+    setGpsLocMsg(null);
+    try {
+      const { lat, lng } = await detectLocationFromCSV(file);
+      setForm((prev) => ({ ...prev, lat, lng }));
+      setGpsLocMsg(`Location detected: ${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+    } catch (e: any) {
+      setGpsLocMsg(`Could not detect location: ${e.message}`);
+    }
+  }
 
   // Check if the event is in the future
   const isFutureEvent = () => {
@@ -631,7 +680,19 @@ function SubmitContent() {
 
                 {/* Map Picker for Spot */}
                 <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: "var(--muted)" }}>Select Location on Map</label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium" style={{ color: "var(--muted)" }}>Select Location on Map</label>
+                    <label className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg cursor-pointer text-xs transition-opacity hover:opacity-80"
+                      style={{ background: "var(--surface-raised)", color: "var(--paper)", border: "1px solid var(--border)" }}>
+                      <span>📡</span>
+                      <span>Detect from RaceBox CSV</span>
+                      <input type="file" accept=".csv" className="hidden"
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleGpsLocDetect(f); e.target.value = ""; }} />
+                    </label>
+                  </div>
+                  {gpsLocMsg && (
+                    <p className="text-xs mb-2" style={{ color: gpsLocMsg.startsWith("Could") ? "#ef4444" : "#22c55e" }}>{gpsLocMsg}</p>
+                  )}
                   <div className="rounded-lg overflow-hidden" style={{ border: "1px solid var(--border)" }}>
                     <MapPicker
                       lat={form.lat}
@@ -662,12 +723,27 @@ function SubmitContent() {
               <h2 className="text-lg font-semibold mb-4" style={{ color: "var(--paper)" }}>Location (Optional)</h2>
               <div className="space-y-6">
                 {/* Map Picker */}
-                <div className="rounded-lg overflow-hidden" style={{ border: "1px solid var(--border)" }}>
-                  <MapPicker
-                    lat={form.lat}
-                    lng={form.lng}
-                    onPick={(lat, lng) => setForm(prev => ({ ...prev, lat, lng }))}
-                  />
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium" style={{ color: "var(--muted)" }}>Pin Location</label>
+                    <label className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg cursor-pointer text-xs transition-opacity hover:opacity-80"
+                      style={{ background: "var(--surface-raised)", color: "var(--paper)", border: "1px solid var(--border)" }}>
+                      <span>📡</span>
+                      <span>Detect from RaceBox CSV</span>
+                      <input type="file" accept=".csv" className="hidden"
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleGpsLocDetect(f); e.target.value = ""; }} />
+                    </label>
+                  </div>
+                  {gpsLocMsg && (
+                    <p className="text-xs mb-2" style={{ color: gpsLocMsg.startsWith("Could") ? "#ef4444" : "#22c55e" }}>{gpsLocMsg}</p>
+                  )}
+                  <div className="rounded-lg overflow-hidden" style={{ border: "1px solid var(--border)" }}>
+                    <MapPicker
+                      lat={form.lat}
+                      lng={form.lng}
+                      onPick={(lat, lng) => setForm(prev => ({ ...prev, lat, lng }))}
+                    />
+                  </div>
                 </div>
 
                 {/* Location Name */}

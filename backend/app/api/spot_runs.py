@@ -1,4 +1,5 @@
 import os
+import math
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query
 from fastapi.responses import FileResponse
@@ -19,6 +20,17 @@ _SORT_COLS = {
     "date": SpotRun.run_date,
     "name": SpotRun.rider_name,
 }
+
+_MAX_DISTANCE_KM = 10.0
+
+
+def _haversine_km(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
+    R = 6371.0
+    dlat = math.radians(lat2 - lat1)
+    dlng = math.radians(lng2 - lng1)
+    a = (math.sin(dlat / 2) ** 2
+         + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlng / 2) ** 2)
+    return R * 2 * math.asin(math.sqrt(a))
 
 
 def _format_run(run: SpotRun, current_user_id: int | None) -> dict:
@@ -59,6 +71,18 @@ async def upload_run(
         run_data = parse_racebox_csv(content)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+    # Verify the run was recorded near the event (within 10 km)
+    if event.lat and event.lng and run_data.track_points:
+        run_lat = run_data.track_points[0]["lat"]
+        run_lng = run_data.track_points[0]["lng"]
+        dist_km = _haversine_km(event.lat, event.lng, run_lat, run_lng)
+        if dist_km > _MAX_DISTANCE_KM:
+            raise HTTPException(
+                status_code=422,
+                detail=f"Run start is {dist_km:.1f} km from this event's location. "
+                       f"Only runs within {_MAX_DISTANCE_KM} km can be uploaded here."
+            )
 
     name = (rider_name or "").strip() or user.display_name or user.name or "Unknown"
 
