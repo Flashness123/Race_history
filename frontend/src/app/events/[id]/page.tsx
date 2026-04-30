@@ -354,6 +354,11 @@ export default function EventRunsPage() {
         <RunUploadModal
           eventId={eventId}
           onSuccess={(run) => {
+            if (run.replaced_run_id) {
+              setRuns((prev) => prev.filter((r) => r.id !== run.replaced_run_id));
+              setSelectedIds((prev) => { const n = new Set(prev); n.delete(run.replaced_run_id!); return n; });
+              setTracks((prev) => { const n = { ...prev }; delete n[run.replaced_run_id!]; return n; });
+            }
             if (!run.kept) {
               setTempRun(run);
             }

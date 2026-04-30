@@ -85,25 +85,21 @@ async def upload_run(
                        f"Only runs within {_MAX_DISTANCE_KM} km can be uploaded here."
             )
 
-    # Two runs per user per event
+    # Two runs per user per event — auto-replace their slowest when at limit
     existing_runs = db.scalars(
         select(SpotRun).where(
             SpotRun.event_id == event_id,
             SpotRun.uploaded_by_user_id == user_id,
         ).order_by(SpotRun.duration_ms.desc())
     ).all()
+    auto_replaced_id = None
     if len(existing_runs) >= 2:
-        slowest = existing_runs[0]
-        raise HTTPException(
-            status_code=409,
-            detail={
-                "code": "already_has_run",
-                "existing_run_id": slowest.id,
-                "existing_duration_ms": slowest.duration_ms,
-                "existing_max_speed_kmh": slowest.max_speed_kmh,
-                "existing_rider_name": slowest.rider_name,
-            },
-        )
+        slowest_own = existing_runs[0]  # highest duration = slowest
+        auto_replaced_id = slowest_own.id
+        if slowest_own.raw_file_path and os.path.exists(slowest_own.raw_file_path):
+            os.remove(slowest_own.raw_file_path)
+        db.delete(slowest_own)
+        db.commit()
 
     name = (rider_name or "").strip() or user.display_name or user.name or "Unknown"
 
@@ -132,30 +128,35 @@ async def upload_run(
     result = _format_run(run, user_id)
     result["track_points"] = run_data.track_points
 
-    # Top-100 enforcement: keep only the fastest _LEADERBOARD_SIZE runs
     all_runs = db.scalars(
         select(SpotRun)
         .where(SpotRun.event_id == event_id)
         .order_by(SpotRun.duration_ms.asc())
     ).all()
-
-    total = len(all_runs)
     run_ids = [r.id for r in all_runs]
-    rank = run_ids.index(run.id) + 1 if run.id in run_ids else total
-    kept = True
+    rank = run_ids.index(run.id) + 1 if run.id in run_ids else len(all_runs)
 
-    if total > _LEADERBOARD_SIZE:
-        slowest = all_runs[-1]  # highest duration = slowest
-        kept = slowest.id != run.id
-        if slowest.raw_file_path and os.path.exists(slowest.raw_file_path):
-            os.remove(slowest.raw_file_path)
-        db.delete(slowest)
-        db.commit()
-        if not kept and raw_path and os.path.exists(raw_path):
-            os.remove(raw_path)
+    if auto_replaced_id is not None:
+        # We already removed one run; leaderboard count is unchanged — no pruning needed
+        result["kept"] = True
+        result["rank"] = rank
+        result["replaced_run_id"] = auto_replaced_id
+    else:
+        # Top-100 enforcement: keep only the fastest _LEADERBOARD_SIZE runs
+        total = len(all_runs)
+        kept = True
+        if total > _LEADERBOARD_SIZE:
+            slowest = all_runs[-1]
+            kept = slowest.id != run.id
+            if slowest.raw_file_path and os.path.exists(slowest.raw_file_path):
+                os.remove(slowest.raw_file_path)
+            db.delete(slowest)
+            db.commit()
+            if not kept and raw_path and os.path.exists(raw_path):
+                os.remove(raw_path)
+        result["kept"] = kept
+        result["rank"] = rank
 
-    result["kept"] = kept
-    result["rank"] = rank
     return result
 
 

@@ -98,6 +98,7 @@ export type SpotRunOut = SpotRunListItem & {
   track_points: TrackPoint[];
   kept?: boolean;
   rank?: number;
+  replaced_run_id?: number;
 };
 
 export type ExistingRunConflict = {
