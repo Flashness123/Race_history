@@ -22,6 +22,7 @@ _SORT_COLS = {
 }
 
 _MAX_DISTANCE_KM = 10.0
+_LEADERBOARD_SIZE = 100
 
 
 def _haversine_km(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
@@ -84,6 +85,25 @@ async def upload_run(
                        f"Only runs within {_MAX_DISTANCE_KM} km can be uploaded here."
             )
 
+    # One run per user per event
+    existing = db.scalar(
+        select(SpotRun).where(
+            SpotRun.event_id == event_id,
+            SpotRun.uploaded_by_user_id == user_id,
+        )
+    )
+    if existing:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "code": "already_has_run",
+                "existing_run_id": existing.id,
+                "existing_duration_ms": existing.duration_ms,
+                "existing_max_speed_kmh": existing.max_speed_kmh,
+                "existing_rider_name": existing.rider_name,
+            },
+        )
+
     name = (rider_name or "").strip() or user.display_name or user.name or "Unknown"
 
     try:
@@ -107,8 +127,34 @@ async def upload_run(
     db.commit()
     db.refresh(run)
 
+    # Build result now, before any top-100 pruning may delete this run
     result = _format_run(run, user_id)
-    result["track_points"] = run.track_points
+    result["track_points"] = run_data.track_points
+
+    # Top-100 enforcement: keep only the fastest _LEADERBOARD_SIZE runs
+    all_runs = db.scalars(
+        select(SpotRun)
+        .where(SpotRun.event_id == event_id)
+        .order_by(SpotRun.duration_ms.asc())
+    ).all()
+
+    total = len(all_runs)
+    run_ids = [r.id for r in all_runs]
+    rank = run_ids.index(run.id) + 1 if run.id in run_ids else total
+    kept = True
+
+    if total > _LEADERBOARD_SIZE:
+        slowest = all_runs[-1]  # highest duration = slowest
+        kept = slowest.id != run.id
+        if slowest.raw_file_path and os.path.exists(slowest.raw_file_path):
+            os.remove(slowest.raw_file_path)
+        db.delete(slowest)
+        db.commit()
+        if not kept and raw_path and os.path.exists(raw_path):
+            os.remove(raw_path)
+
+    result["kept"] = kept
+    result["rank"] = rank
     return result
 
 

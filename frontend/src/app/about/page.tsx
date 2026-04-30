@@ -101,13 +101,43 @@ export default function About() {
             ))}
           </div>
 
-          <div className="rounded-xl p-5" style={{ background: "var(--surface-raised)", border: "1px solid var(--border)" }}>
+          <div className="rounded-xl p-5 mt-6" style={{ background: "var(--surface-raised)", border: "1px solid var(--border)" }}>
+            <h3 className="font-semibold mb-4" style={{ color: "var(--paper)" }}>How to export your RaceBox CSV</h3>
+            <ol className="space-y-3">
+              {[
+                { step: "1", text: "Open the RaceBox app on your phone and go to the Sessions tab (clock icon)." },
+                { step: "2", text: "Tap the session you want to export. Make sure it is the correct run — check the date, duration, and top speed." },
+                { step: "3", text: 'Tap the share / export button (↗ icon or the three-dot menu at the top right of the session detail screen).' },
+                { step: "4", text: 'Select "Export as CSV". The file will typically be named something like RaceBox_2026-04-30_123456.csv.' },
+                { step: "5", text: 'Save the CSV to your phone\'s files or share it directly. On iPhone use "Save to Files"; on Android save to Downloads.' },
+                { step: "6", text: 'Open the event or spot on Downhill Radar, tap "+ Upload Your Run", and select the CSV file. Your run is parsed and added to the leaderboard instantly.' },
+              ].map((item) => (
+                <li key={item.step} className="flex items-start gap-3 text-sm" style={{ color: "var(--muted)" }}>
+                  <span className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold mt-0.5"
+                    style={{ background: "var(--accent)", color: "var(--paper)" }}>
+                    {item.step}
+                  </span>
+                  <span>{item.text}</span>
+                </li>
+              ))}
+            </ol>
+            <div className="mt-4 rounded-lg p-3 text-sm" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+              <strong style={{ color: "var(--paper)" }}>Tip:</strong>{" "}
+              <span style={{ color: "var(--muted)" }}>
+                The file must contain GPS columns (Latitude, Longitude) and a time column. Standard RaceBox CSV exports always include these.
+                If the app offers multiple export formats, choose the one labelled <em>CSV</em> or <em>Raw data</em>.
+              </span>
+            </div>
+          </div>
+
+          <div className="rounded-xl p-5 mt-4" style={{ background: "var(--surface-raised)", border: "1px solid var(--border)" }}>
             <div className="flex items-start gap-3">
               <span className="text-xl flex-shrink-0">ℹ️</span>
               <div className="space-y-2 text-sm" style={{ color: "var(--muted)" }}>
                 <p><strong style={{ color: "var(--paper)" }}>Route sharing:</strong> RaceBox does not support importing routes from external files or URLs. Each rider must create their own custom track inside the RaceBox app by manually placing the start and finish lines. Use the GPS coordinates shown on each spot page to find the correct start location.</p>
                 <p><strong style={{ color: "var(--paper)" }}>Location auto-detect:</strong> When submitting a spot or race, you can upload a RaceBox CSV file to automatically pin the correct location on the map — no manual coordinate entry needed.</p>
                 <p><strong style={{ color: "var(--paper)" }}>Distance limit:</strong> GPS runs can only be uploaded to an event if the recorded track starts within 10 km of the event location. This prevents runs from unrelated spots being mixed in.</p>
+                <p><strong style={{ color: "var(--paper)" }}>Top 100 leaderboard:</strong> Each spot stores the 100 fastest runs globally. If you upload a run that ranks outside the top 100 it will be compared against the leaderboard for your session but not saved. Each user may have one run per spot — uploading a new one will ask you to replace your existing entry.</p>
               </div>
             </div>
           </div>

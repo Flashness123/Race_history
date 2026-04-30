@@ -96,7 +96,25 @@ export type TrackPoint = { t: number; lat: number; lng: number; alt: number; spd
 
 export type SpotRunOut = SpotRunListItem & {
   track_points: TrackPoint[];
+  kept?: boolean;
+  rank?: number;
 };
+
+export type ExistingRunConflict = {
+  code: "already_has_run";
+  existing_run_id: number;
+  existing_duration_ms: number;
+  existing_max_speed_kmh: number;
+  existing_rider_name: string;
+};
+
+export class RunConflictError extends Error {
+  conflict: ExistingRunConflict;
+  constructor(conflict: ExistingRunConflict) {
+    super("already_has_run");
+    this.conflict = conflict;
+  }
+}
 
 export async function fetchSpotRuns(
   eventId: number,
@@ -131,7 +149,11 @@ export async function uploadSpotRun(
   const res = await fetch(`/api/spots/${eventId}/runs`, { method: "POST", body: form });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
-    throw new Error(data.error || data.detail || `Upload failed (${res.status})`);
+    if (res.status === 409 && data.detail?.code === "already_has_run") {
+      throw new RunConflictError(data.detail as ExistingRunConflict);
+    }
+    const msg = typeof data.detail === "string" ? data.detail : data.error || `Upload failed (${res.status})`;
+    throw new Error(msg);
   }
   return res.json();
 }

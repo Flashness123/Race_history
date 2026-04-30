@@ -26,6 +26,17 @@ function fmtDuration(ms: number) {
   return m > 0 ? `${m}:${sec.toString().padStart(2, "0")}` : `${sec}s`;
 }
 
+function RankBadge({ rank }: { rank: number }) {
+  if (rank === 1) return <span className="text-base leading-none" title="1st">🥇</span>;
+  if (rank === 2) return <span className="text-base leading-none" title="2nd">🥈</span>;
+  if (rank === 3) return <span className="text-base leading-none" title="3rd">🥉</span>;
+  return (
+    <span className="text-xs font-mono w-5 text-right flex-shrink-0" style={{ color: "var(--muted)" }}>
+      {rank}.
+    </span>
+  );
+}
+
 export default function EventRunsPage() {
   const router = useRouter();
   const params = useParams();
@@ -41,6 +52,8 @@ export default function EventRunsPage() {
   const [loading, setLoading] = useState(true);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [hoveredTime, setHoveredTime] = useState<number | null>(null);
+  // A run that was uploaded but not kept (rank > 100) — available for comparison this session only
+  const [tempRun, setTempRun] = useState<SpotRunOut | null>(null);
 
   useEffect(() => {
     fetch("/api/me", { cache: "no-store" })
@@ -86,6 +99,20 @@ export default function EventRunsPage() {
     setSelectedIds(next);
   }
 
+  function toggleTempRun() {
+    if (!tempRun) return;
+    const next = new Set(selectedIds);
+    const TEMP_ID = -1;
+    if (next.has(TEMP_ID)) {
+      next.delete(TEMP_ID);
+    } else {
+      if (next.size >= 5) return;
+      next.add(TEMP_ID);
+      setTracks((prev) => ({ ...prev, [-1]: tempRun }));
+    }
+    setSelectedIds(next);
+  }
+
   async function handleSort(s: SortBy) {
     setSortBy(s);
     setLoading(true);
@@ -108,9 +135,14 @@ export default function EventRunsPage() {
   const selectedArray = Array.from(selectedIds);
   const selectedRuns = selectedArray.map((id, i) => {
     const track = tracks[id];
-    const run = runs.find((r) => r.id === id);
+    const run = id === -1 ? tempRun : runs.find((r) => r.id === id);
     return track
-      ? { runId: id, riderName: run?.rider_name ?? "Unknown", trackPoints: track.track_points, color: TRACK_COLORS[i % TRACK_COLORS.length] }
+      ? {
+          runId: id,
+          riderName: id === -1 ? (tempRun?.rider_name ?? "Your run") : (run?.rider_name ?? "Unknown"),
+          trackPoints: track.track_points,
+          color: TRACK_COLORS[i % TRACK_COLORS.length],
+        }
       : null;
   }).filter(Boolean) as any[];
 
@@ -153,7 +185,7 @@ export default function EventRunsPage() {
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Left: leaderboard */}
-          <div className="w-full lg:w-72 flex-shrink-0">
+          <div className="w-full lg:w-80 flex-shrink-0">
             {/* Sort controls */}
             <div className="flex flex-wrap gap-1 mb-4">
               {sortOptions.map((opt) => (
@@ -171,68 +203,116 @@ export default function EventRunsPage() {
               ))}
             </div>
 
+            {/* Leaderboard header */}
+            <div className="flex items-center justify-between mb-2 px-1">
+              <span className="text-xs font-medium uppercase tracking-wider" style={{ color: "var(--muted)" }}>
+                Leaderboard {runs.length > 0 && `· ${runs.length}/100`}
+              </span>
+              {runs.length >= 100 && (
+                <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--accent)", color: "var(--paper)" }}>
+                  TOP 100
+                </span>
+              )}
+            </div>
+
             {deleteError && (
-              <p className="text-xs text-red-400 mb-3">{deleteError}</p>
+              <p className="text-xs mb-3" style={{ color: "#ef4444" }}>{deleteError}</p>
             )}
 
             {loading ? (
               <p className="text-sm text-center py-6" style={{ color: "var(--muted)" }}>Loading…</p>
-            ) : runs.length === 0 ? (
+            ) : runs.length === 0 && !tempRun ? (
               <p className="text-sm text-center py-6" style={{ color: "var(--muted)" }}>
                 No runs yet. Be the first to upload!
               </p>
             ) : (
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-1.5">
                 {runs.map((run, i) => {
+                  const rank = i + 1;
                   const selected = selectedIds.has(run.id);
                   const colorIdx = selectedArray.indexOf(run.id);
                   const color = colorIdx >= 0 ? TRACK_COLORS[colorIdx % TRACK_COLORS.length] : undefined;
                   return (
                     <div
                       key={run.id}
-                      className="rounded-lg p-3 cursor-pointer transition-all border"
+                      className="rounded-lg px-3 py-2.5 cursor-pointer transition-all border"
                       style={{
                         background: selected ? "var(--surface-raised)" : "var(--surface)",
                         borderColor: selected ? (color ?? "var(--accent)") : "var(--border)",
                       }}
                       onClick={() => toggleRun(run.id)}
                     >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-2 min-w-0">
-                          {selected && color && (
-                            <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: color }} />
-                          )}
-                          <span className="text-xs text-gray-400 flex-shrink-0 w-5">{i + 1}.</span>
-                          <span className="font-medium text-sm truncate">{run.rider_name}</span>
-                        </div>
+                      <div className="flex items-center gap-2">
+                        <RankBadge rank={rank} />
+                        {selected && color && (
+                          <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: color }} />
+                        )}
+                        <span className="font-medium text-sm flex-1 truncate" style={{ color: "var(--paper)" }}>
+                          {run.rider_name}
+                        </span>
                         <div className="flex items-center gap-1 flex-shrink-0">
                           <a
                             href={spotRunDownloadUrl(eventId, run.id)}
                             download
                             onClick={(e) => e.stopPropagation()}
-                            className="text-xs px-2 py-0.5 rounded transition-opacity hover:opacity-70"
+                            className="text-xs px-1.5 py-0.5 rounded transition-opacity hover:opacity-70"
                             style={{ background: "var(--surface-raised)", color: "var(--muted)" }}
+                            title="Download CSV"
                           >
                             ↓
                           </a>
                           {run.is_own && (
                             <button
                               onClick={(e) => { e.stopPropagation(); handleDelete(run.id); }}
-                              className="text-xs px-2 py-0.5 rounded text-red-400 transition-opacity hover:opacity-70"
-                              style={{ background: "var(--surface-raised)" }}
+                              className="text-xs px-1.5 py-0.5 rounded transition-opacity hover:opacity-70"
+                              style={{ background: "var(--surface-raised)", color: "#ef4444" }}
+                              title="Delete my run"
                             >
                               ×
                             </button>
                           )}
                         </div>
                       </div>
-                      <div className="mt-1.5 flex gap-3 text-xs" style={{ color: "var(--muted)" }}>
+                      <div className="mt-1 flex gap-3 text-xs pl-6" style={{ color: "var(--muted)" }}>
                         <span>⏱ {fmtDuration(run.duration_ms)}</span>
                         <span>⚡ {run.max_speed_kmh.toFixed(1)} km/h</span>
                       </div>
                     </div>
                   );
                 })}
+
+                {/* Temp run (not saved, comparison only) */}
+                {tempRun && (
+                  <div
+                    className="rounded-lg px-3 py-2.5 cursor-pointer transition-all border border-dashed mt-1"
+                    style={{
+                      background: selectedIds.has(-1) ? "var(--surface-raised)" : "var(--surface)",
+                      borderColor: selectedIds.has(-1) ? "var(--accent)" : "var(--border)",
+                      opacity: 0.8,
+                    }}
+                    onClick={toggleTempRun}
+                    title="Your run was outside the top 100 and was not saved. Click to compare."
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs" style={{ color: "var(--muted)" }}>#{tempRun.rank ?? "—"}</span>
+                      {selectedIds.has(-1) && (
+                        <span className="w-2 h-2 rounded-full flex-shrink-0"
+                          style={{ background: TRACK_COLORS[selectedArray.indexOf(-1) % TRACK_COLORS.length] }} />
+                      )}
+                      <span className="font-medium text-sm flex-1 truncate" style={{ color: "var(--paper)" }}>
+                        {tempRun.rider_name}
+                      </span>
+                      <span className="text-xs px-1.5 py-0.5 rounded flex-shrink-0"
+                        style={{ background: "var(--surface-raised)", color: "var(--muted)" }}>
+                        not saved
+                      </span>
+                    </div>
+                    <div className="mt-1 flex gap-3 text-xs pl-5" style={{ color: "var(--muted)" }}>
+                      <span>⏱ {fmtDuration(tempRun.duration_ms)}</span>
+                      <span>⚡ {tempRun.max_speed_kmh.toFixed(1)} km/h</span>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -253,7 +333,7 @@ export default function EventRunsPage() {
 
             {selectedIds.size > 0 && (
               <p className="mt-2 text-xs text-center" style={{ color: "var(--muted)" }}>
-                {selectedIds.size}/5 runs selected — click a run to toggle
+                {selectedIds.size}/5 runs selected — click to toggle
               </p>
             )}
           </div>
@@ -263,10 +343,7 @@ export default function EventRunsPage() {
             <div className="rounded-xl overflow-hidden" style={{ height: "380px", background: "var(--surface)" }}>
               <RunComparisonMap runs={selectedRuns} hoveredTime={hoveredTime} />
             </div>
-            <div
-              className="rounded-xl p-3"
-              style={{ height: "270px", background: "var(--surface)" }}
-            >
+            <div className="rounded-xl p-3" style={{ height: "270px", background: "var(--surface)" }}>
               <SpeedChart runs={selectedRuns} onHoverTime={setHoveredTime} />
             </div>
           </div>
@@ -278,13 +355,15 @@ export default function EventRunsPage() {
           eventId={eventId}
           defaultRiderName={me?.user?.display_name || me?.user?.name}
           onSuccess={(run) => {
-            setRuns((prev) => {
-              const next = [run, ...prev];
-              if (sortBy === "time") return next.sort((a, b) => a.duration_ms - b.duration_ms);
-              if (sortBy === "speed") return next.sort((a, b) => b.max_speed_kmh - a.max_speed_kmh);
-              if (sortBy === "name") return next.sort((a, b) => a.rider_name.localeCompare(b.rider_name));
-              return next;
-            });
+            if (!run.kept) {
+              setTempRun(run);
+            }
+            loadRuns(sortBy);
+          }}
+          onReplace={(deletedId) => {
+            setRuns((prev) => prev.filter((r) => r.id !== deletedId));
+            setSelectedIds((prev) => { const n = new Set(prev); n.delete(deletedId); return n; });
+            setTracks((prev) => { const n = { ...prev }; delete n[deletedId]; return n; });
           }}
           onClose={() => setShowUpload(false)}
         />
