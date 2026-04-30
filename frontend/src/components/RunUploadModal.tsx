@@ -11,7 +11,6 @@ import {
 
 interface Props {
   eventId: number;
-  defaultRiderName?: string;
   onSuccess: (run: SpotRunOut) => void;
   onReplace?: (deletedRunId: number) => void;
   onClose: () => void;
@@ -23,10 +22,9 @@ function fmt(ms: number) {
   return m > 0 ? `${m}m ${s % 60}s` : `${s}s`;
 }
 
-export default function RunUploadModal({ eventId, defaultRiderName, onSuccess, onReplace, onClose }: Props) {
+export default function RunUploadModal({ eventId, onSuccess, onReplace, onClose }: Props) {
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [file, setFile] = useState<File | null>(null);
-  const [riderName, setRiderName] = useState(defaultRiderName || "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [conflict, setConflict] = useState<ExistingRunConflict | null>(null);
@@ -45,7 +43,6 @@ export default function RunUploadModal({ eventId, defaultRiderName, onSuccess, o
 
   async function doUpload(replaceId?: number) {
     if (!file) { setError("Please select a CSV file"); return; }
-    if (!riderName.trim()) { setError("Please enter your name"); return; }
     setLoading(true);
     setError(null);
     try {
@@ -53,7 +50,7 @@ export default function RunUploadModal({ eventId, defaultRiderName, onSuccess, o
         await deleteSpotRun(eventId, replaceId);
         onReplace?.(replaceId);
       }
-      const run = await uploadSpotRun(eventId, file, riderName.trim());
+      const run = await uploadSpotRun(eventId, file);
       if (!run.kept) {
         setNotKept({ rank: run.rank!, duration_ms: run.duration_ms, max_speed_kmh: run.max_speed_kmh });
       }
@@ -112,9 +109,9 @@ export default function RunUploadModal({ eventId, defaultRiderName, onSuccess, o
         {conflict && !notKept && (
           <div className="space-y-4">
             <div className="rounded-lg p-4" style={{ background: "var(--surface-raised)", border: "1px solid var(--border)" }}>
-              <p className="text-sm font-medium mb-1" style={{ color: "var(--paper)" }}>You already have a run on this spot</p>
+              <p className="text-sm font-medium mb-1" style={{ color: "var(--paper)" }}>You already have 2 runs on this spot</p>
               <p className="text-xs" style={{ color: "var(--muted)" }}>
-                {conflict.existing_rider_name} · {fmt(conflict.existing_duration_ms)} · {conflict.existing_max_speed_kmh.toFixed(1)} km/h max
+                Slowest: {conflict.existing_rider_name} · {fmt(conflict.existing_duration_ms)} · {conflict.existing_max_speed_kmh.toFixed(1)} km/h max
               </p>
             </div>
             <p className="text-sm" style={{ color: "var(--muted)" }}>
@@ -144,18 +141,6 @@ export default function RunUploadModal({ eventId, defaultRiderName, onSuccess, o
         {/* Normal upload form */}
         {!conflict && !notKept && (
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div>
-              <label className="block text-sm mb-1" style={{ color: "var(--muted)" }}>Rider name</label>
-              <input
-                type="text"
-                value={riderName}
-                onChange={(e) => setRiderName(e.target.value)}
-                placeholder="Your name"
-                className="w-full px-3 py-2 rounded-lg text-sm border"
-                style={{ background: "var(--surface-raised)", color: "var(--paper)", borderColor: "var(--border)" }}
-              />
-            </div>
-
             <div>
               <label className="block text-sm mb-1" style={{ color: "var(--muted)" }}>RaceBox CSV file</label>
               <div

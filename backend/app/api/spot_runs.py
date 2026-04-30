@@ -4,7 +4,7 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
-from sqlalchemy import select, asc
+from sqlalchemy import select, asc, func
 from typing import Optional
 from app.core.db import get_db
 from app.core.security import get_current_user_claims, get_optional_user_claims
@@ -85,22 +85,23 @@ async def upload_run(
                        f"Only runs within {_MAX_DISTANCE_KM} km can be uploaded here."
             )
 
-    # One run per user per event
-    existing = db.scalar(
+    # Two runs per user per event
+    existing_runs = db.scalars(
         select(SpotRun).where(
             SpotRun.event_id == event_id,
             SpotRun.uploaded_by_user_id == user_id,
-        )
-    )
-    if existing:
+        ).order_by(SpotRun.duration_ms.desc())
+    ).all()
+    if len(existing_runs) >= 2:
+        slowest = existing_runs[0]
         raise HTTPException(
             status_code=409,
             detail={
                 "code": "already_has_run",
-                "existing_run_id": existing.id,
-                "existing_duration_ms": existing.duration_ms,
-                "existing_max_speed_kmh": existing.max_speed_kmh,
-                "existing_rider_name": existing.rider_name,
+                "existing_run_id": slowest.id,
+                "existing_duration_ms": slowest.duration_ms,
+                "existing_max_speed_kmh": slowest.max_speed_kmh,
+                "existing_rider_name": slowest.rider_name,
             },
         )
 

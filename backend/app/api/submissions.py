@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from pydantic import BaseModel, Field
 from datetime import date, datetime
 from sqlalchemy.orm import Session
-from sqlalchemy import select, func, cast, delete
+from sqlalchemy import select, func, cast, delete, or_
 from geoalchemy2 import Geography
 from app.core.db import get_db
 from app.core.security import get_current_user_claims, require_role
@@ -59,15 +59,45 @@ def create_submission(data: SubmissionIn, db: Session = Depends(get_db), claims:
             raise HTTPException(status_code=403, detail="Submitting disabled for your account")
 
         # Check for duplicate spots (if category is SPOT)
-        if data.category == "SPOT":
+        if data.category == "SPOT" and not data.is_edit:
             existing_spot = db.scalar(
                 select(RaceEvent).where(
-                    RaceEvent.name == data.name,
+                    func.lower(RaceEvent.name) == data.name.lower(),
                     RaceEvent.category == "SPOT"
                 )
             )
             if existing_spot:
-                raise HTTPException(status_code=400, detail=f"A spot with the name '{data.name}' already exists")
+                raise HTTPException(status_code=400, detail=f"A spot named '{data.name}' already exists")
+            pending_spots = db.scalars(select(Submission).where(Submission.status == "PENDING")).all()
+            for sub in pending_spots:
+                p = sub.payload
+                if p.get("category") == "SPOT" and p.get("name", "").lower() == data.name.lower():
+                    raise HTTPException(status_code=400, detail=f"A pending submission for a spot named '{data.name}' already exists")
+
+        # Check for duplicate races (same name + same year) for non-spot, non-edit submissions
+        if data.category != "SPOT" and not data.is_edit:
+            submission_year = data.date_from.year
+            existing_race = db.scalar(
+                select(RaceEvent).where(
+                    func.lower(RaceEvent.name) == data.name.lower(),
+                    RaceEvent.year == submission_year,
+                    or_(RaceEvent.category.is_(None), RaceEvent.category != "SPOT"),
+                )
+            )
+            if existing_race:
+                raise HTTPException(status_code=400, detail=f"A race named '{data.name}' already exists for {submission_year}")
+            pending_races = db.scalars(select(Submission).where(Submission.status == "PENDING")).all()
+            for sub in pending_races:
+                p = sub.payload
+                if p.get("category") != "SPOT" and not p.get("is_edit"):
+                    p_year = None
+                    if p.get("date_from"):
+                        try:
+                            p_year = datetime.fromisoformat(str(p["date_from"])).year
+                        except Exception:
+                            pass
+                    if p.get("name", "").lower() == data.name.lower() and p_year == submission_year:
+                        raise HTTPException(status_code=400, detail=f"A pending submission for a race named '{data.name}' in {submission_year} already exists")
 
         # Convert dates to strings for JSON serialization
         payload = data.dict()

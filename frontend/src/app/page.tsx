@@ -57,7 +57,8 @@ function HomeContent() {
       for (let candidate = startYear; candidate >= minYear; candidate -= 1) {
         try {
           const data = await fetchRaces(candidate);
-          if (data.features.length > 0) return { year: candidate, data };
+          const raceFeatures = data.features.filter((f: any) => f.properties?.category !== 'SPOT');
+          if (raceFeatures.length > 0) return { year: candidate, data };
         } catch (error) {
           console.error(`Error loading races for ${candidate}:`, error);
         }
@@ -125,12 +126,6 @@ function HomeContent() {
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
               <div>
-                <p
-                  className="text-xs font-medium tracking-[0.3em] uppercase mb-3"
-                  style={{ color: "var(--accent)" }}
-                >
-                  Discover races, track results, and connect with the community
-                </p>
                 <h1
                   className="leading-none tracking-wider"
                   style={{
@@ -186,9 +181,6 @@ function HomeContent() {
                 TOP RIDERS
               </h2>
               <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
-              <p className="text-xs hidden sm:block" style={{ color: "var(--muted)" }}>
-                The most successful riders in the community
-              </p>
             </div>
 
             {top.length === 0 ? (
@@ -271,37 +263,28 @@ function HomeContent() {
             {/* Tab header */}
             <div className="flex items-center gap-4 mb-10 flex-wrap">
               <div className="w-8 h-px flex-shrink-0" style={{ background: "var(--accent)" }} />
-              <button
-                onClick={() => setListTab("races")}
-                className="text-3xl md:text-4xl tracking-wider transition-colors duration-200"
-                style={{
-                  fontFamily: "var(--font-display), cursive",
-                  color: listTab === "races" ? "var(--paper)" : "var(--muted)",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  borderBottom: listTab === "races" ? "2px solid var(--accent)" : "2px solid transparent",
-                  paddingBottom: "2px",
-                }}
-              >
-                RACES {currentYear}
-              </button>
-              <span className="text-2xl" style={{ color: "var(--border)" }}>/</span>
-              <button
-                onClick={() => setListTab("spots")}
-                className="text-3xl md:text-4xl tracking-wider transition-colors duration-200"
-                style={{
-                  fontFamily: "var(--font-display), cursive",
-                  color: listTab === "spots" ? "var(--paper)" : "var(--muted)",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  borderBottom: listTab === "spots" ? "2px solid var(--accent)" : "2px solid transparent",
-                  paddingBottom: "2px",
-                }}
-              >
-                LONGBOARD SPOTS
-              </button>
+              <div className="flex p-1 rounded-xl gap-1" style={{ background: "var(--surface)", display: "inline-flex" }}>
+                <button
+                  onClick={() => setListTab("races")}
+                  className="py-2 px-5 text-sm font-semibold rounded-lg transition-all duration-200"
+                  style={{
+                    background: listTab === "races" ? "var(--accent)" : "transparent",
+                    color: listTab === "races" ? "var(--paper)" : "var(--muted)",
+                  }}
+                >
+                  Races {currentYear}
+                </button>
+                <button
+                  onClick={() => setListTab("spots")}
+                  className="py-2 px-5 text-sm font-semibold rounded-lg transition-all duration-200"
+                  style={{
+                    background: listTab === "spots" ? "var(--accent)" : "transparent",
+                    color: listTab === "spots" ? "var(--paper)" : "var(--muted)",
+                  }}
+                >
+                  Longboard Spots
+                </button>
+              </div>
               <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
               <p className="text-xs hidden sm:block" style={{ color: "var(--muted)" }}>
                 {listTab === "races"

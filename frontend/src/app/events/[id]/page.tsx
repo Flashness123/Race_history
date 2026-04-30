@@ -353,7 +353,6 @@ export default function EventRunsPage() {
       {showUpload && (
         <RunUploadModal
           eventId={eventId}
-          defaultRiderName={me?.user?.display_name || me?.user?.name}
           onSuccess={(run) => {
             if (!run.kept) {
               setTempRun(run);

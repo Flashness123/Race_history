@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import select, or_
+from sqlalchemy import select, or_, and_, extract
 from app.core.db import get_db
 from app.models.models import RaceEvent, Result, Person
 
@@ -46,8 +46,15 @@ def events_by_year(year: int, db: Session = Depends(get_db)):
             RaceEvent.all_organizers,
             RaceEvent.description,
             RaceEvent.spot_notes,
-        ).where(RaceEvent.year == year).where(
+        ).where(
             or_(RaceEvent.category.is_(None), RaceEvent.category != 'SPOT')
+        ).where(
+            or_(
+                and_(RaceEvent.date_from.isnot(None),
+                     extract('year', RaceEvent.date_from) == year),
+                and_(RaceEvent.date_from.is_(None),
+                     RaceEvent.year == year),
+            )
         ).order_by(RaceEvent.name.asc())
     ).all()
     return [
