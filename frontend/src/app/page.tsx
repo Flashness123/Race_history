@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import YearBar from "@/components/YearBar";
 import { fetchRaces } from "@/lib/api";
@@ -45,6 +45,9 @@ function HomeContent() {
   const [loading, setLoading] = useState(true);
   const [listTab, setListTab] = useState<"races" | "spots">("races");
   const [filters, setFilters] = useState<Filters>({ SPOT: true, WDSC: true, EURO: true, FREERIDE: true, IDF: true, OUTLAW: true, NATIONAL: true, RACE: true });
+  // Track which year we last fully loaded so router.replace (which changes searchParams)
+  // does not trigger a redundant re-fetch and visible flicker.
+  const loadedYearRef = useRef<number | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -72,6 +75,10 @@ function HomeContent() {
         const hasExplicitYear = Number.isFinite(parsedYear);
         const currentYear = new Date().getFullYear();
 
+        // If searchParams just changed to the year we auto-placed via router.replace,
+        // skip the re-fetch entirely — it would show a spurious loading flicker.
+        if (hasExplicitYear && parsedYear === loadedYearRef.current) return;
+
         const resolved = hasExplicitYear
           ? { year: parsedYear, data: await fetchRaces(parsedYear) }
           : await findLatestYearWithRaces(currentYear);
@@ -82,6 +89,7 @@ function HomeContent() {
         setYear(resolved.year);
         setGeojson(resolved.data);
         setTop(topData);
+        loadedYearRef.current = resolved.year;
 
         if (!hasExplicitYear) {
           router.replace(`/?year=${resolved.year}`, { scroll: false });
