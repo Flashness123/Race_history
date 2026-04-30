@@ -5,6 +5,7 @@ import YearBar from "@/components/YearBar";
 import { fetchRaces } from "@/lib/api";
 import ClientSelected from "./selected";
 import ClientEventsList from "./events-list";
+import ClientSpotsList from "./spots-list";
 import ClickableRiderName from "@/components/ClickableRiderName";
 import DynamicBackground from "@/components/DynamicBackground";
 
@@ -42,6 +43,7 @@ function HomeContent() {
   const [top, setTop] = useState<TopRider[]>([]);
   const [year, setYear] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [listTab, setListTab] = useState<"races" | "spots">("races");
   const [filters, setFilters] = useState<Filters>({ SPOT: true, WDSC: true, EURO: true, FREERIDE: true, IDF: true, OUTLAW: true, NATIONAL: true, RACE: true });
 
   useEffect(() => {
@@ -255,23 +257,56 @@ function HomeContent() {
           </div>
         </section>
 
-        {/* Events List */}
+        {/* Events / Spots List */}
         <section className="px-6 py-16">
           <div className="max-w-7xl mx-auto">
-            <div className="flex items-center gap-4 mb-10">
-              <div className="w-8 h-px" style={{ background: "var(--accent)" }} />
-              <h2
-                className="text-4xl tracking-wider"
-                style={{ fontFamily: "var(--font-display), cursive", color: "var(--paper)" }}
+            {/* Tab header */}
+            <div className="flex items-center gap-4 mb-10 flex-wrap">
+              <div className="w-8 h-px flex-shrink-0" style={{ background: "var(--accent)" }} />
+              <button
+                onClick={() => setListTab("races")}
+                className="text-3xl md:text-4xl tracking-wider transition-colors duration-200"
+                style={{
+                  fontFamily: "var(--font-display), cursive",
+                  color: listTab === "races" ? "var(--paper)" : "var(--muted)",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  borderBottom: listTab === "races" ? "2px solid var(--accent)" : "2px solid transparent",
+                  paddingBottom: "2px",
+                }}
               >
-                ALL EVENTS IN {currentYear}
-              </h2>
+                RACES {currentYear}
+              </button>
+              <span className="text-2xl" style={{ color: "var(--border)" }}>/</span>
+              <button
+                onClick={() => setListTab("spots")}
+                className="text-3xl md:text-4xl tracking-wider transition-colors duration-200"
+                style={{
+                  fontFamily: "var(--font-display), cursive",
+                  color: listTab === "spots" ? "var(--paper)" : "var(--muted)",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  borderBottom: listTab === "spots" ? "2px solid var(--accent)" : "2px solid transparent",
+                  paddingBottom: "2px",
+                }}
+              >
+                LONGBOARD SPOTS
+              </button>
               <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
               <p className="text-xs hidden sm:block" style={{ color: "var(--muted)" }}>
-                Browse and search through all events from this year
+                {listTab === "races"
+                  ? `Browse all races from ${currentYear}`
+                  : "All known spots — upload & compare GPS runs"}
               </p>
             </div>
-            <ClientEventsList year={currentYear} />
+
+            {listTab === "races" ? (
+              <ClientEventsList year={currentYear} />
+            ) : (
+              <ClientSpotsList />
+            )}
           </div>
         </section>
       </div>

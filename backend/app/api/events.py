@@ -1,10 +1,34 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from app.core.db import get_db
 from app.models.models import RaceEvent, Result, Person
 
 router = APIRouter(prefix="/events", tags=["events"])
+
+@router.get("/spots")
+def all_spots(db: Session = Depends(get_db)):
+    rows = db.execute(
+        select(
+            RaceEvent.id,
+            RaceEvent.name,
+            RaceEvent.image_url,
+            RaceEvent.category,
+            RaceEvent.location,
+            RaceEvent.spot_notes,
+        ).where(RaceEvent.category == 'SPOT').order_by(RaceEvent.name.asc())
+    ).all()
+    return [
+        {
+            "id": r[0],
+            "name": r[1],
+            "image_url": r[2] or "/static/uploads/events/default_event.jpg",
+            "category": "SPOT",
+            "location": r[4] or "Unknown Location",
+            "spot_notes": r[5],
+        }
+        for r in rows
+    ]
 
 @router.get("/by-year/{year}")
 def events_by_year(year: int, db: Session = Depends(get_db)):
@@ -22,7 +46,9 @@ def events_by_year(year: int, db: Session = Depends(get_db)):
             RaceEvent.all_organizers,
             RaceEvent.description,
             RaceEvent.spot_notes,
-        ).where(RaceEvent.year == year).order_by(RaceEvent.name.asc())
+        ).where(RaceEvent.year == year).where(
+            or_(RaceEvent.category.is_(None), RaceEvent.category != 'SPOT')
+        ).order_by(RaceEvent.name.asc())
     ).all()
     return [
         {

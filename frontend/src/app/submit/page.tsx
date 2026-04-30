@@ -1241,7 +1241,8 @@ function SubmitContent() {
             </div>
           )}
 
-          {/* Supporting Documents */}
+          {/* Supporting Documents - races only */}
+          {submissionMode === 'race' && (
           <div className="rounded-xl shadow-sm p-6" style={cardStyle}>
               <h2 className="text-lg font-semibold mb-1" style={{ color: "var(--paper)" }}>Supporting Documents</h2>
               <p className="text-sm mb-4" style={{ color: "var(--muted)" }}>
@@ -1299,6 +1300,7 @@ function SubmitContent() {
                 />
               </label>
             </div>
+          )}
 
           {/* Submit Button */}
           <div className="rounded-xl shadow-sm p-6" style={cardStyle}>
