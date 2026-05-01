@@ -64,7 +64,18 @@ async def upload_run(
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
 
-    if not file.filename or not file.filename.lower().endswith(".csv"):
+    fname = (file.filename or "").lower()
+    if not fname:
+        raise HTTPException(status_code=400, detail="No file provided")
+    if fname.endswith(".gpx") or fname.endswith(".kml"):
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "GPX and KML files do not contain acceleration (G-force) data required for run analysis. "
+                "Please export your RaceBox session as CSV from the RaceBox app."
+            ),
+        )
+    if not fname.endswith(".csv"):
         raise HTTPException(status_code=400, detail="Only CSV files are supported")
 
     content = await file.read()

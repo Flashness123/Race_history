@@ -33,8 +33,9 @@ export default function RunUploadModal({ eventId, onSuccess, onReplace, onClose 
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
     if (!f) return;
-    if (!f.name.toLowerCase().endsWith(".csv")) {
-      setError("Only .csv files are supported");
+    const name = f.name.toLowerCase();
+    if (!name.endsWith(".csv") && !name.endsWith(".gpx") && !name.endsWith(".kml")) {
+      setError("Please select a .csv, .gpx, or .kml file from the RaceBox app");
       return;
     }
     setFile(f);
@@ -42,7 +43,7 @@ export default function RunUploadModal({ eventId, onSuccess, onReplace, onClose 
   }
 
   async function doUpload(replaceId?: number) {
-    if (!file) { setError("Please select a CSV file"); return; }
+    if (!file) { setError("Please select a file"); return; }
     setLoading(true);
     setError(null);
     try {
@@ -142,7 +143,7 @@ export default function RunUploadModal({ eventId, onSuccess, onReplace, onClose 
         {!conflict && !notKept && (
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div>
-              <label className="block text-sm mb-1" style={{ color: "var(--muted)" }}>RaceBox CSV file</label>
+              <label className="block text-sm mb-1" style={{ color: "var(--muted)" }}>RaceBox GPS file (.csv, .gpx, .kml)</label>
               <div
                 className="w-full border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors hover:border-opacity-70"
                 style={{ borderColor: "var(--border)" }}
@@ -151,9 +152,9 @@ export default function RunUploadModal({ eventId, onSuccess, onReplace, onClose 
                 {file ? (
                   <p className="text-sm" style={{ color: "var(--paper)" }}>{file.name}</p>
                 ) : (
-                  <p className="text-sm" style={{ color: "var(--muted)" }}>Tap to select .csv file from RaceBox app</p>
+                  <p className="text-sm" style={{ color: "var(--muted)" }}>Tap to select file from RaceBox app</p>
                 )}
-                <input ref={fileRef} type="file" accept=".csv" onChange={handleFile} className="hidden" />
+                <input ref={fileRef} type="file" accept=".csv,.gpx,.kml" onChange={handleFile} className="hidden" />
               </div>
             </div>
 
