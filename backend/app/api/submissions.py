@@ -11,6 +11,19 @@ from app.core.norm import norm
 from app.core.files import save_attachment_file
 import os
 import json
+import math
+import random
+
+router = APIRouter(prefix="/submissions", tags=["submissions"])
+
+
+def _haversine_km(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
+    R = 6371.0
+    dlat = math.radians(lat2 - lat1)
+    dlng = math.radians(lng2 - lng1)
+    a = (math.sin(dlat / 2) ** 2
+         + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlng / 2) ** 2)
+    return R * 2 * math.asin(math.sqrt(a))
 
 router = APIRouter(prefix="/submissions", tags=["submissions"])
 
@@ -44,6 +57,7 @@ class SubmissionIn(BaseModel):
     track_record_woman: TrackRecordData | None = None
     organizer_name: str | None = Field(None, max_length=200)
     event_description: str | None = Field(None, max_length=4000)
+    spot_notes: str | None = Field(None, max_length=2000)
     # Edit mode fields
     is_edit: bool = False
     editing_event_id: int | None = None
@@ -58,21 +72,78 @@ def create_submission(data: SubmissionIn, db: Session = Depends(get_db), claims:
         if not user.can_submit:
             raise HTTPException(status_code=403, detail="Submitting disabled for your account")
 
-        # Check for duplicate spots (if category is SPOT)
+        # Spots are auto-created immediately — no admin review needed
         if data.category == "SPOT" and not data.is_edit:
-            existing_spot = db.scalar(
-                select(RaceEvent).where(
-                    func.lower(RaceEvent.name) == data.name.lower(),
-                    RaceEvent.category == "SPOT"
+            lat = data.lat
+            lng = data.lng
+            has_coords = bool(lat and lng and lat != 0.0 and lng != 0.0)
+
+            if has_coords:
+                test_point = cast(
+                    func.ST_SetSRID(func.ST_MakePoint(lng, lat), 4326),
+                    Geography(geometry_type="POINT", srid=4326),
                 )
+                existing_nearby = db.scalar(
+                    select(RaceEvent).where(
+                        func.lower(RaceEvent.name) == data.name.lower(),
+                        RaceEvent.category == "SPOT",
+                        RaceEvent.geom.isnot(None),
+                        func.ST_DWithin(RaceEvent.geom, test_point, 20000),
+                    )
+                )
+                if existing_nearby:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"A spot named '{data.name}' already exists within 20 km",
+                    )
+                # Also check pending SPOT submissions (no PostGIS geom stored — use haversine)
+                for sub in db.scalars(select(Submission).where(Submission.status == "PENDING")).all():
+                    p = sub.payload
+                    if p.get("category") == "SPOT" and p.get("name", "").lower() == data.name.lower():
+                        p_lat = float(p.get("lat") or 0)
+                        p_lng = float(p.get("lng") or 0)
+                        if p_lat and p_lng and _haversine_km(lat, lng, p_lat, p_lng) <= 20.0:
+                            raise HTTPException(
+                                status_code=400,
+                                detail=f"A pending spot named '{data.name}' already exists within 20 km",
+                            )
+            else:
+                # No coordinates submitted — fall back to global name check
+                if db.scalar(
+                    select(RaceEvent).where(
+                        func.lower(RaceEvent.name) == data.name.lower(),
+                        RaceEvent.category == "SPOT",
+                    )
+                ):
+                    raise HTTPException(status_code=400, detail=f"A spot named '{data.name}' already exists")
+
+            geo_value = None
+            if has_coords:
+                geo_value = cast(
+                    func.ST_SetSRID(func.ST_MakePoint(lng, lat), 4326),
+                    Geography(geometry_type="POINT", srid=4326),
+                )
+            year = data.date_from.year
+            ev = RaceEvent(
+                name=data.name,
+                year=year,
+                location=data.location or "Unknown",
+                lat=float(lat) if has_coords else 0.0,
+                lng=float(lng) if has_coords else 0.0,
+                geom=geo_value,
+                source_url=data.links[0].url if data.links else None,
+                date_from=data.date_from,
+                date_to=data.date_to,
+                category="SPOT",
+                image_url=f"/static/uploads/events/event_{random.randint(1, 6)}.jpg",
+                description=(data.event_description or "").strip() or None,
+                spot_notes=(data.spot_notes or "").strip() or None,
+                organizer_name=data.organizer_name,
             )
-            if existing_spot:
-                raise HTTPException(status_code=400, detail=f"A spot named '{data.name}' already exists")
-            pending_spots = db.scalars(select(Submission).where(Submission.status == "PENDING")).all()
-            for sub in pending_spots:
-                p = sub.payload
-                if p.get("category") == "SPOT" and p.get("name", "").lower() == data.name.lower():
-                    raise HTTPException(status_code=400, detail=f"A pending submission for a spot named '{data.name}' already exists")
+            db.add(ev)
+            db.commit()
+            db.refresh(ev)
+            return {"id": ev.id, "status": "APPROVED", "type": "NEW", "event_id": ev.id}
 
         # Check for duplicate races (same name + same year) for non-spot, non-edit submissions
         if data.category != "SPOT" and not data.is_edit:

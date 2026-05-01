@@ -336,6 +336,12 @@ function SubmitContent() {
         return;
       }
 
+      // If spot was auto-created, redirect straight to the spot page
+      if (data.status === "APPROVED" && data.event_id) {
+        router.push(`/events/${data.event_id}`);
+        return;
+      }
+
       // If there's an image, upload it
       if (form.event_image) {
         const formData = new FormData();
