@@ -22,7 +22,7 @@ def all_spots(db: Session = Depends(get_db)):
         {
             "id": r[0],
             "name": r[1],
-            "image_url": r[2] or "/static/uploads/events/default_event.jpg",
+            "image_url": r[2] or "/static/uploads/events/default_event.webp",
             "category": "SPOT",
             "location": r[4] or "Unknown Location",
             "spot_notes": r[5],
@@ -61,7 +61,7 @@ def events_by_year(year: int, db: Session = Depends(get_db)):
         {
             "id": r[0], 
             "name": r[1], 
-            "image_url": r[2] or "/static/uploads/events/default_event.jpg",
+            "image_url": r[2] or "/static/uploads/events/default_event.webp",
             "category": r[3] or "WDSC",
             "all_categories": r[4],
             "location": r[5] or "Unknown Location",
@@ -131,7 +131,7 @@ def event_detail(event_id: int, db: Session = Depends(get_db)):
         "lat": ev.lat,
         "lng": ev.lng,
         "source_url": ev.source_url,
-        "image_url": ev.image_url or "/static/uploads/events/default_event.jpg",
+        "image_url": ev.image_url or "/static/uploads/events/default_event.webp",
         "category": ev.category,
         "all_categories": ev.all_categories,
         "date_from": ev.date_from.isoformat() if ev.date_from else None,
