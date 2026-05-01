@@ -98,7 +98,6 @@ export default function YearBar({ selectedYear }: { selectedYear?: number }) {
         </div>
 
         <span className="text-xs hidden sm:block" style={{ color: "var(--muted)" }}>
-          Navigate through years
         </span>
       </div>
     </nav>

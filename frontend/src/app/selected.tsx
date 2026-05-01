@@ -295,8 +295,8 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                   {detail.spot_notes && (
                     <div className="rounded-xl p-4" style={{ background: "var(--surface-raised)" }}>
                       <h4 className="font-semibold mb-3 flex items-center gap-2" style={{ color: "var(--paper)" }}>
-                        <span className="text-lg">📍</span>
-                        Spot Notes
+                        <span className="text-lg">⚠️</span>
+                        Who to call &amp; what to be aware of
                       </h4>
                       <div className="rounded-lg p-3 whitespace-pre-wrap text-sm" style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--muted)" }}>
                         {detail.spot_notes}
