@@ -190,9 +190,24 @@ export default function MediaPage() {
 
         {error && <div className="mb-8 p-4 rounded-lg border" style={{ borderColor: "var(--accent)", color: "var(--accent)", background: "var(--surface)" }}>⚠ {error}</div>}
 
-        {/* Podium */}
+        {/* Mobile Top 3 - simple vertical list */}
         {allVideos.length >= 3 && (
-          <div className="mb-16">
+          <div className="sm:hidden mb-12">
+            <div className="text-center mb-6">
+              <h2 className="text-3xl font-bold mb-2" style={{ color: "var(--paper)", fontFamily: "var(--font-display)" }}>🏆 Top 3 Videos</h2>
+              <p style={{ color: "var(--muted)" }}>The most liked videos from the community</p>
+            </div>
+            <div className="space-y-4">
+              {[0, 1, 2].map(i => (
+                <VideoCard key={allVideos[i].id} video={allVideos[i]} position={i + 1} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Desktop Podium */}
+        {allVideos.length >= 3 && (
+          <div className="hidden sm:block mb-16">
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold mb-2" style={{ color: "var(--paper)", fontFamily: "var(--font-display)" }}>🏆 Top 3 Videos</h2>
               <p style={{ color: "var(--muted)" }}>The most liked videos from the community</p>

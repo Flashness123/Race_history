@@ -157,14 +157,14 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
       </div>
 
       {/* Map and Details Layout */}
-      <div className={`grid gap-6 transition-[grid-template-columns] duration-300 ease-out`} style={{ gridTemplateColumns: selectedId ? "1fr 400px" : "1fr" }}>
+      <div className={`gap-6 ${selectedId ? "flex flex-col md:grid" : "grid"}`} style={{ gridTemplateColumns: selectedId ? "1fr 400px" : "1fr" }}>
         <div className="rounded-xl overflow-hidden shadow-lg" style={{ border: "1px solid var(--border)" }}>
           <Map geojson={geojson} onSelect={onSelect} filters={filters} dateFilter={dateFilter} />
         </div>
 
         {selectedId && (
           <aside className="rounded-xl shadow-lg overflow-hidden" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
-            <div className="h-[70vh] overflow-auto">
+            <div className="max-h-[60vh] md:h-[70vh] overflow-auto">
               {loading && (
                 <div className="flex items-center justify-center h-full">
                   <div className="flex flex-col items-center space-y-3">

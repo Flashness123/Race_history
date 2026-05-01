@@ -5,10 +5,11 @@ import Link from "next/link";
 interface ClickableRiderNameProps {
   name: string;
   className?: string;
+  style?: React.CSSProperties;
   children?: React.ReactNode;
 }
 
-export default function ClickableRiderName({ name, className = "", children }: ClickableRiderNameProps) {
+export default function ClickableRiderName({ name, className = "", style, children }: ClickableRiderNameProps) {
   const [profileUrl, setProfileUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -58,6 +59,7 @@ export default function ClickableRiderName({ name, className = "", children }: C
       onClick={handleClick}
       disabled={loading}
       className={`${className} ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:text-blue-600 cursor-pointer'} transition-colors duration-200`}
+      style={style}
       title={`View ${name}'s profile`}
     >
       {children || name}
