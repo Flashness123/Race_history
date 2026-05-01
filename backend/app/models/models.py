@@ -178,6 +178,19 @@ class SpotRun(Base):
     uploaded_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
+class EventReport(Base):
+    __tablename__ = "event_reports"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    event_id: Mapped[int] = mapped_column(ForeignKey("race_events.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    user_name: Mapped[str | None] = mapped_column(String(160))
+    user_email: Mapped[str | None] = mapped_column(String(255))
+    message: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(20), default="OPEN")  # OPEN | RESOLVED | DISMISSED
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
 class EventAttachment(Base):
     __tablename__ = "event_attachments"
     id: Mapped[int] = mapped_column(primary_key=True)

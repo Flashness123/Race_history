@@ -76,7 +76,7 @@ export default function ClientSpotsList() {
           {filtered.map((spot) => (
             <div
               key={spot.id}
-              onClick={() => router.push(`/events/${spot.id}`)}
+              onClick={() => router.push(`/event/${spot.id}`)}
               className="rounded-xl overflow-hidden cursor-pointer group transition-all duration-300"
               style={{
                 background: "var(--surface-raised)",

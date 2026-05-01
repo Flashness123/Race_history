@@ -16,6 +16,7 @@ import { TRACK_COLORS } from "@/components/RunComparisonMap";
 const RunComparisonMap = dynamic(() => import("@/components/RunComparisonMap"), { ssr: false });
 const SpeedChart = dynamic(() => import("@/components/SpeedChart"), { ssr: false });
 const RunUploadModal = dynamic(() => import("@/components/RunUploadModal"), { ssr: false });
+const ReportModal = dynamic(() => import("@/components/ReportModal"), { ssr: false });
 
 type SortBy = "time" | "speed" | "name" | "date";
 
@@ -48,6 +49,7 @@ export default function EventRunsPage() {
   const [tracks, setTracks] = useState<Record<number, SpotRunOut>>({});
   const [sortBy, setSortBy] = useState<SortBy>("time");
   const [showUpload, setShowUpload] = useState(false);
+  const [showReport, setShowReport] = useState(false);
   const [me, setMe] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -370,6 +372,15 @@ export default function EventRunsPage() {
                 {selectedIds.size}/5 runs selected — click to toggle
               </p>
             )}
+
+            {/* Report button */}
+            <button
+              onClick={() => setShowReport(true)}
+              className="mt-3 w-full py-1.5 text-xs rounded-lg transition-opacity hover:opacity-70"
+              style={{ background: "transparent", color: "var(--muted)", border: "1px solid var(--border)" }}
+            >
+              ⚑ Report an issue with this spot
+            </button>
           </div>
 
           {/* Right: map + chart */}
@@ -377,7 +388,7 @@ export default function EventRunsPage() {
             <div className="rounded-xl overflow-hidden" style={{ height: "380px", background: "var(--surface)" }}>
               <RunComparisonMap runs={selectedRuns} hoveredTime={hoveredTime} />
             </div>
-            <div className="rounded-xl p-3" style={{ height: "270px", background: "var(--surface)" }}>
+            <div className="rounded-xl p-3" style={{ height: "360px", background: "var(--surface)" }}>
               <SpeedChart runs={selectedRuns} onHoverTime={setHoveredTime} />
             </div>
           </div>
@@ -406,6 +417,15 @@ export default function EventRunsPage() {
             setTracks((prev) => { const n = { ...prev }; delete n[deletedId]; return n; });
           }}
           onClose={() => setShowUpload(false)}
+        />
+      )}
+
+      {showReport && (
+        <ReportModal
+          eventId={eventId}
+          eventName={event?.name ?? ""}
+          isAuthenticated={!!me?.authenticated}
+          onClose={() => setShowReport(false)}
         />
       )}
     </div>

@@ -64,6 +64,18 @@ type Race = {
   spot_notes?: string | null;
 };
 
+type Report = {
+  id: number;
+  event_id: number;
+  event_name: string;
+  user_name: string;
+  user_email: string;
+  message: string;
+  status: "OPEN" | "RESOLVED" | "DISMISSED";
+  created_at: string;
+  resolved_at: string | null;
+};
+
 export default function AdminPage() {
   // Pending submissions
   const [items, setItems] = useState<PendingItem[]>([]);
@@ -73,11 +85,15 @@ export default function AdminPage() {
   const [races, setRaces] = useState<Race[]>([]);
   const [raceYear, setRaceYear] = useState<number | "">("");
   const [raceBusy, setRaceBusy] = useState<number | null>(null);
+  // Reports
+  const [reports, setReports] = useState<Report[]>([]);
+  const [reportBusy, setReportBusy] = useState<number | null>(null);
 
   // Collapsible sections state
   const [isRacesCollapsed, setIsRacesCollapsed] = useState(false);
   const [isPendingCollapsed, setIsPendingCollapsed] = useState(false);
   const [isUsersCollapsed, setIsUsersCollapsed] = useState(false);
+  const [isReportsCollapsed, setIsReportsCollapsed] = useState(false);
 
   // UI state
   const [loading, setLoading] = useState(true);
@@ -89,19 +105,23 @@ export default function AdminPage() {
   async function loadCore() {
     setLoading(true); setErr(null);
     try {
-      const [subsRes, usersRes] = await Promise.all([
+      const [subsRes, usersRes, reportsRes] = await Promise.all([
         fetch("/api/admin/submissions", { cache: "no-store" }),
         fetch("/api/admin/users", { cache: "no-store" }),
+        fetch("/api/admin/reports", { cache: "no-store" }),
       ]);
       const subsData = await subsRes.json();
       const usersData = await usersRes.json();
+      const reportsData = await reportsRes.json();
       if (!subsRes.ok) throw new Error(subsData?.error || `Subs failed (${subsRes.status})`);
       if (!usersRes.ok) throw new Error(usersData?.error || `Users failed (${usersRes.status})`);
+      if (!reportsRes.ok) throw new Error(reportsData?.error || `Reports failed (${reportsRes.status})`);
       setItems(subsData);
       setUsers(usersData);
+      setReports(reportsData);
     } catch (e: any) {
       setErr(e.message);
-      setItems([]); setUsers([]);
+      setItems([]); setUsers([]); setReports([]);
     } finally {
       setLoading(false);
     }
@@ -164,6 +184,38 @@ export default function AdminPage() {
       setUsers(prev => prev.map(u => u.id === id ? data : u));
     } finally {
       setUserBusy(null);
+    }
+  }
+
+  async function patchReport(id: number, status: "RESOLVED" | "DISMISSED") {
+    setReportBusy(id);
+    try {
+      const res = await fetch(`/api/admin/reports/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) { alert(data?.error || `Update failed (${res.status})`); return; }
+      setReports(prev => prev.map(r => r.id === id ? { ...r, status, resolved_at: data.resolved_at } : r));
+    } finally {
+      setReportBusy(null);
+    }
+  }
+
+  async function deleteReport(id: number) {
+    if (!confirm("Delete this report permanently?")) return;
+    setReportBusy(id);
+    try {
+      const res = await fetch(`/api/admin/reports/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data?.error || `Delete failed (${res.status})`);
+        return;
+      }
+      setReports(prev => prev.filter(r => r.id !== id));
+    } finally {
+      setReportBusy(null);
     }
   }
 
@@ -851,6 +903,110 @@ export default function AdminPage() {
                               <option value="ADMIN">ADMIN</option>
                               <option value="OWNER">OWNER</option>
                             </select>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Reports Section */}
+            <div className="rounded-2xl shadow-lg p-8" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center">
+                    <span className="text-white text-lg">⚑</span>
+                  </div>
+                  <h2 className="text-2xl font-bold" style={{ color: "var(--paper)" }}>Reports</h2>
+                  {reports.filter(r => r.status === "OPEN").length > 0 && (
+                    <span className="px-3 py-1 rounded-full text-sm font-medium" style={{ background: "rgba(239,68,68,0.15)", color: "#ef4444" }}>
+                      {reports.filter(r => r.status === "OPEN").length} open
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={() => setIsReportsCollapsed(!isReportsCollapsed)}
+                  className="p-2 rounded-lg transition-colors duration-200"
+                  style={{ color: "var(--muted)" }}
+                  title={isReportsCollapsed ? "Expand section" : "Collapse section"}
+                >
+                  <span className={`text-xl transition-transform duration-200 ${isReportsCollapsed ? 'rotate-180' : ''}`}>▼</span>
+                </button>
+              </div>
+
+              {!isReportsCollapsed && (
+                <>
+                  {reports.length === 0 ? (
+                    <div className="text-center py-12">
+                      <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: "var(--surface-raised)" }}>
+                        <span className="text-2xl">✅</span>
+                      </div>
+                      <p style={{ color: "var(--muted)" }}>No reports.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {reports.map((report) => (
+                        <div
+                          key={report.id}
+                          className="p-5 rounded-xl"
+                          style={{
+                            background: "var(--surface-raised)",
+                            border: `1px solid ${report.status === "OPEN" ? "rgba(239,68,68,0.4)" : "var(--border)"}`,
+                          }}
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1 space-y-2">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-semibold text-sm" style={{ color: "var(--paper)" }}>{report.event_name}</span>
+                                <span className="text-xs px-2 py-0.5 rounded-full" style={{
+                                  ...(report.status === "OPEN"
+                                    ? { background: "rgba(239,68,68,0.15)", color: "#ef4444" }
+                                    : report.status === "RESOLVED"
+                                    ? { background: "rgba(34,197,94,0.15)", color: "#4ade80" }
+                                    : { background: "var(--surface)", color: "var(--muted)" })
+                                }}>
+                                  {report.status}
+                                </span>
+                              </div>
+                              <div className="text-xs" style={{ color: "var(--muted)" }}>
+                                {report.user_name} · {report.user_email} · {new Date(report.created_at).toLocaleString()}
+                              </div>
+                              <div className="text-sm p-3 rounded-lg whitespace-pre-wrap" style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--paper)" }}>
+                                {report.message}
+                              </div>
+                            </div>
+                            <div className="flex flex-col gap-2 flex-shrink-0">
+                              {report.status === "OPEN" && (
+                                <>
+                                  <button
+                                    onClick={() => patchReport(report.id, "RESOLVED")}
+                                    disabled={reportBusy === report.id}
+                                    className="px-3 py-1.5 rounded-lg text-sm font-medium transition-opacity disabled:opacity-60"
+                                    style={{ background: "rgba(34,197,94,0.15)", color: "#4ade80", border: "1px solid rgba(34,197,94,0.3)" }}
+                                  >
+                                    ✓ Resolve
+                                  </button>
+                                  <button
+                                    onClick={() => patchReport(report.id, "DISMISSED")}
+                                    disabled={reportBusy === report.id}
+                                    className="px-3 py-1.5 rounded-lg text-sm transition-opacity disabled:opacity-60"
+                                    style={{ background: "var(--surface)", color: "var(--muted)", border: "1px solid var(--border)" }}
+                                  >
+                                    Dismiss
+                                  </button>
+                                </>
+                              )}
+                              <button
+                                onClick={() => deleteReport(report.id)}
+                                disabled={reportBusy === report.id}
+                                className="px-3 py-1.5 rounded-lg text-sm transition-opacity disabled:opacity-60"
+                                style={{ background: "var(--surface)", color: "#ef4444", border: "1px solid var(--border)" }}
+                              >
+                                🗑 Delete
+                              </button>
+                            </div>
                           </div>
                         </div>
                       ))}

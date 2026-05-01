@@ -1,9 +1,12 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import Map from "@/components/Map";
 import { useRouter } from "next/navigation";
 import ClickableRiderName from "@/components/ClickableRiderName";
 import { getMissingEventInfo } from "@/lib/event-completeness";
+
+const ReportModal = dynamic(() => import("@/components/ReportModal"), { ssr: false });
 import {
   CategoryFilters,
   DateFilterMode,
@@ -45,6 +48,15 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
   const [err, setErr] = useState<string | null>(null);
   const [filters, setFilters] = useState<CategoryFilters>({ SPOT: true, WDSC: true, EURO: true, FREERIDE: true, IDF: true, OUTLAW: true, NATIONAL: true, RACE: true });
   const [dateFilter, setDateFilter] = useState<DateFilterMode>("all");
+  const [me, setMe] = useState<any>(null);
+  const [showReport, setShowReport] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/me", { cache: "no-store" })
+      .then((r) => r.json())
+      .then(setMe)
+      .catch(() => {});
+  }, []);
 
   const onSelect = useCallback((id: number | null) => {
     setSelectedId(id);
@@ -185,6 +197,15 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
 
               {detail && (
                 <div className="p-6 space-y-6">
+                  {/* Full page link */}
+                  <a
+                    href={`/event/${selectedId}`}
+                    className="flex items-center justify-center gap-2 w-full py-2 rounded-xl text-sm font-semibold transition-opacity hover:opacity-80"
+                    style={{ background: "var(--accent)", color: "var(--paper)" }}
+                  >
+                    View Full Page ↗
+                  </a>
+
                   {/* Event Header */}
                   <div className="flex items-start gap-4">
                     <img
@@ -594,8 +615,15 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                     return null;
                   })()}
 
-                  {/* Close Button */}
-                  <div className="pt-4" style={{ borderTop: "1px solid var(--border)" }}>
+                  {/* Report / Close */}
+                  <div className="pt-4 space-y-2" style={{ borderTop: "1px solid var(--border)" }}>
+                    <button
+                      onClick={() => setShowReport(true)}
+                      className="w-full py-1.5 text-xs rounded-lg transition-opacity hover:opacity-70"
+                      style={{ background: "transparent", color: "var(--muted)", border: "1px solid var(--border)" }}
+                    >
+                      ⚑ Report an issue with this spot
+                    </button>
                     <button
                       onClick={() => setSelectedId(null)}
                       className="w-full px-4 py-2 rounded-lg transition-colors duration-200 font-medium"
@@ -610,6 +638,15 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
           </aside>
         )}
       </div>
+
+      {showReport && selectedId && (
+        <ReportModal
+          eventId={selectedId}
+          eventName={detail?.name ?? ""}
+          isAuthenticated={!!me?.authenticated}
+          onClose={() => setShowReport(false)}
+        />
+      )}
     </div>
   );
 }
