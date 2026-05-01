@@ -86,6 +86,7 @@ class User(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     can_submit: Mapped[bool] = mapped_column(Boolean, default=True)
     profile_image_url: Mapped[str | None] = mapped_column(String(400))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     @staticmethod
     def hash_password(pw: str) -> str:
