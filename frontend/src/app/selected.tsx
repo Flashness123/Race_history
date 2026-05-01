@@ -161,9 +161,6 @@ export default function ClientSelected({ geojson, onFiltersChange }: ClientSelec
                 );
               })}
             </div>
-            <p className="text-xs" style={{ color: "var(--muted)" }}>
-              Filters use each event&apos;s start date. Spots remain visible in every mode.
-            </p>
           </div>
         </div>
       </div>

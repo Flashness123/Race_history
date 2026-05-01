@@ -211,3 +211,14 @@ class SubmissionAttachment(Base):
     stored_path: Mapped[str] = mapped_column(String(400))
     file_size: Mapped[int]
     uploaded_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class ContactMessage(Base):
+    __tablename__ = "contact_messages"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(160))
+    email: Mapped[str] = mapped_column(String(255))
+    subject: Mapped[str] = mapped_column(String(300))
+    message: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(20), default="UNREAD")  # UNREAD | READ | ARCHIVED
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

@@ -76,6 +76,16 @@ type Report = {
   resolved_at: string | null;
 };
 
+type ContactMsg = {
+  id: number;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  status: "UNREAD" | "READ" | "ARCHIVED";
+  created_at: string;
+};
+
 export default function AdminPage() {
   // Pending submissions
   const [items, setItems] = useState<PendingItem[]>([]);
@@ -88,12 +98,16 @@ export default function AdminPage() {
   // Reports
   const [reports, setReports] = useState<Report[]>([]);
   const [reportBusy, setReportBusy] = useState<number | null>(null);
+  // Contact messages
+  const [contactMessages, setContactMessages] = useState<ContactMsg[]>([]);
+  const [contactBusy, setContactBusy] = useState<number | null>(null);
 
   // Collapsible sections state
   const [isRacesCollapsed, setIsRacesCollapsed] = useState(false);
   const [isPendingCollapsed, setIsPendingCollapsed] = useState(false);
   const [isUsersCollapsed, setIsUsersCollapsed] = useState(false);
   const [isReportsCollapsed, setIsReportsCollapsed] = useState(false);
+  const [isContactCollapsed, setIsContactCollapsed] = useState(false);
 
   // UI state
   const [loading, setLoading] = useState(true);
@@ -105,23 +119,27 @@ export default function AdminPage() {
   async function loadCore() {
     setLoading(true); setErr(null);
     try {
-      const [subsRes, usersRes, reportsRes] = await Promise.all([
+      const [subsRes, usersRes, reportsRes, contactRes] = await Promise.all([
         fetch("/api/admin/submissions", { cache: "no-store" }),
         fetch("/api/admin/users", { cache: "no-store" }),
         fetch("/api/admin/reports", { cache: "no-store" }),
+        fetch("/api/admin/contact-messages", { cache: "no-store" }),
       ]);
       const subsData = await subsRes.json();
       const usersData = await usersRes.json();
       const reportsData = await reportsRes.json();
+      const contactData = await contactRes.json();
       if (!subsRes.ok) throw new Error(subsData?.error || `Subs failed (${subsRes.status})`);
       if (!usersRes.ok) throw new Error(usersData?.error || `Users failed (${usersRes.status})`);
       if (!reportsRes.ok) throw new Error(reportsData?.error || `Reports failed (${reportsRes.status})`);
+      if (!contactRes.ok) throw new Error(contactData?.error || `Contact failed (${contactRes.status})`);
       setItems(subsData);
       setUsers(usersData);
       setReports(reportsData);
+      setContactMessages(contactData);
     } catch (e: any) {
       setErr(e.message);
-      setItems([]); setUsers([]); setReports([]);
+      setItems([]); setUsers([]); setReports([]); setContactMessages([]);
     } finally {
       setLoading(false);
     }
@@ -216,6 +234,38 @@ export default function AdminPage() {
       setReports(prev => prev.filter(r => r.id !== id));
     } finally {
       setReportBusy(null);
+    }
+  }
+
+  async function patchContact(id: number, status: "READ" | "ARCHIVED") {
+    setContactBusy(id);
+    try {
+      const res = await fetch(`/api/admin/contact-messages/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) { alert(data?.error || `Update failed (${res.status})`); return; }
+      setContactMessages(prev => prev.map(m => m.id === id ? { ...m, status } : m));
+    } finally {
+      setContactBusy(null);
+    }
+  }
+
+  async function deleteContact(id: number) {
+    if (!confirm("Delete this message permanently?")) return;
+    setContactBusy(id);
+    try {
+      const res = await fetch(`/api/admin/contact-messages/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data?.error || `Delete failed (${res.status})`);
+        return;
+      }
+      setContactMessages(prev => prev.filter(m => m.id !== id));
+    } finally {
+      setContactBusy(null);
     }
   }
 
@@ -1001,6 +1051,110 @@ export default function AdminPage() {
                               <button
                                 onClick={() => deleteReport(report.id)}
                                 disabled={reportBusy === report.id}
+                                className="px-3 py-1.5 rounded-lg text-sm transition-opacity disabled:opacity-60"
+                                style={{ background: "var(--surface)", color: "#ef4444", border: "1px solid var(--border)" }}
+                              >
+                                🗑 Delete
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Contact Messages Section */}
+            <div className="rounded-2xl shadow-lg p-8" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+                    <span className="text-white text-lg">📧</span>
+                  </div>
+                  <h2 className="text-2xl font-bold" style={{ color: "var(--paper)" }}>Contact Messages</h2>
+                  {contactMessages.filter(m => m.status === "UNREAD").length > 0 && (
+                    <span className="px-3 py-1 rounded-full text-sm font-medium" style={{ background: "rgba(59,130,246,0.15)", color: "#60a5fa" }}>
+                      {contactMessages.filter(m => m.status === "UNREAD").length} unread
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={() => setIsContactCollapsed(!isContactCollapsed)}
+                  className="p-2 rounded-lg transition-colors duration-200"
+                  style={{ color: "var(--muted)" }}
+                  title={isContactCollapsed ? "Expand section" : "Collapse section"}
+                >
+                  <span className={`text-xl transition-transform duration-200 ${isContactCollapsed ? 'rotate-180' : ''}`}>▼</span>
+                </button>
+              </div>
+
+              {!isContactCollapsed && (
+                <>
+                  {contactMessages.length === 0 ? (
+                    <div className="text-center py-12">
+                      <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: "var(--surface-raised)" }}>
+                        <span className="text-2xl">📭</span>
+                      </div>
+                      <p style={{ color: "var(--muted)" }}>No contact messages.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {contactMessages.map((msg) => (
+                        <div
+                          key={msg.id}
+                          className="p-5 rounded-xl"
+                          style={{
+                            background: "var(--surface-raised)",
+                            border: `1px solid ${msg.status === "UNREAD" ? "rgba(59,130,246,0.4)" : "var(--border)"}`,
+                          }}
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1 space-y-2">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-semibold text-sm" style={{ color: "var(--paper)" }}>{msg.subject}</span>
+                                <span className="text-xs px-2 py-0.5 rounded-full" style={{
+                                  ...(msg.status === "UNREAD"
+                                    ? { background: "rgba(59,130,246,0.15)", color: "#60a5fa" }
+                                    : msg.status === "READ"
+                                    ? { background: "rgba(34,197,94,0.15)", color: "#4ade80" }
+                                    : { background: "var(--surface)", color: "var(--muted)" })
+                                }}>
+                                  {msg.status}
+                                </span>
+                              </div>
+                              <div className="text-xs" style={{ color: "var(--muted)" }}>
+                                {msg.name} · {msg.email} · {new Date(msg.created_at).toLocaleString()}
+                              </div>
+                              <div className="text-sm p-3 rounded-lg whitespace-pre-wrap" style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--paper)" }}>
+                                {msg.message}
+                              </div>
+                            </div>
+                            <div className="flex flex-col gap-2 flex-shrink-0">
+                              {msg.status === "UNREAD" && (
+                                <button
+                                  onClick={() => patchContact(msg.id, "READ")}
+                                  disabled={contactBusy === msg.id}
+                                  className="px-3 py-1.5 rounded-lg text-sm font-medium transition-opacity disabled:opacity-60"
+                                  style={{ background: "rgba(34,197,94,0.15)", color: "#4ade80", border: "1px solid rgba(34,197,94,0.3)" }}
+                                >
+                                  ✓ Mark Read
+                                </button>
+                              )}
+                              {msg.status !== "ARCHIVED" && (
+                                <button
+                                  onClick={() => patchContact(msg.id, "ARCHIVED")}
+                                  disabled={contactBusy === msg.id}
+                                  className="px-3 py-1.5 rounded-lg text-sm transition-opacity disabled:opacity-60"
+                                  style={{ background: "var(--surface)", color: "var(--muted)", border: "1px solid var(--border)" }}
+                                >
+                                  Archive
+                                </button>
+                              )}
+                              <button
+                                onClick={() => deleteContact(msg.id)}
+                                disabled={contactBusy === msg.id}
                                 className="px-3 py-1.5 rounded-lg text-sm transition-opacity disabled:opacity-60"
                                 style={{ background: "var(--surface)", color: "#ef4444", border: "1px solid var(--border)" }}
                               >

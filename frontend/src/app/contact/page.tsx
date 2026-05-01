@@ -7,10 +7,29 @@ const cardStyle = { background: "var(--surface)", borderColor: "var(--border)" }
 export default function Contact() {
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setSubmitting(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.detail || "Failed to send message");
+      }
+      setSubmitted(true);
+    } catch (err: any) {
+      setError(err.message || "Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (submitted) {
@@ -26,7 +45,7 @@ export default function Contact() {
               Thank you for your message. We'll get back to you as soon as possible.
             </p>
             <button
-              onClick={() => setSubmitted(false)}
+              onClick={() => { setSubmitted(false); setForm({ name: "", email: "", subject: "", message: "" }); }}
               className="w-full px-6 py-3 font-semibold rounded-lg transition-opacity hover:opacity-90"
               style={{ background: "var(--accent)", color: "var(--paper)" }}
             >
@@ -110,12 +129,23 @@ export default function Contact() {
                 </div>
 
                 <button type="submit"
-                  className="w-full px-8 py-4 font-semibold rounded-lg transition-opacity hover:opacity-90 hover-lift"
+                  disabled={submitting}
+                  className="w-full px-8 py-4 font-semibold rounded-lg transition-opacity hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
                   style={{ background: "var(--accent)", color: "var(--paper)" }}>
                   <div className="flex items-center justify-center gap-2">
-                    <span>📤</span><span>Send Message</span>
+                    {submitting ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "var(--paper)", borderTopColor: "transparent" }} />
+                        <span>Sending…</span>
+                      </>
+                    ) : (
+                      <><span>📤</span><span>Send Message</span></>
+                    )}
                   </div>
                 </button>
+                {error && (
+                  <p className="text-sm text-center" style={{ color: "#ef4444" }}>{error}</p>
+                )}
               </form>
             </div>
           </div>
