@@ -83,12 +83,38 @@ function SubmitContent() {
     });
   }
 
+  async function reverseGeocode(lat: number, lng: number): Promise<{ name: string; location: string } | null> {
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
+        { headers: { "Accept-Language": "en" } }
+      );
+      if (!res.ok) return null;
+      const data = await res.json();
+      const addr = data.address ?? {};
+      const city = addr.city || addr.town || addr.village || addr.hamlet || addr.county || "";
+      const country = addr.country || "";
+      if (!city) return null;
+      return { name: city, location: country ? `${city}, ${country}` : city };
+    } catch {
+      return null;
+    }
+  }
+
   async function handleGpsLocDetect(file: File) {
     setGpsLocMsg(null);
     try {
       const { lat, lng } = await detectLocationFromCSV(file);
       setForm((prev) => ({ ...prev, lat, lng }));
       setGpsLocMsg(`Location detected: ${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+      const geo = await reverseGeocode(lat, lng);
+      if (geo) {
+        setForm((prev) => ({
+          ...prev,
+          name: prev.name.trim() ? prev.name : geo.name,
+          location: prev.location.trim() ? prev.location : geo.location,
+        }));
+      }
     } catch (e: any) {
       setGpsLocMsg(`Could not detect location: ${e.message}`);
     }
@@ -747,7 +773,15 @@ function SubmitContent() {
                     <MapPicker
                       lat={form.lat}
                       lng={form.lng}
-                      onPick={(lat, lng) => setForm(prev => ({ ...prev, lat, lng }))}
+                      onPick={async (lat, lng) => {
+                        setForm(prev => ({ ...prev, lat, lng }));
+                        const geo = await reverseGeocode(lat, lng);
+                        if (geo) setForm(prev => ({
+                          ...prev,
+                          name: prev.name.trim() ? prev.name : geo.name,
+                          location: prev.location.trim() ? prev.location : geo.location,
+                        }));
+                      }}
                     />
                   </div>
                 </div>

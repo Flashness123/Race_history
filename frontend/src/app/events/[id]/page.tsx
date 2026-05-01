@@ -69,6 +69,13 @@ export default function EventRunsPage() {
       .catch(() => {});
   }, [eventId]);
 
+  function loadEvent() {
+    fetch(`/api/events/${eventId}`, { cache: "no-store" })
+      .then((r) => r.json())
+      .then(setEvent)
+      .catch(() => {});
+  }
+
   const loadRuns = useCallback(
     async (sort: SortBy = sortBy) => {
       try {
@@ -391,6 +398,7 @@ export default function EventRunsPage() {
               setTempRun(run);
             }
             loadRuns(sortBy);
+            loadEvent();
           }}
           onReplace={(deletedId) => {
             setRuns((prev) => prev.filter((r) => r.id !== deletedId));
