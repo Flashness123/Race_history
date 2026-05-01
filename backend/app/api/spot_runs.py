@@ -1,4 +1,5 @@
 import os
+import re
 import math
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query
@@ -23,6 +24,7 @@ _SORT_COLS = {
 
 _MAX_DISTANCE_KM = 10.0
 _LEADERBOARD_SIZE = 100
+_RACEBOX_URL_RE = re.compile(r"^https://www\.racebox\.pro/webapp/track/[A-Za-z0-9_\-]+$")
 
 
 def _haversine_km(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
@@ -52,6 +54,7 @@ async def upload_run(
     event_id: int,
     file: UploadFile = File(...),
     rider_name: Optional[str] = Form(None),
+    racebox_track_url: Optional[str] = Form(None),
     db: Session = Depends(get_db),
     claims: dict = Depends(get_current_user_claims),
 ):
@@ -79,8 +82,34 @@ async def upload_run(
         raise HTTPException(status_code=400, detail="Only CSV files are supported")
 
     content = await file.read()
+
+    is_first_upload = event.track_start_lat is None
+
+    if is_first_upload:
+        # First upload: require a valid RaceBox track URL
+        url = (racebox_track_url or "").strip()
+        if not url:
+            raise HTTPException(
+                status_code=400,
+                detail="This is the first run on this spot. You must provide a RaceBox track URL "
+                       "(https://www.racebox.pro/webapp/track/...) so other riders can follow the same route.",
+            )
+        if not _RACEBOX_URL_RE.match(url):
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid RaceBox track URL. It must look like: "
+                       "https://www.racebox.pro/webapp/track/<track-id>",
+            )
+
     try:
-        run_data = parse_racebox_csv(content)
+        if is_first_upload:
+            run_data = parse_racebox_csv(content)
+        else:
+            run_data = parse_racebox_csv(
+                content,
+                ref_start=(event.track_start_lat, event.track_start_lng),
+                ref_end=(event.track_end_lat, event.track_end_lng),
+            )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -92,9 +121,17 @@ async def upload_run(
         if dist_km > _MAX_DISTANCE_KM:
             raise HTTPException(
                 status_code=422,
-                detail=f"Run start is {dist_km:.1f} km from this event's location. "
-                       f"Only runs within {_MAX_DISTANCE_KM} km can be uploaded here."
+                detail=f"Run start is {dist_km:.1f} km from this event's location."
             )
+
+    # Store reference start/end on the event for the first upload
+    if is_first_upload and run_data.track_points:
+        event.racebox_track_url = racebox_track_url.strip()
+        event.track_start_lat = run_data.track_points[0]["lat"]
+        event.track_start_lng = run_data.track_points[0]["lng"]
+        event.track_end_lat = run_data.track_points[-1]["lat"]
+        event.track_end_lng = run_data.track_points[-1]["lng"]
+        db.flush()
 
     # Two runs per user per event — auto-replace their slowest when at limit
     existing_runs = db.scalars(

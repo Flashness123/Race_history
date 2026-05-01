@@ -182,6 +182,33 @@ export default function EventRunsPage() {
         </div>
       </div>
 
+      {/* RaceBox track reference banner */}
+      {event?.racebox_track_url ? (
+        <div className="border-b px-4 py-3" style={{ borderColor: "var(--border)", background: "var(--surface-raised)" }}>
+          <div className="max-w-7xl mx-auto flex flex-wrap items-center gap-2 text-sm">
+            <span style={{ color: "var(--muted)" }}>📍 Reference track:</span>
+            <a
+              href={event.racebox_track_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium underline hover:opacity-80 break-all"
+              style={{ color: "var(--accent)" }}
+            >
+              {event.racebox_track_url}
+            </a>
+            <span className="text-xs" style={{ color: "var(--muted)" }}>
+              — Download this track in the RaceBox app to ride with the exact same start &amp; end points.
+            </span>
+          </div>
+        </div>
+      ) : (
+        <div className="border-b px-4 py-3" style={{ borderColor: "var(--border)", background: "var(--surface-raised)" }}>
+          <div className="max-w-7xl mx-auto text-sm" style={{ color: "var(--muted)" }}>
+            📍 No reference track yet — the first person to upload a run must provide a RaceBox Pro track link.
+          </div>
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Left: leaderboard */}
@@ -353,6 +380,7 @@ export default function EventRunsPage() {
       {showUpload && (
         <RunUploadModal
           eventId={eventId}
+          hasReferenceTrack={!!event?.racebox_track_url}
           onSuccess={(run) => {
             if (run.replaced_run_id) {
               setRuns((prev) => prev.filter((r) => r.id !== run.replaced_run_id));

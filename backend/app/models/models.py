@@ -48,6 +48,12 @@ class RaceEvent(Base):
     track_record_woman_name: Mapped[str | None] = mapped_column(String(200))
     track_record_woman_time: Mapped[str | None] = mapped_column(String(50))
     organizer_name: Mapped[str | None] = mapped_column(String(200))
+    # RaceBox track reference (set on first GPS run upload)
+    racebox_track_url: Mapped[str | None] = mapped_column(String(500))
+    track_start_lat: Mapped[float | None] = mapped_column(nullable=True)
+    track_start_lng: Mapped[float | None] = mapped_column(nullable=True)
+    track_end_lat: Mapped[float | None] = mapped_column(nullable=True)
+    track_end_lng: Mapped[float | None] = mapped_column(nullable=True)
     results: Mapped[list["Result"]] = relationship(back_populates="event")
 
 class Result(Base):

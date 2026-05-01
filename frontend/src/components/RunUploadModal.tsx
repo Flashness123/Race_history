@@ -11,6 +11,7 @@ import {
 
 interface Props {
   eventId: number;
+  hasReferenceTrack: boolean;
   onSuccess: (run: SpotRunOut) => void;
   onReplace?: (deletedRunId: number) => void;
   onClose: () => void;
@@ -22,9 +23,10 @@ function fmt(ms: number) {
   return m > 0 ? `${m}m ${s % 60}s` : `${s}s`;
 }
 
-export default function RunUploadModal({ eventId, onSuccess, onReplace, onClose }: Props) {
+export default function RunUploadModal({ eventId, hasReferenceTrack, onSuccess, onReplace, onClose }: Props) {
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [trackUrl, setTrackUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [conflict, setConflict] = useState<ExistingRunConflict | null>(null);
@@ -33,9 +35,8 @@ export default function RunUploadModal({ eventId, onSuccess, onReplace, onClose 
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
     if (!f) return;
-    const name = f.name.toLowerCase();
-    if (!name.endsWith(".csv") && !name.endsWith(".gpx") && !name.endsWith(".kml")) {
-      setError("Please select a .csv, .gpx, or .kml file from the RaceBox app");
+    if (!f.name.toLowerCase().endsWith(".csv")) {
+      setError("Only .csv files exported from the RaceBox app are supported");
       return;
     }
     setFile(f);
@@ -43,7 +44,11 @@ export default function RunUploadModal({ eventId, onSuccess, onReplace, onClose 
   }
 
   async function doUpload(replaceId?: number) {
-    if (!file) { setError("Please select a file"); return; }
+    if (!file) { setError("Please select a CSV file"); return; }
+    if (!hasReferenceTrack && !trackUrl.trim()) {
+      setError("Please provide the RaceBox track URL for this spot");
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -51,7 +56,12 @@ export default function RunUploadModal({ eventId, onSuccess, onReplace, onClose 
         await deleteSpotRun(eventId, replaceId);
         onReplace?.(replaceId);
       }
-      const run = await uploadSpotRun(eventId, file);
+      const run = await uploadSpotRun(
+        eventId,
+        file,
+        undefined,
+        !hasReferenceTrack ? trackUrl.trim() : undefined,
+      );
       if (!run.kept) {
         setNotKept({ rank: run.rank!, duration_ms: run.duration_ms, max_speed_kmh: run.max_speed_kmh });
       }
@@ -85,7 +95,7 @@ export default function RunUploadModal({ eventId, onSuccess, onReplace, onClose 
           <button onClick={onClose} className="text-xl leading-none hover:opacity-70" style={{ color: "var(--muted)" }}>&times;</button>
         </div>
 
-        {/* Not-in-top-100 feedback (stays open so user can still close manually) */}
+        {/* Not-in-top-100 feedback */}
         {notKept && (
           <div className="rounded-lg p-4 mb-4" style={{ background: "var(--surface-raised)", border: "1px solid var(--border)" }}>
             <p className="font-medium mb-1" style={{ color: "var(--paper)" }}>Run compared — not saved</p>
@@ -142,8 +152,29 @@ export default function RunUploadModal({ eventId, onSuccess, onReplace, onClose 
         {/* Normal upload form */}
         {!conflict && !notKept && (
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            {/* RaceBox track URL — required only for the very first run on this spot */}
+            {!hasReferenceTrack && (
+              <div>
+                <label className="block text-sm font-medium mb-1" style={{ color: "var(--paper)" }}>
+                  RaceBox Track URL <span style={{ color: "var(--accent)" }}>*</span>
+                </label>
+                <input
+                  type="url"
+                  required
+                  placeholder="https://www.racebox.pro/webapp/track/..."
+                  value={trackUrl}
+                  onChange={(e) => setTrackUrl(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg text-sm"
+                  style={{ background: "var(--surface-raised)", border: "1px solid var(--border)", color: "var(--paper)" }}
+                />
+                <p className="mt-1 text-xs" style={{ color: "var(--muted)" }}>
+                  You are the first to upload a run here. Paste the RaceBox Pro track link so other riders can ride the exact same course.
+                </p>
+              </div>
+            )}
+
             <div>
-              <label className="block text-sm mb-1" style={{ color: "var(--muted)" }}>RaceBox GPS file (.csv, .gpx, .kml)</label>
+              <label className="block text-sm mb-1" style={{ color: "var(--muted)" }}>RaceBox CSV file</label>
               <div
                 className="w-full border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors hover:border-opacity-70"
                 style={{ borderColor: "var(--border)" }}
@@ -152,9 +183,9 @@ export default function RunUploadModal({ eventId, onSuccess, onReplace, onClose 
                 {file ? (
                   <p className="text-sm" style={{ color: "var(--paper)" }}>{file.name}</p>
                 ) : (
-                  <p className="text-sm" style={{ color: "var(--muted)" }}>Tap to select file from RaceBox app</p>
+                  <p className="text-sm" style={{ color: "var(--muted)" }}>Tap to select .csv file from RaceBox app</p>
                 )}
-                <input ref={fileRef} type="file" accept=".csv,.gpx,.kml" onChange={handleFile} className="hidden" />
+                <input ref={fileRef} type="file" accept=".csv" onChange={handleFile} className="hidden" />
               </div>
             </div>
 

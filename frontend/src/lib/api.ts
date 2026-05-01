@@ -141,11 +141,13 @@ export async function fetchSpotRun(eventId: number, runId: number): Promise<Spot
 export async function uploadSpotRun(
   eventId: number,
   file: File,
-  riderName?: string
+  riderName?: string,
+  raceboxTrackUrl?: string,
 ): Promise<SpotRunOut> {
   const form = new FormData();
   form.append("file", file);
   if (riderName) form.append("rider_name", riderName);
+  if (raceboxTrackUrl) form.append("racebox_track_url", raceboxTrackUrl);
 
   const res = await fetch(`/api/spots/${eventId}/runs`, { method: "POST", body: form });
   if (!res.ok) {

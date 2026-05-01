@@ -1,5 +1,6 @@
 import csv
 import io
+import math
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
@@ -41,6 +42,18 @@ _DOWNSAMPLE_INTERVAL_MS = 200  # keep at most 5 Hz
 
 _RUN_START_MOVING_KMH = 10.0
 _RUN_START_IDLE_KMH = 3.0
+
+# GPS tolerance for matching uploaded track to reference start/end points.
+# RaceBox claims ~1.5 m CE95 accuracy; 5 m gives comfortable margin.
+_REF_POINT_TOLERANCE_KM = 0.005
+
+
+def _haversine_km(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
+    R = 6371.0
+    dlat = math.radians(lat2 - lat1)
+    dlng = math.radians(lng2 - lng1)
+    a = math.sin(dlat / 2) ** 2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlng / 2) ** 2
+    return R * 2 * math.asin(math.sqrt(a))
 
 
 def _find_run_start_idx(points_ms: list) -> int:
@@ -129,7 +142,11 @@ def _extract_run_date_from_iso(t_str: str) -> datetime | None:
         return None
 
 
-def parse_racebox_csv(content: bytes) -> RunData:
+def parse_racebox_csv(
+    content: bytes,
+    ref_start: tuple[float, float] | None = None,
+    ref_end: tuple[float, float] | None = None,
+) -> RunData:
     try:
         text = content.decode("utf-8")
     except UnicodeDecodeError:
@@ -223,14 +240,43 @@ def parse_racebox_csv(content: bytes) -> RunData:
     if len(raw) < 2:
         raise ValueError("CSV contains too few valid GPS points")
 
+    # Trim to reference start/end when provided (subsequent uploads to a spot).
+    # When no reference, fall back to idle-trim heuristic (first upload or standalone).
+    if ref_start is not None:
+        start_idx = min(range(len(raw)), key=lambda i: _haversine_km(raw[i][1], raw[i][2], ref_start[0], ref_start[1]))
+        dist_start = _haversine_km(raw[start_idx][1], raw[start_idx][2], ref_start[0], ref_start[1])
+        if dist_start > _REF_POINT_TOLERANCE_KM:
+            raise ValueError(
+                f"Your GPS track does not pass through this spot's start point "
+                f"(closest match is {dist_start * 1000:.0f} m away). "
+                f"Make sure you record from the correct start location."
+            )
+        raw = raw[start_idx:]
+
+    if ref_end is not None and len(raw) >= 2:
+        end_idx = min(range(len(raw)), key=lambda i: _haversine_km(raw[i][1], raw[i][2], ref_end[0], ref_end[1]))
+        dist_end = _haversine_km(raw[end_idx][1], raw[end_idx][2], ref_end[0], ref_end[1])
+        if dist_end > _REF_POINT_TOLERANCE_KM:
+            raise ValueError(
+                f"Your GPS track does not reach this spot's end point "
+                f"(closest match is {dist_end * 1000:.0f} m away). "
+                f"Make sure your recording covers the full course."
+            )
+        raw = raw[: end_idx + 1]
+
+    if len(raw) < 2:
+        raise ValueError("CSV contains too few valid GPS points after trimming to spot boundaries")
+
     t0 = raw[0][0]
     points_ms = [(round((t - t0) * 1000), lat, lng, alt, spd, gx, gy) for t, lat, lng, alt, spd, gx, gy in raw]
 
-    start_idx = _find_run_start_idx(points_ms)
-    if start_idx > 0:
-        t_origin = points_ms[start_idx][0]
-        points_ms = [(t - t_origin, lat, lng, alt, spd, gx, gy)
-                     for t, lat, lng, alt, spd, gx, gy in points_ms[start_idx:]]
+    # Apply idle-trim only when no reference start was given
+    if ref_start is None:
+        start_idx = _find_run_start_idx(points_ms)
+        if start_idx > 0:
+            t_origin = points_ms[start_idx][0]
+            points_ms = [(t - t_origin, lat, lng, alt, spd, gx, gy)
+                         for t, lat, lng, alt, spd, gx, gy in points_ms[start_idx:]]
 
     downsampled: list[dict] = []
     last_kept_t = -_DOWNSAMPLE_INTERVAL_MS

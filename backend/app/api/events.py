@@ -153,4 +153,5 @@ def event_detail(event_id: int, db: Session = Depends(get_db)):
         "track_record_luge_time": ev.track_record_luge_time,
         "track_record_woman_name": ev.track_record_woman_name,
         "track_record_woman_time": ev.track_record_woman_time,
+        "racebox_track_url": ev.racebox_track_url,
     }
