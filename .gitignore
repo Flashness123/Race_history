@@ -7,7 +7,9 @@ __pycache__/
 
 # --- Python backend ---
 backend/.venv/
+backend/race_venv/
 backend/.env
+backend/.env.local.backup
 backend/.pytest_cache/
 backend/.mypy_cache/
 backend/.coverage
@@ -29,3 +31,6 @@ frontend/.vercel
 # --- IDE ---
 .vscode/
 .idea/
+
+# --- secrets (never commit) ---
+railway_env_vars.txt
